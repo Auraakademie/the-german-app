@@ -444,6 +444,14 @@
     color:var(--ink-2);font-family:"TG Text",system-ui,sans-serif}
   .lvst.approved{border-color:var(--ok);color:var(--ok)}
   .lvst.requested{border-color:var(--gold);color:var(--gold-ink)}
+  .lvbtns{display:flex;gap:8px}
+  /* Zustimmen und Ablehnen sehen bewusst NICHT gleich aus. Zwei gleiche
+     Knoepfe nebeneinander sind eine Falle: Man tippt den falschen. */
+  .lvyes,.lvno{padding:10px 14px;border-radius:11px;font-size:14px;
+    font-family:"TG Text",system-ui,sans-serif;font-weight:600;
+    border:1px solid var(--hair);background:none;color:var(--ink-2)}
+  .lvyes{border-color:var(--ok);color:var(--ok)}
+  .lvno{color:var(--ink-3)}
 
   .next.dirty{border-color:var(--gold)}
   .next.dirty .rm{border-color:var(--gold);color:var(--gold-ink);background:none}
@@ -662,6 +670,14 @@
 
       <p class="eyebrow" data-t="lvMine"></p>
       <div id="lv-list"></div>
+
+      <!-- Nur fuer die Leitung. Steht UNTER dem eigenen Stand, weil auch
+           Hendra zuerst sein eigener Mitarbeiter ist und dann erst der,
+           der entscheidet. -->
+      <div id="lv-chef" hidden>
+        <p class="eyebrow" data-t="lvToDecide"></p>
+        <div id="lv-offen"></div>
+      </div>
     </section>
 
     <section class="screen" id="s-lead">
@@ -788,6 +804,9 @@ const T={
   lvBadRange:"The end is before the start.",
   lvOffline:"No connection. Try again when you are online.",
   lvUsed:"used", lvPlanned:"requested",
+  lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
+  lvYes:"Approve", lvNo:"Decline",
+  lvLeft2:"left", lvDone:"Done.",
   st_requested:"waiting", st_approved:"approved",
   st_rejected:"not approved", st_cancelled:"withdrawn",
   stateOk:"All saved", stateWaiting:"Saved on this phone", stateLocal:"Saved on this phone",
@@ -838,6 +857,9 @@ const T={
   lvBadRange:"Tanggal selesai sebelum tanggal mulai.",
   lvOffline:"Tidak ada koneksi. Coba lagi saat online.",
   lvUsed:"terpakai", lvPlanned:"diajukan",
+  lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
+  lvYes:"Setujui", lvNo:"Tolak",
+  lvLeft2:"tersisa", lvDone:"Selesai.",
   st_requested:"menunggu", st_approved:"disetujui",
   st_rejected:"tidak disetujui", st_cancelled:"dibatalkan",
   stateOk:"Semua tersimpan", stateWaiting:"Tersimpan di HP ini", stateLocal:"Tersimpan di HP ini",
@@ -1824,6 +1846,48 @@ let pinBuf="", pinMode="check", pinFirst=null, pinAlt=null, pinTries=0;
 
 let lvStand=null, lvArt="holiday";
 
+/* Die Leitung sieht, was auf sie wartet. Bewusst kein eigener Bildschirm:
+   Ein Reiter, den man suchen muss, wird nicht benutzt. Er haengt dort, wo
+   Hendra ohnehin hinschaut, wenn es um Urlaub geht. */
+async function ladeOffene(){
+  const kasten=$("#lv-chef"); if(!kasten) return;
+  if(!istLeitung()){ kasten.hidden=true; return }
+  kasten.hidden=false;
+  let liste=[];
+  try{ liste = await sbGet("app_leave_open?select=*") }catch(e){ return }
+  const t=L();
+  $("#lv-offen").innerHTML = liste.length ? liste.map(r=>`
+    <div class="lvitem" data-antrag="${r.id}">
+      <div class="d">
+        <b>${r.name}</b>
+        <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
+          &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
+          &middot; ${r.kind==="religion"?t.lvReligion:t.lvHoliday}
+          &middot; ${Number(r.frei)} ${t.lvLeft2}</small>
+      </div>
+      <div class="lvbtns">
+        <button class="lvno"  data-nein="${r.id}">${t.lvNo}</button>
+        <button class="lvyes" data-ja="${r.id}">${t.lvYes}</button>
+      </div>
+    </div>`).join("")
+    : `<p class="lverr">${t.lvNoneOpen}</p>`;
+}
+
+async function entscheide(id, ja){
+  const zeile=document.querySelector(`[data-antrag="${id}"]`);
+  if(zeile) zeile.style.opacity=".4";
+  try{
+    await sbSend("rpc/urlaub_entscheiden", {p_antrag:id, p_ja:ja, p_notiz:null});
+    await ladeOffene();
+    await ladeUrlaub();
+  }catch(e){
+    /* Fehlgeschlagen heisst hier fast immer: jemand anders war schneller.
+       Also nicht meckern, sondern neu laden und den echten Stand zeigen. */
+    if(zeile) zeile.style.opacity="1";
+    await ladeOffene();
+  }
+}
+
 async function ladeUrlaub(){
   const m=me(); if(!m||!m.id) return;
   const [stand]=await sbGet("app_leave?select=*&person_id=eq."+m.id);
@@ -2338,7 +2402,7 @@ function go(id, push){
   /* Der Urlaubsstand wird beim Oeffnen geholt, nicht auf Vorrat. Er aendert
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
-  if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); }
+  if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -2359,6 +2423,8 @@ document.addEventListener("click",e=>{
     $$("[data-lk]").forEach(b=>b.classList.toggle("on", b===lk));
     return }
   if(e.target.closest("#lv-send")){ urlaubSenden(); return }
+  const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
+  const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
   if(e.target.closest("#nichtich")){ vergissGeraet(); tr(); go("s-login"); return }
   if(e.target.closest("#navback")){back();return}
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
