@@ -595,8 +595,8 @@
         </div>
       </div>
 
-      <p class="eyebrow" data-t="handover"></p>
-      <div class="glass ho">
+      <p class="eyebrow" id="ho-titel" data-t="handover"></p>
+      <div class="glass ho" id="ho-box">
         <span class="q">&ldquo;</span>
         <div class="txt" data-t="hoTxt"></div>
         <div class="who" data-t="hoFrom"></div>
@@ -2343,6 +2343,11 @@ function renderRooms(){
   /* Die Kachel der Leitung zaehlt IMMER beide Bereiche, unabhaengig davon,
      wer gerade angemeldet ist. Deshalb steht sie vor dem Ausstieg. */
   const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF;
+  /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
+     Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
+     echten Assistentin nicht angezeigt werden, aus demselben Grund wie die
+     erfundenen Termine. Sie kommt zurueck, wenn es echte Uebergaben gibt. */
+  ["ho-titel","ho-box"].forEach(id=>{ const el=$("#"+id); if(el) el.hidden = TESTLAUF });
   const lb=$("#lv-badge");
   if(lb && lvStand) lb.textContent=Number(lvStand.frei);
   $("#lk-rooms").innerHTML=(S.rooms||[]).length+"<small> / "+APPTS.length+"</small>";
