@@ -776,6 +776,8 @@ const T={
   nextUp:"Next patient",
   noSops:"No routines have been set up for your area yet. Your tasks will appear here.",
   notMe:"Not me \u2013 someone else",
+  leadHere:"Your view",
+  leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvHoliday:"Holiday", lvReligion:"Religious",
   lvFrom:"From", lvTo:"Until", lvSend:"Send request",
@@ -824,6 +826,8 @@ const T={
   nextUp:"Pasien berikutnya",
   noSops:"Belum ada prosedur untuk bagian Anda. Tugas Anda akan muncul di sini.",
   notMe:"Bukan saya \u2013 orang lain",
+  leadHere:"Tampilan Anda",
+  leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvHoliday:"Cuti tahunan", lvReligion:"Cuti keagamaan",
   lvFrom:"Dari", lvTo:"Sampai", lvSend:"Kirim pengajuan",
@@ -1374,13 +1378,41 @@ const mineTask=t=>{
      Die Regel galt fuer alle ausser fuer die Leitung, und das war willkuerlich.
 
      Uebersicht ist nicht dasselbe wie Zustaendigkeit. Was das Team erledigt,
-     sieht die Leitung auf ihrem eigenen Bildschirm, nicht in ihrer To-do. */
+     sieht die Leitung auf ihrem eigenen Bildschirm, nicht in ihrer To-do.
+
+     Dennis am 19.08.2026, als ich nachfragte, ob Nina die Derma-Tuer selbst
+     aufschliesst: "Nina ist die Leitung von dem ganzen Laden, sie schliesst
+     keine Tueren auf und zu, sie ist der CEO und Micha ja auch."
+
+     Damit ist die Regel eindeutig und gilt fuer alle drei:
+     Die Leitung hat KEINE Handarbeit auf ihrer Tagesliste.
+
+     Sie kann trotzdem jeden Ablauf nachschlagen - siehe mineGuide(). Der
+     Unterschied ist genau der zwischen "muss ich heute tun" und "will ich
+     wissen, wie es geht". Vorher war beides dasselbe, und deshalb sah Ninas
+     Tag aus wie der von Deo. */
+  if(istLeitung()) return false;
   return t.dep===d;
+};
+
+/* Nachschlagen darf die Leitung ALLES. Sie verantwortet die Ablaeufe, also
+   muss sie hineinsehen koennen, ohne sie abhaken zu muessen. */
+const mineGuide=t=>{
+  if(istLeitung()) return true;
+  return mineTask(t);
 };
 
 function renderGroups(){
   let out="";
   const meine=TASKS.filter(mineTask);
+
+  /* Die Leitung hat keine Handarbeit. Ihr Bildschirm waere sonst leer, und ein
+     leerer Bildschirm ist eine Frage: "Ist es kaputt? Fehlt was?"
+     Also sagt er, warum er leer ist, und wofuer er da ist. */
+  if(istLeitung() && !meine.length){
+    out += `<p class="eyebrow">${L().leadHere}</p>
+      <div class="glass ho"><div class="txt">${L().leadTxt}</div></div>`;
+  }
   /* Ueberschriften nur, wenn sie etwas ordnen. Bei Kaz hatte jede der drei
      Aufgaben ihre eigene Ueberschrift: "Oeffnen" - eine Aufgabe - "Waehrend des
      Tages" - eine Aufgabe - "Schliessen" - eine Aufgabe. Das ist Struktur ohne
@@ -1407,26 +1439,37 @@ function renderGroups(){
        </span><span class="chev">&rsaquo;</span></button>`}).join("");
   });
   out+=`<p class="eyebrow">${L().guides}</p>`;
-  out+=GUIDES.map((t,i)=>({t,i})).filter(x=>mineTask(x.t)).map(({t,i})=>`
+  out+=GUIDES.map((t,i)=>({t,i})).filter(x=>mineGuide(x.t)).map(({t,i})=>`
     <button class="glass guide" data-g="${i}">
       <span class="gi">i</span>
       <span style="flex:1"><span class="tt">${t.t[S.lang]}</span></span>
       <span class="chev">&rsaquo;</span></button>`).join("");
-  /* Leerstand ehrlich benennen. Fuer Zahn und Derma haben wir noch keine
-     Ablaeufe. Lieber "noch nichts hinterlegt" als fremde Aufgaben. */
-  if(!meine.length && !GUIDES.filter(mineTask).length)
+  /* Leerstand ehrlich benennen. Lieber "noch nichts hinterlegt" als fremde
+     Aufgaben.
+     ABER: Bei der Leitung ist der leere Bildschirm kein Mangel, sondern die
+     Regel. Diese Zeile hat meinen Leitungstext ueberschrieben und daraus
+     wieder einen Fehler gemacht, den es nicht gibt. */
+  if(!istLeitung() && !meine.length && !GUIDES.filter(mineGuide).length)
     out=`<p class="quelle">${L().noSops}</p>`;
   $("#groups").innerHTML=out;
 
+  /* Ohne Aufgaben gibt es keinen Fortschritt. Ein Ring auf null bei jemandem,
+     der nichts abzuhaken hat, sieht aus wie "du hast noch nichts getan". */
   const gesamt=meine.length||1;
   const n=S.done.filter(i=>mineTask(TASKS[i])).length,
         bl=Object.keys(S.blocked).filter(i=>mineTask(TASKS[i])).length;
-  $("#ring-n").textContent=n;
+  /* Bei der Leitung sagt der Ring "0 von 0 erledigt". Das ist keine Zahl,
+     das ist ein Vorwurf ohne Grund. Wer nichts abzuhaken hat, bekommt statt
+     des Zaehlers nur die Uhrzeit, seit wann er da ist. */
+  const zaehlt = meine.length > 0;
+  $("#ring-n").textContent = zaehlt ? n : "\u00b7";
   $("#ring").setAttribute("stroke-dasharray",R.toFixed(1));
-  $("#ring").setAttribute("stroke-dashoffset",(R*(1-n/gesamt)).toFixed(1));
-  $("#hero-s").innerHTML=`${n} / ${meine.length} ${L().heroDone}`
-    + (bl?` &middot; ${bl} ${L().heroBlocked}`:"")
-    + `<br>${L().heroSince} <b>${S.started||"\u2014"}</b>`;
+  $("#ring").setAttribute("stroke-dashoffset",
+    (R*(1 - (zaehlt ? n/gesamt : 0))).toFixed(1));
+  $("#hero-s").innerHTML =
+    (zaehlt ? `${n} / ${meine.length} ${L().heroDone}`
+              + (bl?` &middot; ${bl} ${L().heroBlocked}`:"") + "<br>" : "")
+    + `${L().heroSince} <b>${S.started||"\u2014"}</b>`;
 }
 
 /* ================= Anbindung an Singapur =================
@@ -2223,8 +2266,9 @@ function openSop(i,kind,keep){
   /* Gefunden am 13.08.2026: Die Liste filterte nach Abteilung, das OEFFNEN aber
      nicht. Wer auf anderem Weg an eine Nummer kam, sah einen fremden Ablauf.
      Uma bekam den Empfangs-Ablauf mit ihrer eigenen Rolle darunter.
-     Filtern beim Anzeigen ist Kosmetik. Die Pruefung gehoert an die Tuer. */
-  if(!t || !mineTask(t)) return;
+     Filtern beim Anzeigen ist Kosmetik. Die Pruefung gehoert an die Tuer.
+     Fuer Anleitungen gilt die weitere Regel, fuer Aufgaben die enge. */
+  if(!t || !((kind||"task")==="guide" ? mineGuide(t) : mineTask(t))) return;
   cur=i; curKind=kind||"task";
   const sd=(S.steps[curKind+i]||[]);
   $("#sop-title").textContent=t.t[S.lang];
