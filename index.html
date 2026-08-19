@@ -677,6 +677,17 @@
       <div id="lv-chef" hidden>
         <p class="eyebrow" data-t="lvToDecide"></p>
         <div id="lv-offen"></div>
+
+        <!-- Hendras Blatt, aus dem Werkzeug heraus.
+             Dennis am 19.08.: "er muss irgendwo seine liste im backup haben."
+             Richtig - aber als Abzug, nicht als zweite Quelle. Er kann es
+             jederzeit herunterladen, ansehen, ausdrucken, aufheben. -->
+        <p class="eyebrow" data-t="lvSheet"></p>
+        <div class="glass" style="padding:16px">
+          <p class="lverr" data-t="lvSheetTxt" style="margin:0 0 14px"></p>
+          <button class="bigcheck" id="lv-csv"><span class="bx"></span><span data-t="lvGet"></span></button>
+        </div>
+        <div id="lv-tabelle"></div>
       </div>
     </section>
 
@@ -805,6 +816,9 @@ const T={
   lvOffline:"No connection. Try again when you are online.",
   lvUsed:"used", lvPlanned:"requested",
   lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
+  lvSheet:"Your sheet",
+  lvSheetTxt:"The full leave list for everyone, exactly as you keep it. Download it any time, print it, keep it. It always matches what is in the app.",
+  lvGet:"Download the list", lvTeam:"Everyone",
   lvYes:"Approve", lvNo:"Decline",
   lvLeft2:"left", lvDone:"Done.",
   st_requested:"waiting", st_approved:"approved",
@@ -858,6 +872,9 @@ const T={
   lvOffline:"Tidak ada koneksi. Coba lagi saat online.",
   lvUsed:"terpakai", lvPlanned:"diajukan",
   lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
+  lvSheet:"Daftar Anda",
+  lvSheetTxt:"Daftar cuti lengkap semua orang, persis seperti yang Anda buat. Bisa diunduh kapan saja, dicetak, disimpan. Selalu sama dengan yang ada di aplikasi.",
+  lvGet:"Unduh daftar", lvTeam:"Semua orang",
   lvYes:"Setujui", lvNo:"Tolak",
   lvLeft2:"tersisa", lvDone:"Selesai.",
   st_requested:"menunggu", st_approved:"disetujui",
@@ -1417,11 +1434,25 @@ const mineTask=t=>{
   return t.dep===d;
 };
 
-/* Nachschlagen darf die Leitung ALLES. Sie verantwortet die Ablaeufe, also
-   muss sie hineinsehen koennen, ohne sie abhaken zu muessen. */
+/* Gefunden von Dennis am 19.08.2026: "er hat bei sich noch dental fuellungen
+   und co drin."
+
+   Ich hatte "Nachschlagen darf die Leitung ALLES" gebaut. Klingt grosszuegig,
+   ist aber derselbe Fehler wie vorher, nur eine Ebene leiser: Hendra bekam
+   Wurzelbehandlung, Fuellung und Extraktion auf den Bildschirm. Er ist
+   Operational Manager, er schlaegt keine Endo nach.
+
+   Richtig ist: Nachschlagen folgt DERSELBEN Zuordnung wie Aufgaben, nur ohne
+   die Leitungssperre. Micha ist Zahnarzt, er sieht die Behandlungs-Ablaeufe.
+   Nina ist Derma, Hendra ist Verwaltung - beide sehen ihren eigenen Bereich.
+
+   Der Unterschied zwischen Aufgabe und Anleitung ist "muss ich abhaken",
+   nicht "geht mich ueberhaupt etwas an". */
 const mineGuide=t=>{
-  if(istLeitung()) return true;
-  return mineTask(t);
+  const d=myDep();
+  if(t.nurDoc && !(me()&&me().doc)) return false;
+  if(t.nurse && me() && me().doc) return false;
+  return t.dep===d;
 };
 
 function renderGroups(){
@@ -1873,6 +1904,60 @@ async function ladeOffene(){
     : `<p class="lverr">${t.lvNoneOpen}</p>`;
 }
 
+/* Sein Blatt, aus der Datenbank heraus.
+   Bewusst CSV und nicht irgendein eigenes Format: Das oeffnet sich in Excel,
+   in Google Sheets und auf dem Handy. Er kann damit alles machen, was er mit
+   seiner Tabelle heute macht - nur muss er es nicht mehr fuehren. */
+async function ladeTeamUrlaub(){
+  const kasten=$("#lv-tabelle"); if(!kasten || !istLeitung()) return;
+  let alle=[];
+  try{ alle = await sbGet("app_leave_all?select=*") }catch(e){ return }
+  const t=L();
+  kasten.innerHTML = `<p class="eyebrow">${t.lvTeam}</p>` + alle.map(r=>`
+    <div class="lvitem">
+      <div class="d"><b>${r.name}</b>
+        <small>${Number(r.genommen)} ${t.lvUsed}
+          &middot; ${Number(r.frei)} ${t.lvLeft2}
+          ${Number(r.beantragt)?" &middot; "+Number(r.beantragt)+" "+t.lvPlanned:""}</small></div>
+      <span class="lvst ${Number(r.frei)<=2?"requested":""}">${Number(r.frei)}</span>
+    </div>`).join("");
+  return alle;
+}
+
+async function blattHolen(){
+  let alle=[], antraege=[];
+  try{
+    alle     = await sbGet("app_leave_all?select=*");
+    antraege = await sbGet("leave_request?select=person_id,kind,from_day,to_day,days,status&order=from_day");
+  }catch(e){ return }
+
+  const q = v => {
+    const s = v===null||v===undefined ? "" : String(v);
+    return /[",;\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  };
+  const zeilen = [];
+  zeilen.push(["Employee","Role","Department","Year","Entitlement",
+               "Religion taken","Holiday taken","Total taken","Remaining"].map(q).join(";"));
+  alle.forEach(r=>zeilen.push([r.name, r.role_en, r.department, r.year, r.days_total,
+    r.religion_genommen, r.holiday_genommen, r.genommen, r.frei].map(q).join(";")));
+
+  /* Die Einzeltermine darunter, so wie in seinem Blatt die Datumsspalten. */
+  zeilen.push("");
+  zeilen.push(["Employee","Type","From","Until","Days","Status"].map(q).join(";"));
+  const name = {}; alle.forEach(r=>{ name[r.person_id]=r.name });
+  antraege.forEach(r=>zeilen.push([name[r.person_id]||"?", r.kind,
+    r.from_day, r.to_day, r.days, r.status].map(q).join(";")));
+
+  /* BOM voranstellen, sonst zeigt Excel die Umlaute und Namen falsch an. */
+  const blob = new Blob(["\ufeff"+zeilen.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const heute = new Date().toISOString().slice(0,10);
+  a.download = "THE-GERMAN-leave-"+heute+".csv";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() }, 1000);
+}
+
 async function entscheide(id, ja){
   const zeile=document.querySelector(`[data-antrag="${id}"]`);
   if(zeile) zeile.style.opacity=".4";
@@ -1981,6 +2066,26 @@ async function urlaubSenden(){
    In der Datenbank muss dann zusaetzlich pin_set wieder auf false, damit jede
    beim ersten Anmelden ihren eigenen PIN waehlt. */
 const VORFUEHRUNG = true;
+
+/* ================= Testlauf =================
+   Der erste echte Test in der Praxis, ab 19.08.2026: eine Assistentin, nur
+   die Morgenroutine, fuenf Tage.
+
+   Fuer sie muss zweierlei weg:
+   - Die Zimmerkarte. Dort stehen fuenf ERFUNDENE Patienten. Einer echten
+     Assistentin erfundene Patienten zu zeigen ist der schnellste Weg, das
+     Vertrauen zu verlieren
+   - Der Urlaubsbereich. Fertig, aber ein Test mit zwei Fragen beantwortet
+     keine
+
+   Gesteuert ueber die Adresse, nicht ueber den Quelltext:
+
+     ...the-german-app/           volle App, fuer Dennis
+     ...the-german-app/?test=1    Testfassung, fuer die Freiwillige
+
+   So braucht es keine zweite Datei, kein Umschalten im Code, und
+   zurueckdrehen heisst: anderen Link benutzen. */
+const TESTLAUF = new URLSearchParams(location.search).get("test") === "1";
 const DEMO_START_PIN = "4711";
 
 async function ohnePin(k){
@@ -2175,7 +2280,7 @@ const istLeitung=()=>{const m=me(); return !!(m&&(m.lead||m.mgr))};
 
 /* Zimmer sieht, wer sie herrichtet. Hendra gehoert nicht dazu.
    Seine Uebersicht steht auf dem Leitungsbildschirm. */
-const seesRooms=()=>ROOM_DEPS.indexOf(myDep())>=0;
+const seesRooms=()=>!TESTLAUF && ROOM_DEPS.indexOf(myDep())>=0;
 const canSwitch=()=>istLeitung() && seesRooms();
 const shownDep=()=>canSwitch()?(S.dep||myDep()):myDep();
 const myAppts=()=>seesRooms()
@@ -2237,6 +2342,7 @@ function renderRooms(){
   const zeigen=seesRooms();
   /* Die Kachel der Leitung zaehlt IMMER beide Bereiche, unabhaengig davon,
      wer gerade angemeldet ist. Deshalb steht sie vor dem Ausstieg. */
+  const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF;
   const lb=$("#lv-badge");
   if(lb && lvStand) lb.textContent=Number(lvStand.frei);
   $("#lk-rooms").innerHTML=(S.rooms||[]).length+"<small> / "+APPTS.length+"</small>";
@@ -2402,7 +2508,7 @@ function go(id, push){
   /* Der Urlaubsstand wird beim Oeffnen geholt, nicht auf Vorrat. Er aendert
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
-  if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); }
+  if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -2423,6 +2529,7 @@ document.addEventListener("click",e=>{
     $$("[data-lk]").forEach(b=>b.classList.toggle("on", b===lk));
     return }
   if(e.target.closest("#lv-send")){ urlaubSenden(); return }
+  if(e.target.closest("#lv-csv")){ blattHolen(); return }
   const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
   const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
   if(e.target.closest("#nichtich")){ vergissGeraet(); tr(); go("s-login"); return }
