@@ -1361,7 +1361,20 @@ const mineTask=t=>{
      wischt nicht den Stuhl. Wer beides bekommt, bekommt eine Liste, in der
      die Haelfte nicht seine ist, und hoert auf hinzusehen. */
   if(t.nurse && me() && me().doc) return false;
-  if(d==="management") return true;
+  /* Gefunden von Dennis am 19.08.2026: "hendra hat noch sop drin mit tueren
+     aufschliessen derma und dental".
+     Hier stand vorher "if(d==='management') return true", also: Die Leitung
+     bekommt ALLES. Damit hatte Hendra die Empfangsoeffnung, den Steri-Raum
+     und die Derma-Tuer auf seiner eigenen Tagesliste - Arbeit, die er nie
+     macht.
+
+     Das ist derselbe Fehler, den ich drei Zeilen darueber fuer die Aerzte
+     ausdruecklich ausgeschlossen habe: "Wer beides bekommt, bekommt eine
+     Liste, in der die Haelfte nicht seine ist, und hoert auf hinzusehen."
+     Die Regel galt fuer alle ausser fuer die Leitung, und das war willkuerlich.
+
+     Uebersicht ist nicht dasselbe wie Zustaendigkeit. Was das Team erledigt,
+     sieht die Leitung auf ihrem eigenen Bildschirm, nicht in ihrer To-do. */
   return t.dep===d;
 };
 
@@ -2042,11 +2055,22 @@ function pinOk(){
      management      -> beide, mit Umschalter (Hendra kontrolliert, die Inhaber fuehren)
      alle anderen    -> gar keine Zimmer. Nicht ausgegraut, nicht leer: gar nicht da */
 const ROOM_DEPS=["dental","derma"];
-const BOTH=["management"];
 const myDep=()=>{const m=me(); return m&&m.dep?m.dep:"dental"};
-const canSwitch=()=>BOTH.indexOf(myDep())>=0;
-const seesRooms=()=>canSwitch()||ROOM_DEPS.indexOf(myDep())>=0;
-const shownDep=()=>canSwitch()?(S.dep||"dental"):myDep();
+
+/* Zweiter Fehler, gefunden beim Beheben des ersten: Der Umschalter zwischen
+   Dental und Derma haing an der ABTEILUNG "management". In der Datenbank ist
+   dort aber nur Hendra. Micha und Nina stehen bei dental und derma, weil sie
+   dort arbeiten - sie hatten den Umschalter also nie, obwohl er fuer sie
+   gedacht war. Und Hendra hatte ihn, obwohl er keine Zimmer herrichtet.
+
+   Richtig ist die ROLLE, nicht die Abteilung. */
+const istLeitung=()=>{const m=me(); return !!(m&&(m.lead||m.mgr))};
+
+/* Zimmer sieht, wer sie herrichtet. Hendra gehoert nicht dazu.
+   Seine Uebersicht steht auf dem Leitungsbildschirm. */
+const seesRooms=()=>ROOM_DEPS.indexOf(myDep())>=0;
+const canSwitch=()=>istLeitung() && seesRooms();
+const shownDep=()=>canSwitch()?(S.dep||myDep()):myDep();
 const myAppts=()=>seesRooms()
   ? APPTS.map((a,i)=>({a,i})).filter(x=>x.a.dep===shownDep())
   : [];
