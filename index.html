@@ -1396,6 +1396,16 @@ const isBlocked=i=>S.blocked[i]!=null;
    Hendra sieht alles: er kontrolliert. */
 const mineTask=t=>{
   const d=myDep();
+  /* Ein Ablauf kann genau EINER Person gehoeren. Dann gilt nur der Name,
+     nicht die Abteilung und nicht die Leitungsregel.
+
+     Gebaut am 27.08.2026 fuer Hendra: Er ist eine Abteilung mit einer Person,
+     und seit "die Leitung hat keine Handarbeit" bekam er ueber die Abteilung
+     gar nichts mehr. Sein Bildschirm war leer, obwohl er genau aufgeschrieben
+     hatte, was er taeglich tut.
+
+     Die Pruefung steht ganz oben, weil sie alles andere aussticht. */
+  if(t.nur) return !!(me() && me().n === t.nur);
   /* nurDoc: Behandlungs-SOPs. Nur Aerztinnen und Leitung.
      Eine Assistentin hakt keine Wurzelbehandlung ab. */
   if(t.nurDoc && !(me()&&me().doc) && d!=="management") return false;
@@ -1450,6 +1460,7 @@ const mineTask=t=>{
    nicht "geht mich ueberhaupt etwas an". */
 const mineGuide=t=>{
   const d=myDep();
+  if(t.nur) return !!(me() && me().n === t.nur);
   if(t.nurDoc && !(me()&&me().doc)) return false;
   if(t.nurse && me() && me().doc) return false;
   return t.dep===d;
@@ -1719,7 +1730,7 @@ async function ladeSops(){
   if(!rows.length) throw new Error("leer");
 
   const bau = r => ({
-    id: r.id, doc: r.doc, dep: r.department,
+    id: r.id, doc: r.doc, dep: r.department, nur: r.only_for || null,
     g: r.day_part || undefined,
     nurse: r.for_nurse ? 1 : undefined,
     nurDoc: r.for_doctor_only ? 1 : undefined,
