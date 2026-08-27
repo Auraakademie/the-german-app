@@ -617,6 +617,14 @@
       <!-- Der Weg zum eigenen Urlaub. Steht ganz unten, weil er selten
            gebraucht wird: Zuerst die Arbeit von heute, dann alles andere.
            Aber er steht da, damit niemand danach fragen muss. -->
+      <!-- Nur fuer die Leitung. Steht UEBER dem Urlaub, weil es taeglich
+           gebraucht wird und der Urlaub selten. -->
+      <button class="glass next" id="rv-open" data-go="s-review" hidden style="margin-top:22px">
+        <span class="rm" id="rv-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="rvSee"></span>
+          <span class="mt" data-t="rvToday"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
       <button class="glass next" id="lv-open" data-go="s-leave" style="margin-top:22px">
         <span class="rm" id="lv-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="lvH"></span>
@@ -689,6 +697,26 @@
         </div>
         <div id="lv-tabelle"></div>
       </div>
+    </section>
+
+    <!-- ================= Was hakt =================
+         Dennis am 27.08.2026: "Er soll Fehler aufdecken. Er laeuft den ganzen
+         Tag rum und man sieht nicht, was er tut."
+
+         Er muss niemanden fragen. Die App sammelt seit dem ersten Tag, was
+         nicht ging und warum. Hier wird daraus eine Tagesordnung.
+
+         Was hier NICHT steht: Quoten pro Person, Rangfolgen, Prozentwerte.
+         Aufgaben und Gruende, nicht Leistung. -->
+    <section class="screen" id="s-review">
+      <h1 data-t="rvH"></h1>
+      <p class="sub" id="rv-datum"></p>
+
+      <p class="eyebrow" data-t="rvToday"></p>
+      <div id="rv-heute"></div>
+
+      <p class="eyebrow" data-t="rvWeek"></p>
+      <div id="rv-woche"></div>
     </section>
 
     <section class="screen" id="s-lead">
@@ -804,6 +832,11 @@ const T={
   noSops:"No routines have been set up for your area yet. Your tasks will appear here.",
   notMe:"Not me \u2013 someone else",
   leadHere:"Your view",
+  rvH:"What is stuck", rvToday:"Today", rvWeek:"This week, repeated",
+  rvNothing:"Nothing stuck today. Good day.",
+  rvNoWeek:"Nothing repeated this week.",
+  rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
+  rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvHoliday:"Holiday", lvReligion:"Religious",
@@ -860,6 +893,11 @@ const T={
   noSops:"Belum ada prosedur untuk bagian Anda. Tugas Anda akan muncul di sini.",
   notMe:"Bukan saya \u2013 orang lain",
   leadHere:"Tampilan Anda",
+  rvH:"Apa yang tersendat", rvToday:"Hari ini", rvWeek:"Minggu ini, berulang",
+  rvNothing:"Tidak ada yang tersendat hari ini. Hari yang baik.",
+  rvNoWeek:"Tidak ada yang berulang minggu ini.",
+  rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
+  rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvHoliday:"Cuti tahunan", lvReligion:"Cuti keagamaan",
@@ -1679,7 +1717,7 @@ async function sendeEinen(e){
   if(e.art==="blockiert"){
     const lauf = await laufFuer(d.sop);
     await sbSend("sop_run?id=eq."+lauf,
-      {status:"blocked", blocked_why:d.grund, done_at:null}, "PATCH");
+      {status:"blocked", blocked_why: GRUND_DB[d.grund] || d.grund, done_at:null}, "PATCH");
     return;
   }
   if(e.art==="zimmer"){
@@ -1877,6 +1915,79 @@ const DEMO_PIN="1234";
    Vorher lag beides auf pinFirst. Die zweite Eingabe hat die erste
    ueberschrieben, der Server bekam den neuen PIN als alten und lehnte ab. */
 let pinBuf="", pinMode="check", pinFirst=null, pinAlt=null, pinTries=0;
+
+/* ================= Was hakt =================
+   Die Auswertung, die Hendra abends aufmacht. Sie beantwortet zwei Fragen:
+   Was ist HEUTE liegengeblieben, und was geht diese WOCHE immer wieder schief.
+
+   Der zweite Teil ist der wichtigere. Einmal ist Pech, dreimal ist ein
+   Systemfehler - und genau das ist die Tagesordnung fuer den Donnerstag. */
+
+/* Gefunden beim ersten echten Test am 27.08.2026: Die App fuehrt die Gruende
+   als r1 bis r4, die Datenbank erwartet sprechende Werte. Jeder blockierte
+   Ablauf waere im Echtbetrieb stillschweigend im Postausgang liegengeblieben -
+   und ausgerechnet die blockierten sind die, auf die es ankommt.
+
+   Sprechende Werte sind richtig: In drei Jahren weiss niemand mehr, was r3
+   bedeutet. Also uebersetzt die App beim Senden. */
+const GRUND_DB = { r1:"broken", r2:"missing", r3:"no_time", r4:"someone_else" };
+const GRUND = {
+  broken:"Equipment is broken", missing:"Material is missing",
+  no_time:"No time", someone_else:"Someone else did it"
+};
+
+/* Die Zahl auf der Kachel: wie viel haengt heute. Wenn nichts haengt, steht
+   dort ein Haken statt einer Null - eine Null sieht aus wie ein Fehler. */
+async function zaehleHaengt(){
+  try{
+    const heute=new Date().toISOString().slice(0,10);
+    const tag=await sbGet("app_day_review?select=status&on_day=eq."+heute);
+    const n=tag.filter(r=>r.status!=="done").length;
+    const b=$("#rv-badge"); if(b) b.textContent = n ? n : "\u2713";
+  }catch(e){}
+}
+
+async function ladeReview(){
+  const t=L();
+  const heute = new Date().toISOString().slice(0,10);
+  let tag=[], woche=[];
+  try{
+    tag   = await sbGet("app_day_review?select=*&on_day=eq."+heute);
+    woche = await sbGet("app_week_blocked?select=*");
+  }catch(e){ return }
+
+  $("#rv-datum").textContent =
+    new Date().toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",
+      {weekday:"long", day:"numeric", month:"long"});
+
+  /* Nur das Unfertige. Was lief, muss niemand ansehen - das ist der
+     Unterschied zwischen einem Bericht und einer Tagesordnung. */
+  const haengt = tag.filter(r => r.status !== "done");
+  $("#rv-heute").innerHTML = haengt.length ? haengt.map(r=>{
+    const grund = r.grund ? (t[r.grund] || GRUND[r.grund] || r.grund) : null;
+    return `<div class="lvitem">
+      <div class="d">
+        <b>${r.titel}</b>
+        <small>${r.wer} &middot; ${r.gehakt}/${r.schritte}
+          &middot; ${r.status==="blocked" ? t.rvBlocked : t.rvOpen}
+          ${grund ? "<br><b>"+grund+"</b>" : ""}</small>
+      </div>
+      <span class="lvst ${r.status==="blocked"?"requested":""}">${r.gehakt}/${r.schritte}</span>
+    </div>`}).join("")
+    : `<p class="lverr">${t.rvNothing}</p>`;
+
+  /* Die Woche: nur was MEHR ALS EINMAL passiert ist, faellt auf. */
+  $("#rv-woche").innerHTML = woche.length ? woche.map(r=>{
+    const grund = t[r.grund] || GRUND[r.grund] || r.grund || "";
+    return `<div class="lvitem">
+      <div class="d">
+        <b>${r.titel}</b>
+        <small><b>${grund}</b> &middot; ${r.betroffen}</small>
+      </div>
+      <span class="lvst ${r.wie_oft>1?"requested":""}">${r.wie_oft}&times;</span>
+    </div>`}).join("")
+    : `<p class="lverr">${t.rvNoWeek}</p>`;
+}
 
 /* ================= Urlaub =================
    Der einzige Baustein aus Hendras Bereich, der im Praxissystem wirklich
@@ -2354,6 +2465,12 @@ function renderRooms(){
   /* Die Kachel der Leitung zaehlt IMMER beide Bereiche, unabhaengig davon,
      wer gerade angemeldet ist. Deshalb steht sie vor dem Ausstieg. */
   const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF;
+  /* Die Auswertung sieht nur die Leitung, und im Testlauf niemand. */
+  const rvo=$("#rv-open");
+  if(rvo){
+    rvo.hidden = TESTLAUF || !istLeitung();
+    if(!rvo.hidden) zaehleHaengt();
+  }
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
      echten Assistentin nicht angezeigt werden, aus demselben Grund wie die
@@ -2525,6 +2642,7 @@ function go(id, push){
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); }
+  if(id==="s-review"){ ladeReview().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
