@@ -431,7 +431,15 @@
     font-family:"TG Text",system-ui,sans-serif;color:var(--ink-2)}
   .lverr.bad{color:#C4553B}
   .lverr.good{color:var(--ok)}
-  .lvitem{display:flex;align-items:center;gap:12px;padding:14px 16px;
+  .pinrst{background:none;border:1px solid rgba(0,0,0,.18);border-radius:8px;
+  padding:5px 10px;font-size:12px;color:#5b6b6a;margin-right:10px;cursor:pointer}
+.pinrst.pinneu{background:#2e7d6b;color:#fff;border-color:#2e7d6b;
+  font-weight:700;font-size:15px;letter-spacing:2px}
+.pinrst:active{background:rgba(0,0,0,.06)}
+.lvitem .warn{display:block;margin-top:3px;color:#c98a2e;font-weight:600}
+.lvcert{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;cursor:pointer}
+.lvcert input{width:20px;height:20px;accent-color:#2e7d6b}
+.lvitem{display:flex;align-items:center;gap:12px;padding:14px 16px;
     border:1px solid var(--hair);border-radius:14px;margin-bottom:8px;
     background:var(--bg-lift)}
   .lvitem .d{flex:1;font-family:"TG Text",system-ui,sans-serif}
@@ -566,7 +574,13 @@
     <section class="screen" id="s-clock">
       <button class="back" data-go="s-login">&#8249; <span data-t="back"></span></button>
       <h1><span data-t="hello"></span>, <span id="c-name"></span></h1>
-      <p class="sub"><span id="c-role"></span> &middot; <span data-t="shift"></span> 08:00 &ndash; 17:00</p>
+      <!-- Hier stand "Shift 08:00 - 17:00", fest eingetippt, fuer jeden.
+           In Wirklichkeit rotiert die Praxis in drei Teams (Hendra,
+           27.08.2026), und wir kennen die Schichten nicht. Eine erfundene
+           Uhrzeit sagt der Spaetschicht: dieses System kennt dich nicht.
+           Solange der Dienstplan nicht als Daten da ist, steht hier nur
+           die Rolle. -->
+      <p class="sub"><span id="c-role"></span></p>
       <div class="glass note" data-t="clockNote"></div>
       <button class="cta" id="btn-clock" data-t="clockIn"></button>
       <!-- Klein, unten, ohne Warnfarbe. Wer hier landet, ist meistens richtig.
@@ -661,6 +675,40 @@
         </div>
       </div>
 
+      <!-- KRANK MELDEN
+           Steht VOR dem Urlaubsantrag, obwohl Urlaub haeufiger ist.
+           Grund: Wer krank ist, hat keine Geduld zum Suchen. Wer Urlaub
+           plant, hat sie.
+
+           Was hier NICHT steht, ist die eigentliche Entscheidung:
+           kein Feld fuer den Grund, kein Feld fuer ein Attest.
+           Rosa, 27.08.2026, nach UU 27/2022 Pasal 4: Gesundheitsdaten sind
+           besonders geschuetzt. Ein Freitextfeld wuerde sofort Diagnosen
+           erzeugen, weil hoefliche Menschen erklaeren wollen, warum sie
+           fehlen. Wir fragen die Zahl der Tage. Sonst nichts. -->
+      <p class="eyebrow" data-t="lvSickH"></p>
+      <div class="glass" style="padding:16px">
+        <label class="lvlab" data-t="lvSickFrom"></label>
+        <input class="lvin" type="date" id="sk-from">
+        <!-- Grenzen werden beim Start gesetzt, siehe grenzenSetzen() -->
+        <label class="lvlab" data-t="lvSickDays"></label>
+        <div class="lvrow" id="sk-days">
+          <button class="dep on" data-sd="1">1</button>
+          <button class="dep" data-sd="2">2</button>
+          <button class="dep" data-sd="3">3</button>
+          <button class="dep" data-sd="5">5</button>
+        </div>
+
+        <!-- Der Satz muss dastehen. Ohne ihn versucht jemand, ein Foto
+             anzuhaengen, findet keinen Knopf, glaubt sie hat etwas falsch
+             gemacht - und fragt nicht nach, weil hier niemand nachfragt.
+             Der Satz nennt die Alternative gleich mit. -->
+        <p class="lverr" data-t="lvSickNote" style="margin:14px 0 0"></p>
+
+        <button class="bigcheck" id="sk-send"><span class="bx"></span><span data-t="lvSickSend"></span></button>
+        <p class="lverr" id="sk-msg"></p>
+      </div>
+
       <p class="eyebrow" data-t="lvAsk"></p>
       <div class="glass" style="padding:16px">
         <div class="lvrow">
@@ -690,6 +738,21 @@
              Dennis am 19.08.: "er muss irgendwo seine liste im backup haben."
              Richtig - aber als Abzug, nicht als zweite Quelle. Er kann es
              jederzeit herunterladen, ansehen, ausdrucken, aufheben. -->
+        <!-- Hendras Ablauf, Punkt 5:
+             "After the process is completed, HR informs Michael and Nina of
+             the approved leave. The approval decision remains under HR's
+             authority."
+
+             Also KEINE Freigabe, sondern eine Mitteilung. Genau deshalb
+             stehen hier keine Knoepfe. Micha und Nina sehen, was entschieden
+             wurde, und muessen nichts tun. Hendra muss es nicht mehr
+             weitergeben, und niemand muss danach fragen.
+
+             Das ist die kleinste Automation im ganzen Projekt und
+             wahrscheinlich die mit dem besten Verhaeltnis. -->
+        <p class="eyebrow" data-t="lvNews"></p>
+        <div id="lv-news"></div>
+
         <p class="eyebrow" data-t="lvSheet"></p>
         <div class="glass" style="padding:16px">
           <p class="lverr" data-t="lvSheetTxt" style="margin:0 0 14px"></p>
@@ -848,7 +911,23 @@ const T={
   lvBadRange:"The end is before the start.",
   lvOffline:"No connection. Try again when you are online.",
   lvUsed:"used", lvPlanned:"requested",
+  lvNoted:"Noted", lvUndo:"Cancel",
+  lvSickH:"Report sick",
+  lvSickFrom:"First day away", lvSickDays:"How many days?",
+  lvSickSend:"Tell Hendra",
+  lvSickNote:"Do not upload your doctor's letter here. Show it to Hendra, or send it to him in WhatsApp.",
+  lvSickOk:"Hendra knows. Get well.",
+  lvSickWa:"I am sick and cannot come to work.",
+  lvSickShare:"Sick leave",
+  lvCert:"Doctor's letter seen", lvCertYes:"seen",
+  lvShort:"less than a month ahead",
+  lvClash:"also away:",
+  lvNews:"Decided by Hendra", lvNewsNone:"Nothing in the last two weeks.",
+  st_sick:"Sick",
   lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
+  pinReset:"PIN", pinDone:"reset",
+  pinAsk:"Reset the PIN for %s? She chooses a new one next time she signs in.",
+  pinResetNew:"New start PIN for %s:  %p\n\nTell her this number now. She will be asked to choose her own PIN when she signs in.\n\nThis number is shown only once.",
   lvSheet:"Your sheet",
   lvSheetTxt:"The full leave list for everyone, exactly as you keep it. Download it any time, print it, keep it. It always matches what is in the app.",
   lvGet:"Download the list", lvTeam:"Everyone",
@@ -909,7 +988,23 @@ const T={
   lvBadRange:"Tanggal selesai sebelum tanggal mulai.",
   lvOffline:"Tidak ada koneksi. Coba lagi saat online.",
   lvUsed:"terpakai", lvPlanned:"diajukan",
+  lvNoted:"Dicatat", lvUndo:"Batalkan",
+  lvSickH:"Lapor sakit",
+  lvSickFrom:"Mulai tanggal", lvSickDays:"Berapa hari?",
+  lvSickSend:"Beri tahu Hendra",
+  lvSickNote:"Surat dokter tidak perlu diunggah di sini. Cukup tunjukkan ke Hendra, atau kirim lewat WhatsApp.",
+  lvSickOk:"Hendra sudah tahu. Semoga cepat sembuh.",
+  lvSickWa:"Saya sakit dan tidak bisa masuk kerja.",
+  lvSickShare:"Lapor sakit",
+  lvCert:"Surat dokter sudah dilihat", lvCertYes:"dilihat",
+  lvShort:"kurang dari sebulan sebelumnya",
+  lvClash:"juga tidak masuk:",
+  lvNews:"Keputusan Hendra", lvNewsNone:"Tidak ada dalam dua minggu terakhir.",
+  st_sick:"Sakit",
   lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
+  pinReset:"PIN", pinDone:"direset",
+  pinAsk:"Reset PIN untuk %s? Dia akan memilih PIN baru saat masuk berikutnya.",
+  pinResetNew:"PIN awal baru untuk %s:  %p\n\nBeri tahu dia sekarang. Saat masuk, dia akan diminta memilih PIN sendiri.\n\nNomor ini hanya ditampilkan sekali.",
   lvSheet:"Daftar Anda",
   lvSheetTxt:"Daftar cuti lengkap semua orang, persis seperti yang Anda buat. Bisa diunduh kapan saja, dicetak, disimpan. Selalu sama dengan yang ada di aplikasi.",
   lvGet:"Unduh daftar", lvTeam:"Semua orang",
@@ -1589,10 +1684,13 @@ const SB = {
 };
 let online = false;
 
-async function sbGet(pfad){
+async function sbGet(pfad, zweiterVersuch){
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
     headers: Object.assign({apikey:SB.key},
       S.token ? {Authorization:"Bearer "+S.token} : {})});
+  if(r.status===401 && !zweiterVersuch && await erneuereSitzung()){
+    return sbGet(pfad, true);       // siehe Kommentar bei sbSend
+  }
   if(!r.ok) throw new Error(r.status);
   return r.json();
 }
@@ -1641,7 +1739,7 @@ let POST = [];
 try{ POST = JSON.parse(localStorage.getItem("tg-post")||"[]") }catch(e){}
 const postSichern = () => { try{ localStorage.setItem("tg-post", JSON.stringify(POST)) }catch(e){} };
 
-async function sbSend(pfad, koerper, methode, extra){
+async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
     method: methode||"POST",
     headers: Object.assign({
@@ -1649,6 +1747,14 @@ async function sbSend(pfad, koerper, methode, extra){
     }, extra||{}, S.token ? {Authorization:"Bearer "+S.token} : {}),
     body: koerper===undefined ? undefined : JSON.stringify(koerper)
   });
+  /* Bruno 4: Der Zugangsschluessel laeuft nach einer Stunde ab. Erneuert
+     wurde er nur beim Start der App. Eine App auf dem Startbildschirm wird
+     aber nicht neu geladen. Wer morgens einsteigt und um zehn etwas
+     abhaken will, bekam "kein Netz" - eine Meldung, die luegt, denn das
+     Netz war da. Wir erneuern still und versuchen es genau einmal noch. */
+  if(r.status===401 && !zweiterVersuch && await erneuereSitzung()){
+    return sbSend(pfad, koerper, methode, extra, true);
+  }
   if(!r.ok) throw new Error(r.status+" "+await r.text());
   /* Gefunden am 14.08.2026: Diese Zeile las immer JSON. Beim Anlegen antwortet
      der Server aber mit "201 angelegt" und LEEREM Text, wenn kein Rueckgabe-
@@ -1718,6 +1824,10 @@ async function sendeEinen(e){
     const lauf = await laufFuer(d.sop);
     await sbSend("sop_run?id=eq."+lauf,
       {status:"blocked", blocked_why: GRUND_DB[d.grund] || d.grund, done_at:null}, "PATCH");
+    return;
+  }
+  if(e.art==="krank"){
+    await sbSend("rpc/krank_melden", {p_von:d.von, p_tage:d.tage});
     return;
   }
   if(e.art==="zimmer"){
@@ -2009,27 +2119,70 @@ async function ladeOffene(){
   let liste=[];
   try{ liste = await sbGet("app_leave_open?select=*") }catch(e){ return }
   const t=L();
+  /* Hendras Ablauf vom 27.08.2026, Punkt 2: Er prueft Dienstplan, ob Ersatz
+     moeglich ist, und die Auswirkung auf den Betrieb. Zwei davon koennen wir
+     ihm hinlegen, statt dass er nachschlaegt:
+       - wer aus derselben Abteilung im selben Zeitraum schon weg ist
+       - ob der Vorlauf unter einem Monat liegt
+     Beides steht da als HINWEIS, nicht als Sperre. Seine Regeln sind
+     Faustregeln, keine Gesetze. Eine App, die ablehnt, was er genehmigt
+     haette, wird umgangen. */
   $("#lv-offen").innerHTML = liste.length ? liste.map(r=>`
     <div class="lvitem" data-antrag="${r.id}">
       <div class="d">
         <b>${r.name}</b>
         <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
           &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
-          &middot; ${r.kind==="religion"?t.lvReligion:t.lvHoliday}
-          &middot; ${Number(r.frei)} ${t.lvLeft2}</small>
+          &middot; ${artText(r.kind)}
+          ${r.kind!=="sick"?"&middot; "+Number(r.frei)+" "+t.lvLeft2:""}</small>
+        ${r.team_kollision?`<small class="warn">${t.lvClash} ${r.team_kollision}</small>`:""}
+        ${r.kurzfristig&&r.kind!=="sick"?`<small class="warn">${t.lvShort}</small>`:""}
+        ${r.kind==="sick"?`<label class="lvcert">
+            <input type="checkbox" data-cert="${r.id}" ${r.cert_seen?"checked":""}>
+            <span>${t.lvCert}</span></label>`:""}
       </div>
       <div class="lvbtns">
-        <button class="lvno"  data-nein="${r.id}">${t.lvNo}</button>
-        <button class="lvyes" data-ja="${r.id}">${t.lvYes}</button>
+        ${r.kind==="sick"?"":`<button class="lvno" data-nein="${r.id}">${t.lvNo}</button>`}
+        <button class="lvyes" data-ja="${r.id}">${r.kind==="sick"?t.lvNoted:t.lvYes}</button>
       </div>
     </div>`).join("")
     : `<p class="lverr">${t.lvNoneOpen}</p>`;
+
+  ladeNeuigkeiten();
+}
+
+/* Was entschieden wurde. Fuer Micha und Nina eine Mitteilung, fuer Hendra
+   sein eigenes Protokoll. Bewusst ohne jeden Knopf: Wer hier etwas
+   anklicken koennte, wuerde aus einer Mitteilung eine zweite Freigabe
+   machen, und dann entscheidet Hendra nicht mehr allein. */
+async function ladeNeuigkeiten(){
+  const kasten=$("#lv-news"); if(!kasten || !istLeitung()) return;
+  let liste=[];
+  try{ liste = await sbGet("app_leave_news?select=*&limit=12") }catch(e){ return }
+  const t=L();
+  kasten.innerHTML = liste.length ? liste.map(r=>`
+    <div class="lvitem">
+      <div class="d">
+        <b>${r.name}</b>
+        <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
+          &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
+          &middot; ${artText(r.kind)}</small>
+      </div>
+      <span class="lvst ${r.status}">${t["st_"+r.status]||r.status}</span>
+    </div>`).join("")
+    : `<p class="lverr">${t.lvNewsNone}</p>`;
 }
 
 /* Sein Blatt, aus der Datenbank heraus.
    Bewusst CSV und nicht irgendein eigenes Format: Das oeffnet sich in Excel,
    in Google Sheets und auf dem Handy. Er kann damit alles machen, was er mit
    seiner Tabelle heute macht - nur muss er es nicht mehr fuehren. */
+/* Zurueckgesetzte PINs, die Hendra noch nicht weitergegeben hat. Nur im
+   Arbeitsspeicher: beim Schliessen der App sind sie weg, und das ist
+   richtig so. Ein Start-PIN, der eine Woche herumliegt, ist kein Start-PIN
+   mehr. */
+const PINGEZEIGT = {};
+
 async function ladeTeamUrlaub(){
   const kasten=$("#lv-tabelle"); if(!kasten || !istLeitung()) return;
   let alle=[];
@@ -2041,6 +2194,8 @@ async function ladeTeamUrlaub(){
         <small>${Number(r.genommen)} ${t.lvUsed}
           &middot; ${Number(r.frei)} ${t.lvLeft2}
           ${Number(r.beantragt)?" &middot; "+Number(r.beantragt)+" "+t.lvPlanned:""}</small></div>
+      <button class="pinrst ${PINGEZEIGT[r.person_id]?"pinneu":""}" data-pin="${r.person_id}"
+              title="${t.pinReset}">${PINGEZEIGT[r.person_id]||t.pinReset}</button>
       <span class="lvst ${Number(r.frei)<=2?"requested":""}">${Number(r.frei)}</span>
     </div>`).join("");
   return alle;
@@ -2119,13 +2274,19 @@ function zeichneUrlaub(liste){
     Number(lvStand.genommen)+" "+t.lvUsed
     + (Number(lvStand.beantragt) ? " \u00b7 "+Number(lvStand.beantragt)+" "+t.lvPlanned : "");
 
+  /* Bruno, Fund E: Wer sich beim Datum vertippt hatte, kam nicht mehr
+     heraus. Hendra konnte nur ABLEHNEN, und dann stand eine Ablehnung in
+     der Liste, die keine war. Die Datenbank konnte das Zuruecknehmen
+     laengst, es fehlte der Knopf. Nur bei offenen Antraegen: Was
+     entschieden ist, nimmt nur Hendra zurueck. */
   $("#lv-list").innerHTML = liste.length ? liste.map(r=>`
     <div class="lvitem">
       <div class="d">
         <b>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}</b>
         <small>${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
-          &middot; ${r.kind==="religion"?t.lvReligion:t.lvHoliday}</small>
+          &middot; ${artText(r.kind)}</small>
       </div>
+      ${r.status==="requested"?`<button class="pinrst" data-weg="${r.id}">${t.lvUndo}</button>`:""}
       <span class="lvst ${r.status}">${t["st_"+r.status]||r.status}</span>
     </div>`).join("")
     : `<p class="lverr">${t.lvNone}</p>`;
@@ -2162,6 +2323,11 @@ async function urlaubSenden(){
   if(!von||!bis) return;
   if(new Date(bis)<new Date(von)){ msg.className="lverr bad"; msg.textContent=t.lvBadRange; return }
   if(!online||!S.token){ msg.className="lverr bad"; msg.textContent=t.lvOffline; return }
+  /* Bruno, Fund C: Der Knopf war waehrend des Sendens offen. Bei langsamem
+     Netz tippt jemand zweimal, der erste Antrag geht durch, der zweite
+     kommt als Ueberschneidung zurueck - und sie glaubt, nichts sei
+     gespeichert, obwohl der erste ankam. */
+  const send=$("#lv-send"); if(send) send.disabled=true;
   try{
     await sbSend("rpc/urlaub_beantragen",
       {p_kind:lvArt, p_von:von, p_bis:bis, p_grund:null});
@@ -2169,9 +2335,101 @@ async function urlaubSenden(){
     $("#lv-from").value=""; $("#lv-to").value=""; $("#lv-days").textContent="";
     await ladeUrlaub();
   }catch(e){
-    msg.className="lverr bad"; msg.textContent=t.lvOffline;
+    msg.className="lverr bad"; msg.textContent=fehlerText(e, t);
+  }finally{
+    if(send) send.disabled=false;
   }
 }
+
+
+/* Die Art einer Abwesenheit, an einer Stelle. Vorher stand an zwei Stellen
+   ein Entweder-oder aus zwei Moeglichkeiten. Mit der Krankmeldung sind es
+   drei, und ein Entweder-oder haette "krank" stumm als "Urlaub" angezeigt.
+   Genau solche Fehler sieht niemand, weil nichts abstuerzt. */
+function artText(kind){
+  const t=L();
+  if(kind==="sick")     return t.st_sick;
+  if(kind==="religion") return t.lvReligion;
+  return t.lvHoliday;
+}
+
+/* ================= KRANK MELDEN =================
+   Dennis am 27.08.2026: "ich bin heute krank, gehe in meine App rein und
+   sende Hendra ich bin krank und meine krankmeldung, fertig."
+
+   Drei Dinge passieren beim Absenden, und nur eines davon ist bei uns:
+
+   1. In unsere Datenbank geht: wer, ab wann, wie viele Tage. Sonst nichts
+   2. Das Attest geht per WhatsApp von IHREM Handy an SEINES. Es beruehrt
+      unseren Server nie. Das ist keine Zurueckhaltung, das ist der
+      kuerzere Weg: Ein Foto, das nirgends liegt, kann nirgends auslaufen
+   3. Hendra hakt ab, dass er es gesehen hat. Ein Haken ist eine
+      Pruefnotiz, kein Gesundheitsdatum */
+let skTage = 1;
+
+/* Bruno, Fund B: Jeder Fehler wurde als "keine Verbindung" angezeigt, auch
+   wenn der Server einen klaren Grund genannt hat. Die Frau war online, las
+   "kein Netz", versuchte es fuenfmal und hoerte auf. Stumm.
+
+   Der Server antwortet mit einem verstaendlichen englischen Satz. Den
+   zeigen wir. Nur wenn wirklich nichts ankam, bleibt es bei "kein Netz". */
+function fehlerText(e, t){
+  const s = String(e && e.message || "");
+  if(!/^\d\d\d /.test(s)) return t.lvOffline;        // gar keine Antwort
+  const i = s.indexOf("{");
+  if(i < 0) return t.lvOffline;
+  try{
+    const d = JSON.parse(s.slice(i));
+    return d.message || d.hint || d.details || t.lvOffline;
+  }catch(_){ return t.lvOffline }
+}
+
+async function krankSenden(){
+  const t=L(), msg=$("#sk-msg");
+  const von = $("#sk-from").value || heuteISO();
+  msg.className="lverr"; msg.textContent="";
+
+  /* WhatsApp ZUERST, und zwar noch im selben Fingertipp.
+     Bruno 6: Vorher stand window.open hinter zwei Wartepunkten. Nach einem
+     await gilt der Tipp fuer Safari auf dem iPhone nicht mehr als
+     Nutzerhandlung, und das Fenster wird blockiert. Sie haette
+     "Hendra knows" gelesen, sich hingelegt, und die Nachricht waere nie
+     rausgegangen. */
+  const text = t.lvSickWa + " " + skTage + " " + (skTage===1?t.lvDay:t.lvDays)
+             + ", " + datumKurz(von) + ".";
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+
+  /* Und dann in den Postausgang, nicht direkt in die Leitung.
+     Bruno 3: Genau die Frau, die krank zu Hause im schlechten Netz sitzt,
+     ist die, deren Meldung sonst verlorengeht. Sie sieht "kein Netz",
+     tippt vielleicht nochmal, und dann nicht mehr. Und sie sagt nichts.
+     Ein Haken bei den Ablaeufen ist seit Wochen abgesichert. Die
+     Krankmeldung war es nicht, obwohl sie wichtiger ist. */
+  melde("krank", {von:von, tage:skTage});
+
+  msg.className="lverr good"; msg.textContent=t.lvSickOk;
+  const knopf=$("#sk-send"); if(knopf) knopf.disabled=true;
+  setTimeout(()=>{ const b=$("#sk-send"); if(b) b.disabled=false }, 4000);
+
+  await ladeUrlaub();
+}
+
+/* Bruno 11: Ohne Grenze am Feld wurde ein vertippter Jahreswechsel stumm
+   gespeichert und lag dann 365 Tage in Hendras Liste. Der Server weist es
+   inzwischen ab, aber eine Meldung, die gar nicht erst kommt, ist besser
+   als eine, die man verstehen muss. */
+function grenzenSetzen(){
+  const f=$("#sk-from"); if(!f) return;
+  const tag = n => new Date(Date.now()+n*86400000 - new Date().getTimezoneOffset()*60000)
+                     .toISOString().slice(0,10);
+  f.min = tag(-7); f.max = tag(30);
+  const u=$("#lv-from"), b=$("#lv-to");
+  if(u) u.min = tag(0);
+  if(b) b.min = tag(0);
+}
+
+const heuteISO = () => new Date(Date.now() - new Date().getTimezoneOffset()*60000)
+                          .toISOString().slice(0,10);
 
 /* ================= VORFUEHRUNG: kein PIN =================
    Dennis am 17.08.2026 vor dem Termin in der Praxis:
@@ -2224,12 +2482,33 @@ async function ohnePin(k){
       try{ await ladeTermine(); renderRooms() }catch(e){}
       return;
     }
+    /* Bruno, 30.08.2026: Wenn der Server "waehle deinen eigenen PIN" sagt,
+       ist der Vorfuehr-PIN fuer diese Person tot - etwa weil Hendra ihn
+       zurueckgesetzt hat. Vorher landete sie hier im stillen catch und kam
+       OHNE SITZUNG herein. Sie sah einen ganzen Tag gruene Haken, von denen
+       keiner ankam. Jetzt geht sie den echten Weg. */
+    if(d && d.must_set_pin){ VORFUEHRUNG_AUS(k); return }
   }catch(e){}
-  /* Kein Netz oder der Server mag nicht: trotzdem hereinlassen. Ohne Sitzung
-     wird lokal gearbeitet und der Postausgang sammelt. Vor einem Kunden ist
-     eine Fehlermeldung das Schlimmste, was passieren kann. */
+  /* Kein Netz: trotzdem hereinlassen. Der Postausgang sammelt, und vor einem
+     Kunden ist eine Fehlermeldung das Schlimmste, was passieren kann.
+     ABER der Punkt unten steht dann auf "wartet", nicht auf gruen. Eine
+     Anzeige, die "gespeichert" sagt, obwohl nichts gespeichert ist, ist
+     schlimmer als jede Fehlermeldung. */
   S.me=k; save(); tr(); renderRooms();
+  setState("warten");
   go(S.started ? "s-brief" : "s-clock");
+}
+
+/* Einmal aus der Vorfuehrung heraus, fuer genau diese Person: der richtige
+   PIN-Bildschirm. */
+function VORFUEHRUNG_AUS(k){
+  const p=PEOPLE[k]; pinFor=k; pinBuf=""; pinTries=0; pinFirst=null; pinAlt=null;
+  pinMode = "check";
+  $("#p-face").innerHTML = p.img?'<img src="'+p.img+'" alt="">':p.n[0];
+  $("#p-name").textContent = p.n;
+  $("#p-role").textContent = p.r[S.lang];
+  $("#p-err").textContent = L().pinFirst;
+  drawPin(); go("s-pin");
 }
 
 function pinStart(k){
@@ -2663,6 +2942,73 @@ document.addEventListener("click",e=>{
     $$("[data-lk]").forEach(b=>b.classList.toggle("on", b===lk));
     return }
   if(e.target.closest("#lv-send")){ urlaubSenden(); return }
+
+  /* Krank melden: Tageszahl waehlen und absenden */
+  const sd = e.target.closest("[data-sd]");
+  if(sd){
+    $$("#sk-days .dep").forEach(b=>b.classList.remove("on"));
+    sd.classList.add("on");
+    skTage = Number(sd.dataset.sd);
+    return;
+  }
+  if(e.target.closest("#sk-send")){ krankSenden(); return }
+
+  /* Eigenen offenen Antrag zuruecknehmen */
+  const weg = e.target.closest("[data-weg]");
+  if(weg){
+    if(weg.dataset.laeuft) return;
+    weg.dataset.laeuft="1";
+    sbSend("rpc/urlaub_zuruecknehmen", {p_antrag:weg.dataset.weg, p_grund:null})
+      .then(()=>ladeUrlaub())
+      .catch(()=>{ delete weg.dataset.laeuft });
+    return;
+  }
+
+  /* PIN vergessen. Dennis' allererste Frage in diesem Projekt.
+     Hendra setzt zurueck, die Person waehlt beim naechsten Anmelden selbst
+     einen neuen. Niemand sieht je einen PIN, auch er nicht.
+     Es gibt eine Rueckfrage, weil ein Fehlgriff jemanden aussperrt, bis er
+     wieder am Handy ist. */
+  const pr = e.target.closest("[data-pin]");
+  if(pr){
+    const t=L(), name = pr.closest(".lvitem").querySelector("b").textContent;
+    if(!confirm(t.pinAsk.replace("%s", name))) return;
+    /* Bruno, Fund B: Zwei Tipps erzeugten zwei Start-PINs, und nur der
+       zweite galt. Hendra las den ersten vor, die Person kam nicht rein,
+       und beide hielten das Werkzeug fuer kaputt. */
+    if(pr.dataset.laeuft) return;
+    pr.dataset.laeuft = "1";
+    /* Fund D: Die Zahl stand nur im Knopf und war beim naechsten Aufbau der
+       Liste weg. Deshalb merken wir sie, und ladeTeamUrlaub setzt sie
+       wieder ein. */
+    sbSend("rpc/pin_zuruecksetzen", {p_person:pr.dataset.pin})
+      .then(pin=>{
+        /* Bruno, 27.08.2026: Vorher stand hier nur "erledigt", und die
+           Person war damit DAUERHAFT ausgesperrt. Der Server erzeugt einen
+           neuen Start-PIN, und wenn ihn niemand zu sehen bekommt, ist er
+           so gut wie keiner.
+
+           Deshalb steht er jetzt gross da UND als Hinweisfenster. Das
+           Fenster nervt, und das ist Absicht: Wer es wegklickt, ohne zu
+           lesen, sperrt einen Menschen aus. */
+        pr.textContent = pin;
+        pr.classList.add("pinneu");
+        PINGEZEIGT[pr.dataset.pin] = pin;
+        alert(t.pinResetNew.replace("%s", name).replace("%p", pin));
+      })
+      .catch(()=>{ pr.textContent = "!" })
+      .finally(()=>{ delete pr.dataset.laeuft });
+    return;
+  }
+
+  /* Hendra hakt ab, dass er das Attest gesehen hat.
+     Der Haken sagt "gesehen", nie "was". */
+  const cert = e.target.closest("[data-cert]");
+  if(cert){
+    sbSend("rpc/attest_gesehen", {p_antrag:cert.dataset.cert, p_gesehen:cert.checked})
+      .catch(()=>{ cert.checked = !cert.checked });
+    return;
+  }
   if(e.target.closest("#lv-csv")){ blattHolen(); return }
   const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
   const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
@@ -2767,6 +3113,7 @@ showBack();
    nicht einen Ladebalken. */
 (async()=>{
   await verbinde();
+  grenzenSetzen();
   await geraetKennt();
   /* Was gestern liegengeblieben ist, geht heute frueh raus. */
   leerePostausgang();
