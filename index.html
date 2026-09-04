@@ -1,3 +1,9 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="THE GERMAN">
 <title>THE GERMAN · Team App</title>
 <style>
   /* Echte Schriften, in die Datei eingebacken. Kein Nachladen von fremden Servern,
@@ -433,6 +439,7 @@
   .lverr.good{color:var(--ok)}
   .pinrst{background:none;border:1px solid rgba(0,0,0,.18);border-radius:8px;
   padding:5px 10px;font-size:12px;color:#5b6b6a;margin-right:10px;cursor:pointer}
+.ver{text-align:center;font-size:11px;opacity:.35;margin-top:26px;letter-spacing:1px}
 .pinrst.pinneu{background:#2e7d6b;color:#fff;border-color:#2e7d6b;
   font-weight:700;font-size:15px;letter-spacing:2px}
 .pinrst:active{background:rgba(0,0,0,.06)}
@@ -553,6 +560,10 @@
       <h1 data-t="loginH"></h1>
       <p class="sub" data-t="loginS"></p>
       <div id="people"></div>
+      <!-- Sichtbare Version. Damit Dennis auf jedem Handy mit einem Blick
+           sieht, ob die frische Fassung geladen ist, statt zu raten.
+           Auch der stille Selbst-Aktualisierer unten haengt daran. -->
+      <p class="ver" id="app-ver"></p>
     </section>
 
     <!-- PIN. Der einzige Bildschirm, auf dem jemand etwas eingibt.
@@ -634,6 +645,11 @@
       </button>
 
       <div id="groups"></div>
+
+      <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
+           kommt hier zurueck zur Namensliste. Auf der Uebersicht sichtbar,
+           weil hier die meisten landen (Dennis, 04.09.2026). -->
+      <button class="ghost" id="nichtich2" data-t="notMe" style="margin-top:26px"></button>
 
       <!-- Der Weg zum eigenen Urlaub. Steht ganz unten, weil er selten
            gebraucht wird: Zuerst die Arbeit von heute, dann alles andere.
@@ -1475,6 +1491,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const APP_VERSION = "2026-09-04-a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2000,7 +2017,10 @@ async function geraetKennt(){
   if(S.refresh && !(await erneuereSitzung())) return false;
   S.me=i; save(); tr(); renderRooms();
   go(S.started ? "s-brief" : "s-clock", false);
-  NAV=[]; showBack();
+  /* Der Zurueck-Pfeil muss zur Namensliste fuehren, auch nach dem
+     automatischen Anmelden. Vorher stand hier NAV=[], und damit war der
+     Pfeil weg und niemand kam mehr zur Uebersicht (Dennis, 04.09.2026). */
+  NAV=["s-login"]; showBack();
   return true;
 }
 
@@ -3023,7 +3043,7 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#lv-csv")){ blattHolen(); return }
   const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
   const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
-  if(e.target.closest("#nichtich")){ vergissGeraet(); tr(); go("s-login"); return }
+  if(e.target.closest("#nichtich") || e.target.closest("#nichtich2")){ vergissGeraet(); tr(); go("s-login"); return }
   if(e.target.closest("#navback")){back();return}
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
      damit beide Wege dasselbe tun. */
@@ -3123,12 +3143,38 @@ showBack();
    Beides still im Hintergrund: Wer die App aufmacht, sieht sofort etwas,
    nicht einen Ladebalken. */
 (async()=>{
+  const vel=$("#app-ver"); if(vel) vel.textContent="v "+APP_VERSION;
+  pruefeAktualitaet();          // still im Hintergrund, siehe unten
   await verbinde();
   grenzenSetzen();
   await geraetKennt();
   /* Was gestern liegengeblieben ist, geht heute frueh raus. */
   leerePostausgang();
 })();
+
+/* Selbst-Aktualisierung ohne Service-Worker.
+   Das Problem: Eine PWA auf dem iPhone-Startbildschirm haelt die alte
+   Fassung fest, manchmal tagelang. Dennis hat genau das erlebt: alte
+   Uebergabe-Notiz, die nicht verschwand.
+   Die Loesung: Beim Start laden wir die eigene Seite OHNE Cache noch einmal
+   und lesen die Versionsnummer heraus. Steht dort eine neuere als die
+   geladene, laden wir einmal neu. Das kostet ein paar Kilobyte und
+   passiert unsichtbar. */
+async function pruefeAktualitaet(){
+  try{
+    const r = await fetch(location.pathname + "?_=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) return;
+    const txt = await r.text();
+    const m = txt.match(/APP_VERSION = "([^"]+)"/);
+    if(m && m[1] !== APP_VERSION){
+      /* Nur EINMAL neu laden, sonst Endlosschleife bei kaputtem Netz.
+         Ein Merker im Speicher haelt genau einen Versuch fest. */
+      if(sessionStorage.getItem("reloaded_for")===m[1]) return;
+      sessionStorage.setItem("reloaded_for", m[1]);
+      location.reload();
+    }
+  }catch(e){ /* offline: dann eben beim naechsten Start */ }
+}
 /* Der Vorhang geht nach 1,2 Sekunden auf und wird danach aus dem Weg geraeumt. */
 setTimeout(()=>{const e=document.getElementById("splash"); if(!e)return;
   e.classList.add("gone"); setTimeout(()=>e.remove(),650);},1200);
