@@ -1791,7 +1791,11 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
 
 /* In den Postausgang legen und sofort versuchen. Der Aufrufer wartet nicht. */
 function melde(art, daten){
-  POST.push({art, daten}); postSichern();
+  /* Fund 1 (Bruno, 04.09.2026): Jeder Eintrag traegt seit dem Anlegen, WEM
+     er gehoert. Sonst kann ein offline gesetzter Haken von Ayu spaeter unter
+     Karen rausgehen, wenn Karen am selben Tresen-Handy anmeldet - und genau
+     das soll der PIN ja verhindern. */
+  POST.push({art, daten, who: me() ? me().id : null}); postSichern();
   leerePostausgang();
 }
 
@@ -1799,18 +1803,23 @@ let amSenden=false;
 async function leerePostausgang(){
   if(amSenden || !POST.length) return;
   if(!S.token){ return }          /* nicht angemeldet: liegen lassen */
+  const myId = me() ? me().id : null;
   amSenden=true;
   try{
-    while(POST.length){
-      const e=POST[0];
+    /* Nur die eigenen Eintraege senden. Fremde (von jemandem, der vorher an
+       diesem Handy war) bleiben liegen, bis diese Person sich wieder
+       anmeldet. Eintraege ohne Kennung sind alt und gelten als eigene. */
+    let i=0;
+    while(i < POST.length){
+      const e = POST[i];
+      if(e.who && myId && e.who !== myId){ i++; continue }  /* nicht meiner */
       await sendeEinen(e);
-      POST.shift(); postSichern();   /* erst streichen, wenn es wirklich weg ist */
+      POST.splice(i,1); postSichern();   /* nur den gesendeten streichen */
     }
-    setState("db");
+    const mineLeft = POST.some(e => !e.who || !myId || e.who===myId);
+    setState(mineLeft ? "warten" : "db");
   }catch(err){
-    /* Nicht loeschen. Beim naechsten Haken oder beim naechsten Start
-       nochmal. Der Eintrag ist sicherer im Handy als nirgends. */
-    setState(POST.length ? "warten" : "db");
+    setState("warten");
   }finally{ amSenden=false }
 }
 
@@ -3043,7 +3052,12 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#lv-csv")){ blattHolen(); return }
   const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
   const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
-  if(e.target.closest("#nichtich") || e.target.closest("#nichtich2")){ vergissGeraet(); tr(); go("s-login"); return }
+  if(e.target.closest("#nichtich") || e.target.closest("#nichtich2")){
+    /* Erst versuchen, die eigenen offenen Haken noch unter der richtigen
+       Person zu senden, solange die Sitzung gilt. Dann erst abmelden. */
+    leerePostausgang().finally(()=>{ vergissGeraet(); tr(); go("s-login"); });
+    return;
+  }
   if(e.target.closest("#navback")){back();return}
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
      damit beide Wege dasselbe tun. */
