@@ -1491,7 +1491,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-04-b";
+const APP_VERSION = "2026-09-04-c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1812,7 +1812,9 @@ async function leerePostausgang(){
     let i=0;
     while(i < POST.length){
       const e = POST[i];
-      if(e.who && myId && e.who !== myId){ i++; continue }  /* nicht meiner */
+      /* Kein myId (Identitaet noch nicht gesetzt) ODER fremder Eintrag:
+         liegen lassen. Nur eindeutig eigene und alte ohne Kennung gehen raus. */
+      if(e.who && e.who !== myId){ i++; continue }
       await sendeEinen(e);
       POST.splice(i,1); postSichern();   /* nur den gesendeten streichen */
     }
@@ -2682,13 +2684,18 @@ function vergissGeraet(){
 }
 
 function pinOk(){
-  leerePostausgang();
   const k=pinFor;
   /* "Wird geprueft..." stehenlassen waere schlampig: Wer spaeter zurueckkommt,
      saehe eine Meldung von der letzten Anmeldung. */
   pinBuf=""; pinMode="check"; pinFirst=null; pinAlt=null; $("#p-err").textContent="";
+  /* Fund 1, zweiter Anlauf (Bruno, 04.09.2026): Erst die Person setzen, DANN
+     den Postausgang leeren. Vorher lief das Leeren ganz oben, waehrend S.me
+     noch die alte Person (oder null) war - dann ging Ayus Haken doch unter
+     Karen raus, weil der Filter gegen die falsche Identitaet prueft. */
+  S.me=k; save(); tr();
+  leerePostausgang();
   if(PEOPLE[k].lead){ $("#l-name").textContent=PEOPLE[k].n.replace("Dr. ",""); go("s-lead"); return }
-  S.me=k; save(); tr(); go("s-clock");
+  go("s-clock");
 }
 
 /* ---- Zwei Bereiche ----
