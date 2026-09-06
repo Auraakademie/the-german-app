@@ -1491,7 +1491,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-04-c";
+const APP_VERSION = "2026-09-04-d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1553,6 +1553,10 @@ const isBlocked=i=>S.blocked[i]!=null;
    Hendra sieht alles: er kontrolliert. */
 const mineTask=t=>{
   const d=myDep();
+  /* Woechentlicher Ablauf nur an seinem Wochentag. Nachschlagen (mineGuide)
+     bleibt jeden Tag moeglich - der Unterschied zwischen "heute tun" und
+     "wissen, wie es geht". */
+  if(t.weekday!=null && new Date().getDay()!==t.weekday) return false;
   /* Ein Ablauf kann genau EINER Person gehoeren. Dann gilt nur der Name,
      nicht die Abteilung und nicht die Leitungsregel.
 
@@ -1914,6 +1918,11 @@ async function ladeSops(){
 
   const bau = r => ({
     id: r.id, doc: r.doc, dep: r.department, nur: r.only_for || null,
+    /* Wochentag, falls gesetzt (0=So .. 6=Sa, wie getDay und wie in der DB).
+       Nur woechentliche Ablaeufe haben einen, z.B. Hendras Bestands-
+       besprechung am Donnerstag. Bruno, 04.09.2026: Vorher fehlte das im
+       Client, also erschien 520 jeden Tag statt nur donnerstags. */
+    weekday: (r.weekday==null ? null : Number(r.weekday)),
     g: r.day_part || undefined,
     nurse: r.for_nurse ? 1 : undefined,
     nurDoc: r.for_doctor_only ? 1 : undefined,
