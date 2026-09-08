@@ -829,6 +829,12 @@
 
       <p class="eyebrow" data-t="rvWeek"></p>
       <div id="rv-woche"></div>
+
+      <!-- Geburtstage. Nur die Leitung sieht sie (Dennis 08.09.2026), damit Nina
+           weiss, wen sie ansprechen kann. Die Daten kommen ueber eine
+           leitungsgeschuetzte Funktion, nicht aus einer offenen Tabelle. -->
+      <p class="eyebrow" data-t="rvBday"></p>
+      <div id="rv-bday"></div>
     </section>
 
     <section class="screen" id="s-lead">
@@ -948,6 +954,9 @@ const T={
   rvH:"What is stuck", rvToday:"Today", rvWeek:"This week, repeated",
   rvNothing:"Nothing stuck today. Good day.",
   rvNoWeek:"Nothing repeated this week.",
+  rvBday:"Birthdays", rvBdayNone:"No birthdays saved yet.",
+  rvBdayToday:"today", rvBdayIn:"in", rvBdayDays:"days", rvBdayDay:"day",
+  rvThuHint:"has a birthday this week. Celebrate at the Thursday meeting?",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
@@ -1030,6 +1039,9 @@ const T={
   rvH:"Apa yang tersendat", rvToday:"Hari ini", rvWeek:"Minggu ini, berulang",
   rvNothing:"Tidak ada yang tersendat hari ini. Hari yang baik.",
   rvNoWeek:"Tidak ada yang berulang minggu ini.",
+  rvBday:"Ulang tahun", rvBdayNone:"Belum ada ulang tahun tersimpan.",
+  rvBdayToday:"hari ini", rvBdayIn:"dalam", rvBdayDays:"hari", rvBdayDay:"hari",
+  rvThuHint:"berulang tahun minggu ini. Rayakan saat rapat Kamis?",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
@@ -1527,7 +1539,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-08c";
+const APP_VERSION = "2026-09-08d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2198,6 +2210,16 @@ async function zaehleHaengt(){
   }catch(e){}
 }
 
+/* Tage bis zum naechsten Geburtstag, aus Tag und Monat. Kein Geburtsjahr
+   noetig. Liegt das Datum dieses Jahr schon hinter uns, zaehlen wir zum
+   naechsten Jahr. */
+function tageBisGeburtstag(tag, monat){
+  const heute=new Date(); heute.setHours(0,0,0,0);
+  let d=new Date(heute.getFullYear(), monat-1, tag);
+  if(d<heute) d=new Date(heute.getFullYear()+1, monat-1, tag);
+  return Math.round((d-heute)/86400000);
+}
+
 async function ladeReview(){
   const t=L();
   const heute = new Date().toISOString().slice(0,10);
@@ -2251,6 +2273,32 @@ async function ladeReview(){
       <span class="lvst ${r.wie_oft>1?"requested":""}">${r.wie_oft}&times;</span>
     </div>`}).join("")
     : `<p class="lverr">${t.rvNoWeek}</p>`;
+
+  /* Geburtstage. Ueber die leitungsgeschuetzte Funktion, per GET moeglich,
+     weil sie STABLE ist. Wer nicht Leitung ist, bekommt 0 Zeilen. */
+  let bdays=[];
+  try{ bdays = await sbGet("rpc/geburtstage") }catch(e){ bdays=[] }
+  const wrap=$("#rv-bday"); if(!wrap) return;
+  if(!bdays.length){ wrap.innerHTML=`<p class="lverr">${t.rvBdayNone}</p>`; return }
+
+  const zeile = r=>{
+    const bis = tageBisGeburtstag(r.bday_day, r.bday_month);
+    const wann = bis===0 ? t.rvBdayToday
+               : t.rvBdayIn+" "+bis+" "+(bis===1?t.rvBdayDay:t.rvBdayDays);
+    const datum = String(r.bday_day).padStart(2,"0")+"."+String(r.bday_month).padStart(2,"0");
+    return `<div class="lvitem">
+      <div class="d"><b>${r.name}</b><small>${r.role_en} &middot; ${datum}</small></div>
+      <span class="lvst ${bis<=7?"requested":""}">${wann}</span>
+    </div>`;
+  };
+
+  /* Donnerstags-Idee (Nina): Wer diese Woche Geburtstag hat, oben als Hinweis. */
+  const diese = bdays.filter(r=>tageBisGeburtstag(r.bday_day,r.bday_month)<=7);
+  const hinweis = diese.map(r=>
+    `<div class="glass hak"><div class="t">&#127874; ${r.name}</div>
+      <div class="m">${t.rvThuHint}</div></div>`).join("");
+
+  wrap.innerHTML = hinweis + bdays.map(zeile).join("");
 }
 
 /* ================= Urlaub =================
