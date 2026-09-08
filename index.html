@@ -743,7 +743,10 @@
           <button class="dep" data-sd="2">2</button>
           <button class="dep" data-sd="3">3</button>
           <button class="dep" data-sd="5">5</button>
+          <button class="dep" data-sd="x">&hellip;</button>
         </div>
+        <input class="lvin" id="sk-other" type="number" inputmode="numeric" min="1" max="30" placeholder="1&ndash;30" style="display:none;margin-top:8px">
+
 
         <!-- Der Satz muss dastehen. Ohne ihn versucht jemand, ein Foto
              anzuhaengen, findet keinen Knopf, glaubt sie hat etwas falsch
@@ -934,6 +937,7 @@ const T={
   sopUndo:"Not done after all",sopBlock:"I cannot do this today",
   whyH:"What is stopping you?",
   r1:"Equipment is broken",r2:"Material is missing",r3:"No time today",r4:"Someone else did it",
+  r5:"Something else",whyMore:"Type what happened",whySend:"Report this",
   blockedAs:"Reported:",
   saved:"All saved",g1:"Opening",g2:"During the day",g3:"Closing",
   now:"now",steps:"steps",
@@ -966,6 +970,7 @@ const T={
   lvSickSend:"Tell Hendra",
   lvSickNote:"Do not upload your doctor's letter here. Show it to Hendra, or send it to him in WhatsApp.",
   lvSickOk:"Hendra knows. Get well.",
+  lvSickNum:"Please enter a number from 1 to 30.",
   lvSickWa:"I am sick and cannot come to work.",
   lvSickShare:"Sick leave",
   lvCert:"Doctor's letter seen", lvCertYes:"seen",
@@ -1014,6 +1019,7 @@ const T={
   sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",
   whyH:"Apa kendalanya?",
   r1:"Alat rusak",r2:"Bahan habis",r3:"Tidak ada waktu hari ini",r4:"Sudah dikerjakan orang lain",
+  r5:"Hal lain",whyMore:"Tulis apa yang terjadi",whySend:"Laporkan ini",
   blockedAs:"Dilaporkan:",
   saved:"Semua tersimpan",g1:"Pembukaan",g2:"Sepanjang hari",g3:"Penutupan",
   now:"sekarang",steps:"langkah",
@@ -1046,6 +1052,7 @@ const T={
   lvSickSend:"Beri tahu Hendra",
   lvSickNote:"Surat dokter tidak perlu diunggah di sini. Cukup tunjukkan ke Hendra, atau kirim lewat WhatsApp.",
   lvSickOk:"Hendra sudah tahu. Semoga cepat sembuh.",
+  lvSickNum:"Masukkan angka 1 sampai 30.",
   lvSickWa:"Saya sakit dan tidak bisa masuk kerja.",
   lvSickShare:"Lapor sakit",
   lvCert:"Surat dokter sudah dilihat", lvCertYes:"dilihat",
@@ -1520,7 +1527,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-08b";
+const APP_VERSION = "2026-09-08c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1946,7 +1953,7 @@ async function sendeEinen(e){
   if(e.art==="blockiert"){
     const lauf = await laufFuer(d.sop);
     await sbSend("sop_run?id=eq."+lauf,
-      {status:"blocked", blocked_why: GRUND_DB[d.grund] || d.grund, done_at:null}, "PATCH");
+      {status:"blocked", blocked_why: GRUND_DB[d.grund] || d.grund, blocked_note: d.note||null, done_at:null}, "PATCH");
     return;
   }
   if(e.art==="krank"){
@@ -2177,7 +2184,7 @@ let pinBuf="", pinMode="check", pinFirst=null, pinAlt=null, pinTries=0;
 const GRUND_DB = { r1:"broken", r2:"missing", r3:"no_time", r4:"someone_else" };
 const GRUND = {
   broken:"Equipment is broken", missing:"Material is missing",
-  no_time:"No time", someone_else:"Someone else did it"
+  no_time:"No time", someone_else:"Someone else did it", other:"Other reason"
 };
 
 /* Die Zahl auf der Kachel: wie viel haengt heute. Wenn nichts haengt, steht
@@ -2537,6 +2544,16 @@ async function krankSenden(){
   const t=L(), msg=$("#sk-msg");
   const von = $("#sk-from").value || heuteISO();
   msg.className="lverr"; msg.textContent="";
+  /* Bruno 2: Kein stiller Fallback. Wer "…" gewaehlt und eine Zahl ausserhalb
+     1 bis 30 getippt hat (oder gar keine), bekommt eine sichtbare Meldung und
+     es wird NICHTS gesendet. Frueher ging heimlich 1 Tag raus, mit gruenem
+     Haken - genau der stumme Fehler, den wir nicht wollen. */
+  const o=$("#sk-other");
+  if(o && o.style.display!=="none"){
+    const n=Number(o.value);
+    if(!(n>=1 && n<=30)){ msg.className="lverr"; msg.textContent=t.lvSickNum; o.focus(); return; }
+    skTage=n;
+  }
   if(demoAktiv()){ msg.className="lverr good"; msg.textContent=t.lvSickOk; return }
 
   /* WhatsApp ZUERST, und zwar noch im selben Fingertipp.
@@ -3062,7 +3079,11 @@ function renderActions(){
        ${all?"":`<small>${L().sopNeed}</small>`}</button>
      <button class="btn2" id="cant">${L().sopBlock}</button>`;
   $("#reasons").innerHTML=`<p class="eyebrow">${L().whyH}</p>`+
-    ["r1","r2","r3","r4"].map(r=>`<button class="reason" data-r="${r}">${L()[r]}</button>`).join("");
+    ["r1","r2","r3","r4","r5"].map(r=>`<button class="reason" data-r="${r}">${L()[r]}</button>`).join("")+
+    `<div id="whymore" style="display:none;margin-top:10px">
+       <input class="lvin" id="reason-other" placeholder="${L().whyMore}">
+       <button class="bigcheck" id="reason-send"><span class="bx"></span><span>${L().whySend}</span></button>
+     </div>`;
 }
 
 /* ---- Zurueckweg ----
@@ -3100,7 +3121,15 @@ function go(id, push){
   /* Der Urlaubsstand wird beim Oeffnen geholt, nicht auf Vorrat. Er aendert
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
-  if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); }
+  if(id==="s-leave"){
+    ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{});
+    /* Bruno-Hinweis: Krank-Auswahl frisch. Sonst bleibt am geteilten
+       Tresen-Handy die Tage-Auswahl der letzten Person stehen. */
+    skTage=1;
+    const so=$("#sk-other"); if(so){ so.value=""; so.style.display="none"; }
+    $$("#sk-days .dep").forEach(b=>b.classList.toggle("on", b.dataset.sd==="1"));
+    const sm=$("#sk-msg"); if(sm){ sm.textContent=""; sm.className="lverr"; }
+  }
   if(id==="s-review"){ ladeReview().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
   showBack();
@@ -3129,6 +3158,9 @@ document.addEventListener("click",e=>{
   if(sd){
     $$("#sk-days .dep").forEach(b=>b.classList.remove("on"));
     sd.classList.add("on");
+    const o=$("#sk-other");
+    if(sd.dataset.sd==="x"){ if(o){ o.style.display="block"; o.focus(); skTage=Number(o.value)||1; } return; }
+    if(o) o.style.display="none";
     skTage = Number(sd.dataset.sd);
     return;
   }
@@ -3298,9 +3330,17 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#cant")){$("#reasons").classList.toggle("on");return}
   const r=e.target.closest("[data-r]");
   if(r){
+    if(r.dataset.r==="r5"){ const w=$("#whymore"); if(w){ w.style.display="block"; const inp=$("#reason-other"); if(inp) inp.focus(); } return; }
     S.blocked[cur]=r.dataset.r; save();
     const q=list(curKind)[cur];
     if(q && q.id) melde("blockiert",{sop:q.id, grund:r.dataset.r});
+    renderGroups(); go("s-brief"); return}
+  if(e.target.closest("#reason-send")){
+    const inp=$("#reason-other"); const txt=((inp&&inp.value)||"").trim();
+    if(txt.length<2){ if(inp) inp.focus(); return; }
+    S.blocked[cur]="other"; save();
+    const q=list(curKind)[cur];
+    if(q && q.id) melde("blockiert",{sop:q.id, grund:"other", note:txt});
     renderGroups(); go("s-brief"); return}
   if(e.target.closest("#undo")){
     const at=S.done.indexOf(cur); if(at>=0)S.done.splice(at,1);
