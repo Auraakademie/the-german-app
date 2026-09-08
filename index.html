@@ -443,6 +443,8 @@
   .pinrst{background:none;border:1px solid rgba(0,0,0,.18);border-radius:8px;
   padding:5px 10px;font-size:12px;color:#5b6b6a;margin-right:10px;cursor:pointer}
 .ver{text-align:center;font-size:11px;opacity:.35;margin-top:26px;letter-spacing:1px}
+.rvfix{display:flex;gap:8px;margin-top:8px;align-items:center}
+.rvfix .lvin{flex:1;min-width:0}
 .pinrst.pinneu{background:#2e7d6b;color:#fff;border-color:#2e7d6b;
   font-weight:700;font-size:15px;letter-spacing:2px}
 .pinrst:active{background:rgba(0,0,0,.06)}
@@ -944,6 +946,7 @@ const T={
   rvNoWeek:"Nothing repeated this week.",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
+  rvNote:"note (optional)", rvHandled:"handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
   attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
@@ -1023,6 +1026,7 @@ const T={
   rvNoWeek:"Tidak ada yang berulang minggu ini.",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
+  rvNote:"catatan (opsional)", rvHandled:"selesai",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
   attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
@@ -1516,7 +1520,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-08";
+const APP_VERSION = "2026-09-08b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1841,7 +1845,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -1949,6 +1953,7 @@ async function sendeEinen(e){
     await sbSend("rpc/krank_melden", {p_von:d.von, p_tage:d.tage});
     return;
   }
+  if(e.art==="erledigt"){ await sbSend("rpc/haengt_erledigt",{p_run:d.run, p_note:d.note}); return; }
   if(e.art==="einchecken"){ await sbSend("rpc/einchecken"); return; }
   if(e.art==="auschecken"){ await sbSend("rpc/auschecken"); return; }
   if(e.art==="zimmer"){
@@ -2199,19 +2204,32 @@ async function ladeReview(){
     new Date().toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",
       {weekday:"long", day:"numeric", month:"long"});
 
-  /* Nur das Unfertige. Was lief, muss niemand ansehen - das ist der
-     Unterschied zwischen einem Bericht und einer Tagesordnung. */
-  const haengt = tag.filter(r => r.status !== "done");
+  /* Was wirklich haengt:
+     - blockiert UND noch nicht von Hendra erledigt  -> zeigen (mit Grund)
+     - offen, aber KEIN Ereignis-Ablauf              -> zeigen (echt liegengeblieben)
+     Nicht zeigen: fertig, erledigte Blockaden, und offene Ereignis-Ablaeufe
+     (Notfall, Absage, Behandlung pro Patient) - die laufen nur bei
+     Ausloesung und sind kein Versaeumnis (Bruno/Dennis, 08.09.2026). */
+  const haengt = tag.filter(r =>
+    r.status==="blocked" ? !r.handled_at
+    : r.status==="done"  ? false
+    : !r.on_demand);
   $("#rv-heute").innerHTML = haengt.length ? haengt.map(r=>{
     const grund = r.grund ? (t[r.grund] || GRUND[r.grund] || r.grund) : null;
+    const blockiert = r.status==="blocked";
     return `<div class="lvitem">
       <div class="d">
         <b>${r.titel}</b>
         <small>${r.wer} &middot; ${r.gehakt}/${r.schritte}
-          &middot; ${r.status==="blocked" ? t.rvBlocked : t.rvOpen}
-          ${grund ? "<br><b>"+grund+"</b>" : ""}</small>
+          &middot; ${blockiert ? t.rvBlocked : t.rvOpen}
+          ${grund ? "<br><b>"+grund+"</b>" : ""}
+          ${r.blocked_note ? "<br>"+r.blocked_note : ""}</small>
+        ${blockiert ? `<div class="rvfix">
+            <input class="lvin" id="note-${r.id}" placeholder="${t.rvNote}">
+            <button class="pinrst" data-done="${r.id}">${t.rvHandled}</button>
+          </div>` : ""}
       </div>
-      <span class="lvst ${r.status==="blocked"?"requested":""}">${r.gehakt}/${r.schritte}</span>
+      <span class="lvst ${blockiert?"requested":""}">${r.gehakt}/${r.schritte}</span>
     </div>`}).join("")
     : `<p class="lverr">${t.rvNothing}</p>`;
 
@@ -3115,6 +3133,21 @@ document.addEventListener("click",e=>{
     return;
   }
   if(e.target.closest("#sk-send")){ krankSenden(); return }
+
+  /* Hendra schliesst einen blockierten Punkt mit Notiz. Bleibt hinterlegt,
+     verschwindet nicht ueber Nacht. */
+  const dn=e.target.closest("[data-done]");
+  if(dn){
+    /* Bruno, 08.09.2026, Fund 1: frueher direkter sbSend, der bei
+       Netzausfall stumm scheiterte. Jetzt ueber den Postausgang wie jeder
+       Haken: offline-sicher, mit "wartet"-Anzeige, geht spaeter raus.
+       Der Punkt verschwindet sofort sichtbar (optimistisch), die Datenbank
+       zieht nach. */
+    const note=(document.getElementById("note-"+dn.dataset.done)||{}).value||null;
+    melde("erledigt", {run:dn.dataset.done, note:note});
+    const item=dn.closest(".lvitem"); if(item) item.remove();
+    return;
+  }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
