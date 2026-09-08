@@ -1496,7 +1496,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-04-e";
+const APP_VERSION = "2026-09-04-f";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2746,7 +2746,11 @@ function pinOk(){
      Karen raus, weil der Filter gegen die falsche Identitaet prueft. */
   S.me=k; save(); tr();
   leerePostausgang();
-  if(PEOPLE[k].lead){ $("#l-name").textContent=PEOPLE[k].n.replace("Dr. ",""); go("s-lead"); return }
+  /* Das Vorfuehr-Konto (Dennis) NICHT auf den alten Leitungs-Schaubildschirm
+     (s-lead, statisch, erfundene Zahlen) schicken, sondern in den echten
+     Ablauf mit Aufgaben und dem Vorfuehr-Umschalter. So kann er das Abhaken
+     wirklich zeigen. Echte Leitung (Nina/Micha) bleibt beim Ueberblick. */
+  if(PEOPLE[k].lead && !PEOPLE[k].demo){ $("#l-name").textContent=PEOPLE[k].n.replace("Dr. ",""); go("s-lead"); return }
   go("s-clock");
 }
 
