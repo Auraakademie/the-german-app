@@ -168,6 +168,9 @@
   /* Bereichs-Umschalter. Sieht bewusst anders aus als eine Aufgabe:
      das hier waehlt aus, es hakt nichts ab. */
   #depswitch{display:flex;gap:8px;margin:0 0 14px}
+  #demoswitch{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 4px}
+  #demoswitch:empty{display:none}
+  .demolabel{font-size:12px;opacity:.6;width:100%;margin-bottom:2px}
   #depswitch:empty{display:none}
   .dep{flex:1;min-height:48px;border-radius:14px;border:1px solid var(--hair);
        background:var(--tint-b);color:var(--ink-2);font:700 15px/1 var(--sans);
@@ -604,6 +607,8 @@
       <p class="datum" id="d-today2"></p>
       <h1 data-t="briefH"></h1>
       <p class="sub"><span id="c-name2"></span> &middot; <span data-t="briefT"></span></p>
+      <!-- Vorfuehr-Umschalter, nur fuer Dennis. Leer fuer alle anderen. -->
+      <div id="demoswitch"></div>
 
       <div class="glass hero">
         <div class="ring">
@@ -1491,7 +1496,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-04-d";
+const APP_VERSION = "2026-09-04-e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1557,6 +1562,14 @@ const mineTask=t=>{
      bleibt jeden Tag moeglich - der Unterschied zwischen "heute tun" und
      "wissen, wie es geht". */
   if(t.weekday!=null && new Date().getDay()!==t.weekday) return false;
+  /* Vorfuehrmodus: Dennis sieht die Aufgaben der gewaehlten Abteilung so,
+     wie die Person sie saehe. Person-Ablaeufe (nur Hendra) zeigen wir, wenn
+     "Hendra" gewaehlt ist. Sonst normale Abteilungsaufgaben. */
+  if(demoAktiv()){
+    if(t.nur) return S.demoDep==="hendra";
+    if(S.demoDep==="hendra") return false;
+    return t.dep===S.demoDep;
+  }
   /* Ein Ablauf kann genau EINER Person gehoeren. Dann gilt nur der Name,
      nicht die Abteilung und nicht die Leitungsregel.
 
@@ -1677,6 +1690,7 @@ function renderGroups(){
   if(!istLeitung() && !meine.length && !GUIDES.filter(mineGuide).length)
     out=`<p class="quelle">${L().noSops}</p>`;
   $("#groups").innerHTML=out;
+  zeichneDemoUmschalter();
 
   /* Ohne Aufgaben gibt es keinen Fortschritt. Ein Ring auf null bei jemandem,
      der nichts abzuhaken hat, sieht aus wie "du hast noch nichts getan". */
@@ -1695,6 +1709,19 @@ function renderGroups(){
     (zaehlt ? `${n} / ${meine.length} ${L().heroDone}`
               + (bl?` &middot; ${bl} ${L().heroBlocked}`:"") + "<br>" : "")
     + `${L().heroSince} <b>${S.started||"\u2014"}</b>`;
+}
+
+
+/* Der Vorfuehr-Umschalter. Nur fuer Dennis sichtbar. Er waehlt eine
+   Abteilung (oder Hendra), und die Tagesliste zeigt, was diese Person saehe.
+   Fuer alle anderen bleibt der Kasten leer und verschwindet. */
+function zeichneDemoUmschalter(){
+  const box=$("#demoswitch"); if(!box) return;
+  if(!demoAktiv()){ box.innerHTML=""; return }
+  if(!S.demoDep) S.demoDep="reception";
+  const opts=[["reception","Empfang"],["dental","Dental"],["derma","Derma"],["hendra","Hendra"]];
+  box.innerHTML = '<div class="demolabel">Vorfuehrung, Ansicht:</div>'
+    + opts.map(o=>`<button class="dep ${S.demoDep===o[0]?"on":""}" data-demodep="${o[0]}">${o[1]}</button>`).join("");
 }
 
 /* ================= Anbindung an Singapur =================
@@ -1727,13 +1754,14 @@ async function sbGet(pfad, zweiterVersuch){
    als Bilddaten in dieser Datei und muessen nicht ueber die Leitung. */
 async function ladePersonen(){
   try{
-    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,pin_set");
+    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,pin_set,is_demo");
     if(!rows.length) throw new Error("leer");
     const bilder = {}; PEOPLE.forEach(p=>{ if(p.img) bilder[p.n]=p.img; });
     PEOPLE = rows.map(r=>({
       id:r.id, n:r.name, dep:r.department||"management",
       r:{en:r.role_en, id:r.role_id}, pinSet:r.pin_set!==false,
       lead:r.is_lead?1:0, mgr:r.is_manager?1:0,
+      demo:r.is_demo?1:0,
       doc:/^Dr\./.test(r.name)&&r.department==="dental"?1:0,
       img:bilder[r.name]||null
     }));
@@ -1768,6 +1796,14 @@ try{ POST = JSON.parse(localStorage.getItem("tg-post")||"[]") }catch(e){}
 const postSichern = () => { try{ localStorage.setItem("tg-post", JSON.stringify(POST)) }catch(e){} };
 
 async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
+  /* Vorfuehrmodus: KEIN schreibender Aufruf geht durch. Das ist die harte
+     Sperre, damit Dennis alles vorfuehren kann - auch Genehmigen oder
+     PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
+     Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
+     etwas zeigen. */
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte)/.test(pfad)){
+    return null;
+  }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
     method: methode||"POST",
     headers: Object.assign({
@@ -1795,6 +1831,10 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
 
 /* In den Postausgang legen und sofort versuchen. Der Aufrufer wartet nicht. */
 function melde(art, daten){
+  /* Vorfuehrmodus (nur Dennis): NICHTS wird gesendet. Der Haken ist auf dem
+     Bildschirm schon passiert, das genuegt zum Zeigen. So landet keine
+     Vorfuehrung in echten Daten und Hendras Zahlen bleiben sauber. */
+  if(demoAktiv()) return;
   /* Fund 1 (Bruno, 04.09.2026): Jeder Eintrag traegt seit dem Anlegen, WEM
      er gehoert. Sonst kann ein offline gesetzter Haken von Ayu spaeter unter
      Karen rausgehen, wenn Karen am selben Tresen-Handy anmeldet - und genau
@@ -2368,6 +2408,8 @@ function urlaubRechnen(){
 async function urlaubSenden(){
   const t=L(), von=$("#lv-from").value, bis=$("#lv-to").value, msg=$("#lv-msg");
   if(!von||!bis) return;
+  if(demoAktiv()){ msg.className="lverr good"; msg.textContent=t.lvOk;
+    $("#lv-from").value=""; $("#lv-to").value=""; $("#lv-days").textContent=""; return }
   if(new Date(bis)<new Date(von)){ msg.className="lverr bad"; msg.textContent=t.lvBadRange; return }
   if(!online||!S.token){ msg.className="lverr bad"; msg.textContent=t.lvOffline; return }
   /* Bruno, Fund C: Der Knopf war waehrend des Sendens offen. Bei langsamem
@@ -2435,6 +2477,7 @@ async function krankSenden(){
   const t=L(), msg=$("#sk-msg");
   const von = $("#sk-from").value || heuteISO();
   msg.className="lverr"; msg.textContent="";
+  if(demoAktiv()){ msg.className="lverr good"; msg.textContent=t.lvSickOk; return }
 
   /* WhatsApp ZUERST, und zwar noch im selben Fingertipp.
      Bruno 6: Vorher stand window.open hinter zwei Wartepunkten. Nach einem
@@ -2724,7 +2767,13 @@ function pinOk(){
      management      -> beide, mit Umschalter (Hendra kontrolliert, die Inhaber fuehren)
      alle anderen    -> gar keine Zimmer. Nicht ausgegraut, nicht leer: gar nicht da */
 const ROOM_DEPS=["dental","derma"];
-const myDep=()=>{const m=me(); return m&&m.dep?m.dep:"dental"};
+const myDep=()=>{const m=me();
+  /* Vorfuehrmodus (nur Dennis): er spielt jede Abteilung durch, damit er
+     Hendra und dem Team zeigen kann, wie es aussieht. S.demoDep steuert,
+     welche gerade gezeigt wird. */
+  if(m&&m.demo&&S.demoDep) return S.demoDep;
+  return m&&m.dep?m.dep:"dental"};
+const demoAktiv=()=>{const m=me(); return !!(m&&m.demo)};
 
 /* Zweiter Fehler, gefunden beim Beheben des ersten: Der Umschalter zwischen
    Dental und Derma haing an der ABTEILUNG "management". In der Datenbank ist
@@ -3092,6 +3141,8 @@ document.addEventListener("click",e=>{
     save(); renderGroups(); go("s-brief"); return}
   const dp=e.target.closest("[data-dep]");
   if(dp){S.dep=dp.dataset.dep;save();renderRooms();return}
+  const dd=e.target.closest("[data-demodep]");
+  if(dd){ S.demoDep=dd.dataset.demodep; save(); renderGroups(); return }
   const rm=e.target.closest("[data-rm]"); if(rm){openRoom(+rm.dataset.rm);return}
   /* Ein Tipp macht das Zimmer fertig und bringt einen zurueck in die Liste.
      Kein Bestaetigungsdialog. Wer sich vertippt, tippt zweimal statt einmal. */
