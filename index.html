@@ -667,14 +667,30 @@
           <span class="mt" data-t="rvToday"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
+      <button class="glass next" id="att-open" data-go="s-attend" hidden style="margin-top:12px">
+        <span class="rm" id="att-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="attTitle"></span>
+          <span class="mt" data-t="attSub"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
       <button class="glass next" id="lv-open" data-go="s-leave" style="margin-top:22px">
         <span class="rm" id="lv-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="lvH"></span>
           <span class="mt" data-t="lvLeft"></span></span>
         <span class="chev">&rsaquo;</span></button>
-      <button class="ghost" data-go="s-clock" data-t="endDay"></button>
+      <button class="ghost" id="btn-endday" data-t="endDay"></button>
     </section>
 
+
+    <!-- ================= Anwesenheit heute (nur Leitung) =================
+         Ersetzt Hendras Handzettel: wer hat wann ein- und ausgecheckt.
+         Fuellt sich aus den Check-ins der App, kein Abtippen mehr. -->
+    <section class="screen" id="s-attend">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="attTitle"></h1>
+      <p class="sub" data-t="attSub"></p>
+      <div id="att-list"></div>
+    </section>
 
     <!-- ================= Urlaub =================
          Dennis am 12.08.2026: "es soll alles motivieren und nicht nach
@@ -928,6 +944,8 @@ const T={
   rvNoWeek:"Nothing repeated this week.",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
+  attTitle:"Attendance today", attSub:"who is in, since when",
+  attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvHoliday:"Holiday", lvReligion:"Religious",
@@ -1005,6 +1023,8 @@ const T={
   rvNoWeek:"Tidak ada yang berulang minggu ini.",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
+  attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
+  attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvHoliday:"Cuti tahunan", lvReligion:"Cuti keagamaan",
@@ -1496,7 +1516,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-04-f";
+const APP_VERSION = "2026-09-08";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1724,6 +1744,26 @@ function zeichneDemoUmschalter(){
     + opts.map(o=>`<button class="dep ${S.demoDep===o[0]?"on":""}" data-demodep="${o[0]}">${o[1]}</button>`).join("");
 }
 
+
+/* Anwesenheit heute, aus der eigenen Stempeluhr. Nur die Leitung sieht es
+   (security_invoker auf app_attendance sorgt dafuer). Ersetzt den Handzettel. */
+async function ladeAnwesenheit(){
+  const box=$("#att-list"); if(!box) return;
+  const t=L();
+  let rows=[];
+  try{
+    const heute=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    rows=await sbGet("app_attendance?select=*&on_day=eq."+heute+"&order=kam.asc");
+  }catch(e){ return }
+  box.innerHTML = rows.length ? rows.map(r=>`
+    <div class="lvitem">
+      <div class="d"><b>${r.name}</b>
+        <small>${t.attKam} ${r.kam||"\u2014"}${r.ging?" \u00b7 "+t.attGing+" "+r.ging:""}${r.stunden!=null?" \u00b7 "+r.stunden+" "+t.attStd:""}</small>
+      </div>
+    </div>`).join("")
+    : `<p class="lverr">${t.attNone}</p>`;
+}
+
 /* ================= Anbindung an Singapur =================
    Bewusst OHNE fremde Bibliothek: nur fetch. Jede Bibliothek waere ein Nachladen
    mehr, und die App soll auch bei schlechtem WLAN in Canggu sofort da sein.
@@ -1801,7 +1841,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -1909,6 +1949,8 @@ async function sendeEinen(e){
     await sbSend("rpc/krank_melden", {p_von:d.von, p_tage:d.tage});
     return;
   }
+  if(e.art==="einchecken"){ await sbSend("rpc/einchecken"); return; }
+  if(e.art==="auschecken"){ await sbSend("rpc/auschecken"); return; }
   if(e.art==="zimmer"){
     await sbSend("rpc/zimmer_melden", {p_appt:d.termin, p_was:d.was});
     return;
@@ -2508,6 +2550,16 @@ async function krankSenden(){
    gespeichert und lag dann 365 Tage in Hendras Liste. Der Server weist es
    inzwischen ab, aber eine Meldung, die gar nicht erst kommt, ist besser
    als eine, die man verstehen muss. */
+function tagesgrenze(){
+  /* Wer gestern eingecheckt und nicht ausgecheckt hat, soll heute frisch
+     einchecken. Ohne das bliebe S.started ueber Nacht stehen und es gaebe
+     keinen Check-in fuer den neuen Tag. */
+  if(S.startedAt){
+    const tag = S.startedAt.slice(0,10);
+    const heute = new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    if(tag!==heute){ S.started=null; S.startedAt=null; save(); }
+  }
+}
 function grenzenSetzen(){
   const f=$("#sk-from"); if(!f) return;
   const tag = n => new Date(Date.now()+n*86400000 - new Date().getTimezoneOffset()*60000)
@@ -2859,6 +2911,7 @@ function renderRooms(){
     rvo.hidden = TESTLAUF || !istLeitung();
     if(!rvo.hidden) zaehleHaengt();
   }
+  const ato=$("#att-open"); if(ato) ato.hidden = TESTLAUF || !istLeitung();
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
      echten Assistentin nicht angezeigt werden, aus demselben Grund wie die
@@ -3031,6 +3084,7 @@ function go(id, push){
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){ ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); }
   if(id==="s-review"){ ladeReview().catch(()=>{}); }
+  if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -3131,6 +3185,14 @@ document.addEventListener("click",e=>{
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
      damit beide Wege dasselbe tun. */
   const bk=e.target.closest(".back"); if(bk){back();return}
+  if(e.target.closest("#btn-endday")){
+    /* Feierabend = Auschecken. Landet ueber den Postausgang in der Datenbank
+       (offline-sicher). Danach S.started leeren, damit morgen frisch
+       eingecheckt wird. */
+    melde("auschecken", {});
+    S.started=null; S.startedAt=null; save();
+    go("s-clock"); return;
+  }
   const g=e.target.closest("[data-go]"); if(g){go(g.dataset.go);return}
   if(e.target.closest("#btn-clock")){
     /* Das ist das Einstempeln, auch wenn es nirgends so heisst. Niemand
@@ -3141,6 +3203,10 @@ document.addEventListener("click",e=>{
       const j=new Date();
       S.started=String(j.getHours()).padStart(2,"0")+":"+String(j.getMinutes()).padStart(2,"0");
       S.startedAt=j.toISOString();   /* die volle Zeit, fuer die Datenbank */
+      /* NEU 08.09.2026: Das Einstempeln landet jetzt WIRKLICH in der
+         Datenbank, nicht nur lokal. Ueber den Postausgang, also
+         offline-sicher. Das ersetzt Hendras Handzettel. */
+      melde("einchecken", {});
     }
     save(); renderGroups(); go("s-brief"); return}
   const dp=e.target.closest("[data-dep]");
@@ -3220,6 +3286,11 @@ tr();
 /* Wer mitten im Tag die Seite neu laedt, landet dort, wo er war. Der Verlauf
    wird passend dazu aufgebaut, damit der Zurueckweg auch nach dem Neuladen
    funktioniert und nicht ins Leere zeigt. */
+/* Tageswechsel ZUERST pruefen (Bruno Fund 2): Wer gestern nicht ausgecheckt
+   hat, soll heute frisch einstempeln. Das muss VOR der Ansicht-Entscheidung
+   laufen, sonst landet man - vor allem offline - auf s-brief ohne den
+   Einstempel-Knopf und der Check-in fuer den Tag fehlt fuer immer. */
+tagesgrenze();
 NAV = S.me!=null ? (S.started?["s-login","s-clock"]:["s-login"]) : [];
 go(S.me!=null ? (S.started?"s-brief":"s-clock") : "s-login", false);
 showBack();
