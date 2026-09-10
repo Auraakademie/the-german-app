@@ -835,6 +835,17 @@
            leitungsgeschuetzte Funktion, nicht aus einer offenen Tabelle. -->
       <p class="eyebrow" data-t="rvBday"></p>
       <div id="rv-bday"></div>
+      <button class="glass next" data-go="s-bdayedit" style="margin-top:14px"
+        data-t="rvBdayEdit"></button>
+    </section>
+
+    <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
+         hier fehlende Geburtstage ein und korrigiert die zwei abgeleiteten. -->
+    <section class="screen" id="s-bdayedit">
+      <button class="back" data-go="s-review">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="beH"></h1>
+      <p class="sub" data-t="beS"></p>
+      <div id="be-list"></div>
     </section>
 
     <section class="screen" id="s-lead">
@@ -957,6 +968,10 @@ const T={
   rvBday:"Birthdays", rvBdayNone:"No birthdays saved yet.",
   rvBdayToday:"today", rvBdayIn:"in", rvBdayDays:"days", rvBdayDay:"day",
   rvThuHint:"has a birthday this week. Celebrate at the Thursday meeting?",
+  rvBdayEdit:"Edit birthdays",
+  beH:"Birthdays", beS:"Add or correct a birthday. Only you and the leadership see this.",
+  beDay:"Day", beMonth:"Month", beSave:"Save", beClear:"Clear",
+  beSaved:"Saved", beErr:"Could not save. Check the date.", beNone:"not set",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
@@ -1042,6 +1057,10 @@ const T={
   rvBday:"Ulang tahun", rvBdayNone:"Belum ada ulang tahun tersimpan.",
   rvBdayToday:"hari ini", rvBdayIn:"dalam", rvBdayDays:"hari", rvBdayDay:"hari",
   rvThuHint:"berulang tahun minggu ini. Rayakan saat rapat Kamis?",
+  rvBdayEdit:"Ubah ulang tahun",
+  beH:"Ulang tahun", beS:"Tambah atau perbaiki ulang tahun. Hanya Anda dan pimpinan yang melihat.",
+  beDay:"Tanggal", beMonth:"Bulan", beSave:"Simpan", beClear:"Hapus",
+  beSaved:"Tersimpan", beErr:"Gagal menyimpan. Periksa tanggalnya.", beNone:"belum diisi",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
@@ -1539,7 +1558,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-08d";
+const APP_VERSION = "2026-09-10";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1864,7 +1883,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -2299,6 +2318,73 @@ async function ladeReview(){
       <div class="m">${t.rvThuHint}</div></div>`).join("");
 
   wrap.innerHTML = hinweis + bdays.map(zeile).join("");
+}
+
+/* Nina pflegt Geburtstage. Direkter Aufruf mit sichtbarem Ergebnis, KEIN
+   Postausgang: sie sitzt davor und will sehen, ob es gespeichert wurde. */
+async function ladeGeburtstagEdit(){
+  const t=L(), box=$("#be-list"); if(!box) return;
+  let leute=[];
+  try{ leute = await sbGet("rpc/geburtstage_alle") }catch(e){ box.innerHTML=`<p class="lverr">${t.beErr}</p>`; return }
+  box.innerHTML = leute.map(p=>{
+    const d = p.bday_day||"", m = p.bday_month||"";
+    const gesetzt = p.bday_day && p.bday_month;
+    return `<div class="lvitem" data-row="${p.person_id}">
+      <div class="d">
+        <b>${p.name}</b>
+        <small>${p.role_en}${gesetzt?"":" &middot; "+t.beNone}</small>
+        <div class="rvfix">
+          <input class="lvin" style="width:64px" type="number" inputmode="numeric" min="1" max="31"
+            placeholder="${t.beDay}" value="${d}" id="bd-d-${p.person_id}">
+          <input class="lvin" style="width:64px" type="number" inputmode="numeric" min="1" max="12"
+            placeholder="${t.beMonth}" value="${m}" id="bd-m-${p.person_id}">
+          <button class="pinrst" data-bsave="${p.person_id}">${t.beSave}</button>
+          ${gesetzt?`<button class="lvno" data-bclear="${p.person_id}">${t.beClear}</button>`:""}
+        </div>
+        <small class="be-msg" id="bd-msg-${p.person_id}"></small>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* Bruno-Fund: 31.02 oder 31.04 wurden still gespeichert und am falschen Tag
+   erinnert. Riegel: Tag darf die Laenge des Monats nicht ueberschreiten.
+   29.02 bleibt erlaubt (Schaltjahr-Geburtstage). Gleiche Regel wie in der DB. */
+function maxTagImMonat(m){ return [31,29,31,30,31,30,31,31,30,31,30,31][m-1] || 31; }
+
+async function geburtstagSpeichern(pid){
+  const t=L(), msg=$("#bd-msg-"+pid);
+  const d=Number($("#bd-d-"+pid).value), m=Number($("#bd-m-"+pid).value);
+  if(msg){ msg.className="be-msg"; msg.textContent=""; }
+  if(!(m>=1&&m<=12) || !(d>=1 && d<=maxTagImMonat(m))){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } return; }
+  try{
+    await sbSend("rpc/geburtstag_setzen", {p_person:pid, p_day:d, p_month:m});
+    if(msg){ msg.className="be-msg good"; msg.textContent=t.beSaved; }
+    /* Fund 3: Clear-Knopf sofort zeigen + "not set" entfernen, ohne Neuladen. */
+    const row=$("#be-list [data-row='"+pid+"']"); if(row){
+      const klein=row.querySelector(".d > small"); if(klein) klein.innerHTML=klein.innerHTML.split(" · ")[0];
+      if(!row.querySelector("[data-bclear]")){
+        const btn=document.createElement("button"); btn.className="lvno";
+        btn.setAttribute("data-bclear", pid); btn.textContent=t.beClear;
+        row.querySelector(".rvfix").appendChild(btn);
+      }
+    }
+  }catch(e){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } }
+}
+
+async function geburtstagEntfernen(pid){
+  const t=L(), msg=$("#bd-msg-"+pid);
+  try{
+    await sbSend("rpc/geburtstag_loeschen", {p_person:pid});
+    $("#bd-d-"+pid).value=""; $("#bd-m-"+pid).value="";
+    if(msg){ msg.className="be-msg good"; msg.textContent=t.beSaved; }
+    /* Fund 3: Clear-Knopf entfernen + "not set" zuruecksetzen, ohne Neuladen. */
+    const row=$("#be-list [data-row='"+pid+"']"); if(row){
+      const cl=row.querySelector("[data-bclear]"); if(cl) cl.remove();
+      const klein=row.querySelector(".d > small");
+      if(klein && klein.innerHTML.indexOf(" · ")<0) klein.innerHTML += " &middot; "+t.beNone;
+    }
+  }catch(e){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } }
 }
 
 /* ================= Urlaub =================
@@ -3179,6 +3265,7 @@ function go(id, push){
     const sm=$("#sk-msg"); if(sm){ sm.textContent=""; sm.className="lverr"; }
   }
   if(id==="s-review"){ ladeReview().catch(()=>{}); }
+  if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
@@ -3228,6 +3315,12 @@ document.addEventListener("click",e=>{
     const item=dn.closest(".lvitem"); if(item) item.remove();
     return;
   }
+
+  /* Nina pflegt Geburtstage */
+  const bsv=e.target.closest("[data-bsave]");
+  if(bsv){ geburtstagSpeichern(bsv.dataset.bsave); return; }
+  const bcl=e.target.closest("[data-bclear]");
+  if(bcl){ geburtstagEntfernen(bcl.dataset.bclear); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
