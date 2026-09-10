@@ -612,6 +612,26 @@
       <!-- Vorfuehr-Umschalter, nur fuer Dennis. Leer fuer alle anderen. -->
       <div id="demoswitch"></div>
 
+      <!-- COCKPIT: nur fuer die Leitung (Nina, Micha). Kacheln mit echten
+           Zahlen + was heute hakt. Der Mitarbeiter-Teil darunter (Ring, SOPs,
+           naechster Patient) wird fuer die Leitung ausgeblendet. -->
+      <div id="lead-kpis" class="kpis" hidden style="margin-bottom:14px">
+        <button class="glass kpi" data-go="s-attend" style="text-align:left">
+          <div class="k" id="kpi-present">&mdash;</div>
+          <div class="lbl" data-t="ckPresent"></div></button>
+        <button class="glass kpi" data-go="s-review" style="text-align:left">
+          <div class="k" id="kpi-stuck">&mdash;</div>
+          <div class="lbl" data-t="ckStuck"></div></button>
+        <button class="glass kpi" data-go="s-review" style="text-align:left">
+          <div class="k" id="kpi-bday" style="font-size:17px">&mdash;</div>
+          <div class="lbl" data-t="ckBday"></div></button>
+        <div class="glass kpi">
+          <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
+          <div class="lbl" data-t="ckRev"></div></div>
+      </div>
+      <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
+      <div id="cockpit-stuck" hidden></div>
+
       <div class="glass hero">
         <div class="ring">
           <svg viewBox="0 0 76 76" aria-hidden="true">
@@ -1040,6 +1060,7 @@ const T={
   tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
+  ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue",
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
   tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
   tkPhotoBad:"That photo could not be read. Please take a new one.",
@@ -1143,6 +1164,7 @@ const T={
   tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
+  ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini",
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
   tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
   tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
@@ -1638,10 +1660,18 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10d";
+const APP_VERSION = "2026-09-10e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
+/* Rolle beim Anmelden mitspeichern, damit die Landing-Entscheidung auch beim
+   synchronen App-Start, offline und nach dem Update-Sprung stimmt - da ist
+   die Personenliste vom Server noch nicht sicher geladen. */
+function rolleMerken(i){ const p=PEOPLE[i]; S.lead=(p&&p.lead)?1:0; S.mgr=(p&&p.mgr)?1:0; }
+/* Wohin nach dem Anmelden/Wieder-Oeffnen: Leitung und Manager (Nina, Micha,
+   Hendra) ohne Check-in direkt in ihre Ansicht; Personal auf die Stempeluhr,
+   solange noch nicht eingecheckt. */
+function startziel(){ return (S.lead||S.mgr) ? "s-brief" : (S.started ? "s-brief" : "s-clock"); }
 const list=k=>k==="task"?TASKS:GUIDES;
 
 /* Startwert folgt der Handy-Einstellung. Wer am Empfang in der Sonne steht,
@@ -2241,8 +2271,8 @@ async function geraetKennt(){
   const i = PEOPLE.findIndex(p=>p.id===S.geraet || p.n===S.geraetName);
   if(i<0) return false;
   if(S.refresh && !(await erneuereSitzung())) return false;
-  S.me=i; save(); tr(); renderRooms();
-  go(S.started ? "s-brief" : "s-clock", false);
+  S.me=i; rolleMerken(i); save(); tr(); renderRooms();
+  go(startziel(), false);
   /* Der Zurueck-Pfeil muss zur Namensliste fuehren, auch nach dem
      automatischen Anmelden. Vorher stand hier NAV=[], und damit war der
      Pfeil weg und niemand kam mehr zur Uebersicht (Dennis, 04.09.2026). */
@@ -2308,6 +2338,53 @@ async function zaehleHaengt(){
     const n=tag.filter(r=>r.status!=="done").length;
     const b=$("#rv-badge"); if(b) b.textContent = n ? n : "\u2713";
   }catch(e){}
+}
+
+/* Cockpit fuer die Leitung: Kacheln (anwesend, nicht erledigt, Geburtstag,
+   Umsatz) + was heute hakt. Der Mitarbeiter-Teil (Ring, SOPs) wird fuer die
+   Leitung ausgeblendet. Fuer Personal genau umgekehrt. */
+async function fuelleCockpit(){
+  /* Cockpit nur fuer die REINE Leitung (Nina, Micha). Hendra ist Manager mit
+     eigener Liste - er bekommt die normale Ansicht, nicht das Cockpit. */
+  const t=L(), lead=!!(me() && me().lead && !me().mgr);
+  const kp=$("#lead-kpis"), csT=$("#cockpit-stuck-t"), cs=$("#cockpit-stuck");
+  const hero=document.querySelector("#s-brief .hero"), grp=$("#groups");
+  if(kp) kp.hidden=!lead;
+  if(csT) csT.hidden=!lead;
+  if(cs) cs.hidden=!lead;
+  if(hero) hero.style.display = lead ? "none" : "";
+  if(grp)  grp.style.display  = lead ? "none" : "";
+  if(!lead) return;
+
+  /* Anwesend heute */
+  try{ const a=await sbGet("rpc/anwesend_heute"); const r=a&&a[0];
+    const el=$("#kpi-present"); if(el) el.innerHTML = r ? (r.da+'<small> / '+r.gesamt+'</small>') : "—";
+  }catch(e){ const el=$("#kpi-present"); if(el) el.textContent="—"; }
+
+  /* Nicht erledigt + die Liste darunter. Offline aus dem Zwischenspeicher. */
+  let tag=[], offline=false;
+  try{ const heute=new Date().toISOString().slice(0,10);
+    tag=await sbGet("app_day_review?select=*&on_day=eq."+heute);
+    try{ localStorage.setItem("ck_stuck", JSON.stringify(tag)) }catch(e){}
+  }catch(e){ offline=true; try{ const c=localStorage.getItem("ck_stuck"); if(c) tag=JSON.parse(c) }catch(_){} }
+  const haengt = tag.filter(r => r.status==="blocked" ? !r.handled_at : r.status==="done" ? false : !r.on_demand);
+  const ks=$("#kpi-stuck"); if(ks){ ks.textContent = offline && !tag.length ? "—" : haengt.length; }
+  if(cs){
+    cs.innerHTML = haengt.length ? haengt.map(r=>{
+      const grund = r.grund ? (t[r.grund] || GRUND[r.grund] || r.grund) : null;
+      return `<div class="lvitem"><div class="d"><b>${escHtml(r.titel||"")}</b>
+        <small>${escHtml(r.wer||"")}${grund?" &middot; "+escHtml(grund):""}</small></div></div>`;
+    }).join("") : `<p class="lverr">${offline?t.tkOffline:t.rvNothing}</p>`;
+  }
+
+  /* Geburtstag diese Woche */
+  try{ const b=await sbGet("rpc/geburtstage");
+    const soon=(b||[]).filter(x=>tageBisGeburtstag(x.bday_day,x.bday_month)<=7);
+    const el=$("#kpi-bday"); if(el) el.textContent = soon.length ? soon[0].name : "—";
+  }catch(e){ const el=$("#kpi-bday"); if(el) el.textContent="—"; }
+
+  /* Tagesumsatz: kommt aus KumoDent-Zahlungen, noch nicht angebunden -> Strich. */
+  const rev=$("#kpi-rev"); if(rev) rev.textContent="—";
 }
 
 /* Aufgaben-Kachel fuer die Leitung: erledigt/gesamt. Offline aus dem
@@ -3118,9 +3195,9 @@ async function ohnePin(k){
      ABER der Punkt unten steht dann auf "wartet", nicht auf gruen. Eine
      Anzeige, die "gespeichert" sagt, obwohl nichts gespeichert ist, ist
      schlimmer als jede Fehlermeldung. */
-  S.me=k; save(); tr(); renderRooms();
+  S.me=k; rolleMerken(k); save(); tr(); renderRooms();
   setState("warten");
-  go(S.started ? "s-brief" : "s-clock");
+  go(startziel());
 }
 
 /* Einmal aus der Vorfuehrung heraus, fuer genau diese Person: der richtige
@@ -3280,7 +3357,7 @@ function pinOk(){
      den Postausgang leeren. Vorher lief das Leeren ganz oben, waehrend S.me
      noch die alte Person (oder null) war - dann ging Ayus Haken doch unter
      Karen raus, weil der Filter gegen die falsche Identitaet prueft. */
-  S.me=k; save(); tr();
+  S.me=k; rolleMerken(k); save(); tr();
   leerePostausgang();
   /* Das Vorfuehr-Konto (Dennis) NICHT auf den alten Leitungs-Schaubildschirm
      (s-lead, statisch, erfundene Zahlen) schicken, sondern in den echten
@@ -3290,7 +3367,10 @@ function pinOk(){
      "start my day brauchen wir bei Nina nicht"). Also kein Check-in, direkt
      auf die Uebersicht s-brief mit den Leitungs-Kacheln (Aufgaben, was hakt).
      Personal checkt weiter ueber s-clock ein. */
-  if(PEOPLE[k].lead){ go("s-brief"); return; }
+  /* Leitung (Nina, Micha) und Hendra (Manager, arbeitet auch von zuhause)
+     muessen nicht einchecken und kommen direkt auf ihre Ansicht. Nur das
+     Personal checkt ein (Stempeluhr statt Jibble). Dennis, 10.09.2026. */
+  if(PEOPLE[k].lead || PEOPLE[k].mgr){ go("s-brief"); return; }
   go("s-clock");
 }
 
@@ -3592,7 +3672,7 @@ function go(id, push){
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
@@ -3852,8 +3932,8 @@ tr();
    laufen, sonst landet man - vor allem offline - auf s-brief ohne den
    Einstempel-Knopf und der Check-in fuer den Tag fehlt fuer immer. */
 tagesgrenze();
-NAV = S.me!=null ? (S.started?["s-login","s-clock"]:["s-login"]) : [];
-go(S.me!=null ? (S.started?"s-brief":"s-clock") : "s-login", false);
+NAV = S.me!=null ? ((S.lead||S.mgr||!S.started)?["s-login"]:["s-login","s-clock"]) : [];
+go(S.me!=null ? startziel() : "s-login", false);
 showBack();
 
 /* Erst verbinden, dann schauen ob dieses Geraet schon jemanden kennt.
@@ -3888,7 +3968,10 @@ async function pruefeAktualitaet(){
          Ein Merker im Speicher haelt genau einen Versuch fest. */
       if(sessionStorage.getItem("reloaded_for")===m[1]) return;
       sessionStorage.setItem("reloaded_for", m[1]);
-      location.reload();
+      /* location.reload() holt auf dem iPhone oft die alte Datei aus dem
+         Cache. Ein neuer URL mit Versions-Anhang wird garantiert frisch
+         geladen und umgeht den Cache. */
+      location.replace(location.pathname + "?v=" + encodeURIComponent(m[1]));
     }
   }catch(e){ /* offline: dann eben beim naechsten Start */ }
 }
