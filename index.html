@@ -101,7 +101,7 @@
   /* ============ Kopf ============ */
   /* Tippziele im Kopf: 44 Punkt Hoehe ist Pflicht (Apple HIG), 48 ist besser (Material 3).
      Wir nehmen 46 und lassen die Marke etwas schrumpfen, damit bei 360 Pixel nichts umbricht. */
-  header{padding:22px 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  header{padding:calc(env(safe-area-inset-top, 0px) + 18px) 20px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
   /* ============ Marke in der Oberflaeche ============
      Das gerahmte Logo ist ein DRUCK-Zeichen. In eine Oberflaeche gelegt wirkt es
      aufgeklebt, weil es seinen eigenen Untergrund mitbringt.
@@ -1601,18 +1601,12 @@ let GUIDES=[
    Datenbank erreichbar ist, kommen die echten Termine von heute.
    Die eingebauten behalten ihre Uhrzeiten, damit ohne Netz trotzdem etwas
    Sinnvolles auf dem Bildschirm steht. */
-let APPTS=[
- {at:"09:30",who:"Mr. M.", room:"MÜNCHEN",   dep:"dental",
-  t:{en:"Filling",id:"Tambal gigi"},                     foto:null},
- {at:"10:15",who:"Mrs. S.",room:"FRANKFURT", dep:"dental",
-  t:{en:"Scaling and polishing",id:"Scaling dan poles"}, foto:null},
- {at:"11:00",who:"Mr. R.", room:"HAMBURG",   dep:"dental",
-  t:{en:"Root canal",id:"Perawatan saluran akar"},       foto:null},
- {at:"09:45",who:"Mrs. A.",room:"HEIDELBERG",dep:"derma",
-  t:{en:"Botox",id:"Botox"},                             foto:null},
- {at:"11:45",who:"Mr. B.", room:"BERLIN",    dep:"derma",
-  t:{en:"Hydro Facial + Mask",id:"Hydro Facial + Masker"}, foto:null}
-];
+/* Keine erfundenen Patienten mehr. Die frueheren Demo-Termine (Mr. M. usw.)
+   sahen wie echte aus und standen vor dem Kunden. Dieses Projekt fasst
+   grundsaetzlich KEINE Patientendaten an. Die Liste bleibt leer, bis es
+   (falls je gewollt) eine datenschutzsaubere Quelle gibt. Solange sind die
+   Zimmer-/Naechster-Patient-Kacheln leer und blenden sich aus. */
+let APPTS=[];
 
 /* ================= Zustand =================
    Alles wird gespeichert. Vorher lag der Fortschritt nur im Arbeitsspeicher:
@@ -1628,7 +1622,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10b";
+const APP_VERSION = "2026-09-10c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2577,16 +2571,23 @@ function zeichneAufgabeNeu(){
   }
 }
 
+let tkSending=false;
 async function aufgabeSenden(){
-  const t=L(), msg=$("#tk-msg");
+  const t=L(), msg=$("#tk-msg"), btn=$("#tk-send");
+  if(tkSending) return;
   const text=($("#tk-text").value||"").trim();
   msg.className="lverr"; msg.textContent="";
   if(text.length<2 || !tkWho){ msg.textContent=t.tkErr; return; }
+  tkSending=true; if(btn) btn.disabled=true;
   try{
     await sbSend("rpc/aufgabe_erstellen", {p_assigned:tkWho, p_text:text, p_mode:tkMode});
     msg.className="lverr good"; msg.textContent=t.tkSent;
+    tkSending=false; if(btn) btn.disabled=false;
     go("s-review");
-  }catch(e){ msg.className="lverr"; msg.textContent=t.tkErr; }
+  }catch(e){
+    tkSending=false; if(btn) btn.disabled=false;
+    msg.className="lverr"; msg.textContent=t.tkErr;
+  }
 }
 
 /* Sprache: webkitSpeechRecognition (Android/Chrome). Auf dem iPhone gibt es
@@ -2594,7 +2595,13 @@ async function aufgabeSenden(){
 function aufgabeSprechen(){
   const t=L(), hint=$("#tk-mic-hint");
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ if(hint){ hint.hidden=false; hint.textContent=t.tkMicHint; } const tx=$("#tk-text"); if(tx) tx.focus(); return; }
+  /* Auf dem iPhone ist die Spracherkennung in einer zum Startbildschirm
+     hinzugefuegten App unzuverlaessig bis tot. Statt eines Knopfs, der nichts
+     tut, oeffnen wir das Textfeld: die iPhone-Tastatur hat ihr eigenes Mikro
+     (das Symbol neben der Leertaste). Ein Hinweis sagt das. */
+  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+           || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  if(!SR || iOS){ if(hint){ hint.hidden=false; hint.textContent=t.tkMicHint; } const tx=$("#tk-text"); if(tx) tx.focus(); return; }
   if(tkRec){ try{ tkRec.stop() }catch(e){} tkRec=null; return; }
   tkRec = new SR();
   tkRec.lang = S.lang==="id" ? "id-ID" : "en-US";
@@ -3195,11 +3202,11 @@ function pinOk(){
      (s-lead, statisch, erfundene Zahlen) schicken, sondern in den echten
      Ablauf mit Aufgaben und dem Vorfuehr-Umschalter. So kann er das Abhaken
      wirklich zeigen. Echte Leitung (Nina/Micha) bleibt beim Ueberblick. */
-  /* Echte Leitung (Nina, Micha) ging frueher auf s-lead, ein statisches
-     Schaubild mit erfundenen Zahlen und ohne Weg zu den echten Werkzeugen.
-     Damit erreichte Nina weder Geburtstage noch Aufgaben. Jetzt denselben
-     bewaehrten Weg wie Hendra: einchecken -> s-brief -> Knopf zur echten
-     Leitungssicht s-review. (Dennis, 10.09.2026) */
+  /* Leitung (Nina, Micha) wird NICHT zeiterfasst (Dennis, 10.09.2026:
+     "start my day brauchen wir bei Nina nicht"). Also kein Check-in, direkt
+     auf die Uebersicht s-brief mit den Leitungs-Kacheln (Aufgaben, was hakt).
+     Personal checkt weiter ueber s-clock ein. */
+  if(PEOPLE[k].lead){ go("s-brief"); return; }
   go("s-clock");
 }
 
@@ -3318,9 +3325,11 @@ function renderRooms(){
   const lb=$("#lv-badge");
   if(lb && lvStand) lb.textContent=Number(lvStand.frei);
   $("#lk-rooms").innerHTML=(S.rooms||[]).length+"<small> / "+APPTS.length+"</small>";
-  $("#nextup").hidden=!zeigen;
-  $("#nextcard").hidden=!zeigen;
-  if(!zeigen){ $("#roomlist").innerHTML=""; $("#depswitch").innerHTML=""; return }
+  /* Ohne echte Termine keine (leere) Naechster-Patient-Kachel. */
+  const hatTermine = mine.length>0;
+  $("#nextup").hidden=!zeigen || !hatTermine;
+  $("#nextcard").hidden=!zeigen || !hatTermine;
+  if(!zeigen || !hatTermine){ $("#roomlist").innerHTML=""; $("#depswitch").innerHTML=""; return }
   /* Der Umschalter steht NUR da, wenn er gebraucht wird. Fuer Uma und Deo
      waere er eine Frage ohne Antwort. */
   $("#depswitch").innerHTML = canSwitch()
