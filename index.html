@@ -653,6 +653,11 @@
 
       <div id="groups"></div>
 
+      <!-- Aufgaben von der Leitung (Nina/Hendra). Spontane Dinge, die nicht
+           in den festen Ablaeufen stehen. Versteckt, wenn es keine gibt. -->
+      <p class="eyebrow" id="mt-title" data-t="myTasks" hidden></p>
+      <div id="mytasks"></div>
+
       <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
            kommt hier zurueck zur Namensliste. Auf der Uebersicht sichtbar,
            weil hier die meisten landen (Dennis, 04.09.2026). -->
@@ -673,6 +678,14 @@
         <span class="rm" id="att-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="attTitle"></span>
           <span class="mt" data-t="attSub"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
+      <!-- Aufgaben-Kachel: erledigt/gesamt auf einen Blick, ein Tipp zeigt
+           die Liste mit Status (offen, erledigt, abgelaufen). Nur Leitung. -->
+      <button class="glass next" id="tk-open" data-go="s-review" hidden style="margin-top:12px">
+        <span class="rm" id="tk-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="tkTileT"></span>
+          <span class="mt" data-t="tkTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
       <button class="glass next" id="lv-open" data-go="s-leave" style="margin-top:22px">
@@ -837,6 +850,41 @@
       <div id="rv-bday"></div>
       <button class="glass next" data-go="s-bdayedit" style="margin-top:14px"
         data-t="rvBdayEdit"></button>
+
+      <!-- Aufgaben, die die Leitung verteilt hat, mit Status. -->
+      <p class="eyebrow" data-t="tkH" style="margin-top:26px"></p>
+      <button class="glass next" data-go="s-tasknew" data-t="tkNew"></button>
+      <div id="rv-tasks" style="margin-top:12px"></div>
+    </section>
+
+    <!-- Neue Aufgabe erstellen. Nur Leitung erreicht diesen Bildschirm. -->
+    <section class="screen" id="s-tasknew">
+      <button class="back" data-go="s-review">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="tkNewH"></h1>
+      <p class="sub" data-t="tkNewS"></p>
+
+      <label class="lvlab" data-t="tkText"></label>
+      <div class="rvfix" style="align-items:stretch">
+        <textarea class="lvin" id="tk-text" rows="3" style="flex:1;resize:none"></textarea>
+        <button class="pinrst" id="tk-mic" title="speak" style="align-self:flex-start">&#127908;</button>
+      </div>
+      <p class="lverr" id="tk-mic-hint" style="margin:4px 0 0" hidden></p>
+
+      <label class="lvlab" data-t="tkWho" style="margin-top:16px"></label>
+      <div class="lvrow" id="tk-who"></div>
+
+      <label class="lvlab" data-t="tkHow" style="margin-top:16px"></label>
+      <div class="lvrow" id="tk-mode">
+        <button class="dep on" data-tkmode="once"      data-t="tkOnce"></button>
+        <button class="dep"    data-tkmode="hours"     data-t="tkHours"></button>
+        <button class="dep"    data-tkmode="today"     data-t="tkToday"></button>
+        <button class="dep"    data-tkmode="week"      data-t="tkWeek"></button>
+        <button class="dep"    data-tkmode="recurring" data-t="tkDaily"></button>
+      </div>
+
+      <button class="bigcheck" id="tk-send" style="margin-top:20px">
+        <span class="bx"></span><span data-t="tkSend"></span></button>
+      <p class="lverr" id="tk-msg"></p>
     </section>
 
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
@@ -972,6 +1020,17 @@ const T={
   beH:"Birthdays", beS:"Add or correct a birthday. Only you and the leadership see this.",
   beDay:"Day", beMonth:"Month", beSave:"Save", beClear:"Clear",
   beSaved:"Saved", beErr:"Could not save. Check the date.", beNone:"not set",
+  myTasks:"Tasks for you", tkTick:"Done",
+  tkH:"Tasks", tkNew:"+ New task",
+  tkNewH:"New task", tkNewS:"Write or speak it, choose who does it.",
+  tkText:"What needs to be done?", tkWho:"Who does it?", tkHow:"How long?",
+  tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day",
+  tkSend:"Send task", tkSent:"Sent", tkErr:"Could not send. Fill text and pick a person.",
+  tkMicHint:"Voice is not available here. Use the microphone on your keyboard.",
+  tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
+  tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
+  tkTileT:"Tasks", tkTileS:"done and open today",
+  tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
@@ -1061,6 +1120,17 @@ const T={
   beH:"Ulang tahun", beS:"Tambah atau perbaiki ulang tahun. Hanya Anda dan pimpinan yang melihat.",
   beDay:"Tanggal", beMonth:"Bulan", beSave:"Simpan", beClear:"Hapus",
   beSaved:"Tersimpan", beErr:"Gagal menyimpan. Periksa tanggalnya.", beNone:"belum diisi",
+  myTasks:"Tugas untuk Anda", tkTick:"Selesai",
+  tkH:"Tugas", tkNew:"+ Tugas baru",
+  tkNewH:"Tugas baru", tkNewS:"Tulis atau ucapkan, pilih siapa yang mengerjakan.",
+  tkText:"Apa yang harus dikerjakan?", tkWho:"Siapa yang mengerjakan?", tkHow:"Berapa lama?",
+  tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari",
+  tkSend:"Kirim tugas", tkSent:"Terkirim", tkErr:"Gagal mengirim. Isi teks dan pilih orang.",
+  tkMicHint:"Suara tidak tersedia di sini. Pakai mikrofon pada keyboard.",
+  tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
+  tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
+  tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
+  tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
@@ -1558,7 +1628,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10";
+const APP_VERSION = "2026-09-10b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1883,7 +1953,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -1992,6 +2062,7 @@ async function sendeEinen(e){
     return;
   }
   if(e.art==="erledigt"){ await sbSend("rpc/haengt_erledigt",{p_run:d.run, p_note:d.note}); return; }
+  if(e.art==="aufgabe"){ await sbSend("rpc/aufgabe_erledigen",{p_task:d.task, p_on_day:d.tag||null}); return; }
   if(e.art==="einchecken"){ await sbSend("rpc/einchecken"); return; }
   if(e.art==="auschecken"){ await sbSend("rpc/auschecken"); return; }
   if(e.art==="zimmer"){
@@ -2229,6 +2300,21 @@ async function zaehleHaengt(){
   }catch(e){}
 }
 
+/* Aufgaben-Kachel fuer die Leitung: erledigt/gesamt. Offline aus dem
+   Zwischenspeicher, damit die Zahl nicht stumm auf 0 faellt. */
+async function zaehleAufgaben(){
+  const el=$("#tk-open"); if(!el) return;
+  if(!istLeitung() || TESTLAUF){ el.hidden=true; return; }
+  el.hidden=false;
+  let liste=[], offline=false;
+  try{ liste=await sbGet("rpc/aufgaben_uebersicht"); try{localStorage.setItem("tk_over",JSON.stringify(liste))}catch(e){} }
+  catch(e){ offline=true; try{const c=localStorage.getItem("tk_over"); if(c) liste=JSON.parse(c)}catch(_){} }
+  const total=liste.length, done=liste.filter(a=>a.erledigt).length;
+  /* Bruno: offline ohne Stand NICHT als Haken zeigen (sieht aus wie "alles
+     erledigt"), sondern neutralen Strich. Haken nur, wenn wirklich 0 offen. */
+  const b=$("#tk-badge"); if(b) b.textContent = total ? (done+"/"+total) : (offline ? "\u2014" : "\u2713");
+}
+
 /* Tage bis zum naechsten Geburtstag, aus Tag und Monat. Kein Geburtsjahr
    noetig. Liegt das Datum dieses Jahr schon hinter uns, zaehlen wir zum
    naechsten Jahr. */
@@ -2385,6 +2471,138 @@ async function geburtstagEntfernen(pid){
       if(klein && klein.innerHTML.indexOf(" · ")<0) klein.innerHTML += " &middot; "+t.beNone;
     }
   }catch(e){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } }
+}
+
+/* ================= Aufgaben (Nina verteilt) =================
+   Spontane Aufgaben, die die Leitung an einzelne Mitarbeiter schickt.
+   Mitarbeiter hakt ab (ueber den Postausgang, offline-sicher), Leitung
+   sieht die Kontrolle. Aufgabentext ist frei eingegeben, deshalb ueberall
+   escapen. */
+let tkMode="once", tkWho=null, tkRec=null;
+
+function escHtml(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function tkModeText(m){
+  const t=L();
+  return {once:t.tkModeOnce,hours:t.tkModeHours,today:t.tkModeToday,week:t.tkModeWeek,recurring:t.tkModeDaily}[m]||m;
+}
+
+/* Mitarbeiter: meine offenen Aufgaben.
+   Bruno-Fund 1: Ohne Netz zeigte die Liste stumm leer, ununterscheidbar von
+   "nichts zu tun". Jetzt Zwischenspeicher pro Person: bei Netzverlust der
+   letzte bekannte Stand mit Offline-Hinweis, nie stumm leer. */
+async function ladeMeineAufgaben(){
+  const t=L(), box=$("#mytasks"), tit=$("#mt-title"); if(!box) return;
+  const m=me(); if(!m){ if(tit) tit.hidden=true; box.innerHTML=""; return }
+  const key="tk_mine_"+m.id;
+  let liste=[], offline=false;
+  try{
+    liste = await sbGet("rpc/meine_aufgaben");
+    try{ localStorage.setItem(key, JSON.stringify(liste)) }catch(e){}
+  }catch(e){
+    offline=true;
+    try{ const c=localStorage.getItem(key); if(c) liste=JSON.parse(c) }catch(_){}
+  }
+  const zeilen = liste.map(a=>`
+    <div class="lvitem" data-tkrow="${a.id}">
+      <div class="d"><b>${escHtml(a.text)}</b><small>${escHtml(a.von)}</small></div>
+      <button class="pinrst" data-tkdone="${a.id}">${t.tkTick}</button>
+    </div>`).join("");
+  if(tit) tit.hidden = (liste.length===0 && !offline);
+  box.innerHTML =
+    (offline ? `<p class="lverr">${liste.length?t.tkOffline:t.tkOfflineNone}</p>` : "")
+    + zeilen;
+}
+
+/* Mitarbeiter hakt ab -> Postausgang (offline-sicher, person-gebunden),
+   optimistisch entfernen. */
+function aufgabeAbhaken(id){
+  /* Bruno-Fund 3: den echten Tag mitschicken, sonst bucht der Server bei
+     spaeterem Senden das falsche Datum (wichtig bei taeglich wiederkehrend). */
+  melde("aufgabe", {task:id, tag:heuteISO()});
+  const row=$("#mytasks [data-tkrow='"+id+"']"); if(row) row.remove();
+  /* Zwischenspeicher mitziehen, sonst zeigt ein Offline-Neuladen die schon
+     abgehakte Aufgabe wieder als offen. */
+  const m=me();
+  if(m){ const key="tk_mine_"+m.id; try{ const c=localStorage.getItem(key);
+    if(c){ localStorage.setItem(key, JSON.stringify(JSON.parse(c).filter(a=>a.id!==id))); } }catch(e){} }
+  if(!$$("#mytasks [data-tkrow]").length){ const tit=$("#mt-title"); if(tit) tit.hidden=true; }
+}
+
+/* Leitung: Uebersicht mit Status. Ebenfalls mit Zwischenspeicher, damit Nina
+   offline nicht faelschlich "alles erledigt" (leer) sieht. Abgelaufene, nie
+   erledigte Aufgaben bleiben sichtbar (Bruno-Fund 2). */
+async function ladeAufgabenUebersicht(){
+  const t=L(), box=$("#rv-tasks"); if(!box) return;
+  let liste=[], offline=false;
+  try{
+    liste = await sbGet("rpc/aufgaben_uebersicht");
+    try{ localStorage.setItem("tk_over", JSON.stringify(liste)) }catch(e){}
+  }catch(e){
+    offline=true;
+    try{ const c=localStorage.getItem("tk_over"); if(c) liste=JSON.parse(c) }catch(_){}
+  }
+  const zeilen = liste.map(a=>{
+    const fertig=a.erledigt, spaet=a.abgelaufen;
+    const status = fertig ? (t.tkDoneBy+" "+escHtml(a.erledigt_von||""))
+                 : spaet ? t.tkExpired : t.tkOpenLbl;
+    return `<div class="lvitem">
+      <div class="d"><b>${escHtml(a.text)}</b>
+        <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)} &middot; ${status}</small>
+        <div class="rvfix"><button class="lvno" data-tkdel="${a.id}">${t.tkDelete}</button></div>
+      </div>
+      <span class="lvst ${fertig?"":"requested"}">${fertig?"&#10003;":spaet?"!":"&bull;"}</span>
+    </div>`;
+  }).join("");
+  box.innerHTML =
+    (offline ? `<p class="lverr">${liste.length?t.tkOffline:t.tkOfflineNone}</p>` : "")
+    + (liste.length ? zeilen : (offline?"":`<p class="lverr">${t.tkNone}</p>`));
+}
+
+async function aufgabeLoeschen(id){
+  try{ await sbSend("rpc/aufgabe_loeschen", {p_task:id}); }catch(e){}
+  ladeAufgabenUebersicht().catch(()=>{});
+}
+
+/* Neue-Aufgabe-Bildschirm frisch aufbauen */
+function zeichneAufgabeNeu(){
+  tkMode="once"; tkWho=null;
+  const tx=$("#tk-text"); if(tx) tx.value="";
+  const msg=$("#tk-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  const hint=$("#tk-mic-hint"); if(hint) hint.hidden=true;
+  $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b.dataset.tkmode==="once"));
+  const who=$("#tk-who"); if(who){
+    who.innerHTML = Object.values(PEOPLE).filter(p=>!p.demo)
+      .map(p=>`<button class="dep" data-tkwho="${p.id}">${escHtml(p.n)}</button>`).join("");
+  }
+}
+
+async function aufgabeSenden(){
+  const t=L(), msg=$("#tk-msg");
+  const text=($("#tk-text").value||"").trim();
+  msg.className="lverr"; msg.textContent="";
+  if(text.length<2 || !tkWho){ msg.textContent=t.tkErr; return; }
+  try{
+    await sbSend("rpc/aufgabe_erstellen", {p_assigned:tkWho, p_text:text, p_mode:tkMode});
+    msg.className="lverr good"; msg.textContent=t.tkSent;
+    go("s-review");
+  }catch(e){ msg.className="lverr"; msg.textContent=t.tkErr; }
+}
+
+/* Sprache: webkitSpeechRecognition (Android/Chrome). Auf dem iPhone gibt es
+   das Mikrofon direkt auf der Tastatur, dann nur ein Hinweis. */
+function aufgabeSprechen(){
+  const t=L(), hint=$("#tk-mic-hint");
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ if(hint){ hint.hidden=false; hint.textContent=t.tkMicHint; } const tx=$("#tk-text"); if(tx) tx.focus(); return; }
+  if(tkRec){ try{ tkRec.stop() }catch(e){} tkRec=null; return; }
+  tkRec = new SR();
+  tkRec.lang = S.lang==="id" ? "id-ID" : "en-US";
+  tkRec.interimResults = false;
+  tkRec.onresult = e=>{ const txt=e.results[0][0].transcript; const tx=$("#tk-text"); if(tx) tx.value=(tx.value?tx.value+" ":"")+txt; };
+  tkRec.onend = ()=>{ tkRec=null; const b=$("#tk-mic"); if(b) b.classList.remove("on"); };
+  const b=$("#tk-mic"); if(b) b.classList.add("on");
+  try{ tkRec.start() }catch(e){ tkRec=null; const bb=$("#tk-mic"); if(bb) bb.classList.remove("on"); }
 }
 
 /* ================= Urlaub =================
@@ -2952,6 +3170,12 @@ function merkeGeraet(p){
   S.geraetName = p.n;
 }
 function vergissGeraet(){
+  /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
+     nicht der Stand der Vorperson liegen bleibt (Bruno-Hinweis). */
+  try{
+    if(S.me!=null && PEOPLE[S.me]) localStorage.removeItem("tk_mine_"+PEOPLE[S.me].id);
+    localStorage.removeItem("tk_over");
+  }catch(e){}
   S.geraet=null; S.geraetName=null; S.refresh=null; S.token=null; S.me=null;
   S.started=null; S.startedAt=null; save();
 }
@@ -2971,7 +3195,11 @@ function pinOk(){
      (s-lead, statisch, erfundene Zahlen) schicken, sondern in den echten
      Ablauf mit Aufgaben und dem Vorfuehr-Umschalter. So kann er das Abhaken
      wirklich zeigen. Echte Leitung (Nina/Micha) bleibt beim Ueberblick. */
-  if(PEOPLE[k].lead && !PEOPLE[k].demo){ $("#l-name").textContent=PEOPLE[k].n.replace("Dr. ",""); go("s-lead"); return }
+  /* Echte Leitung (Nina, Micha) ging frueher auf s-lead, ein statisches
+     Schaubild mit erfundenen Zahlen und ohne Weg zu den echten Werkzeugen.
+     Damit erreichte Nina weder Geburtstage noch Aufgaben. Jetzt denselben
+     bewaehrten Weg wie Hendra: einchecken -> s-brief -> Knopf zur echten
+     Leitungssicht s-review. (Dennis, 10.09.2026) */
   go("s-clock");
 }
 
@@ -3080,6 +3308,7 @@ function renderRooms(){
     rvo.hidden = TESTLAUF || !istLeitung();
     if(!rvo.hidden) zaehleHaengt();
   }
+  zaehleAufgaben();
   const ato=$("#att-open"); if(ato) ato.hidden = TESTLAUF || !istLeitung();
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
@@ -3264,9 +3493,11 @@ function go(id, push){
     $$("#sk-days .dep").forEach(b=>b.classList.toggle("on", b.dataset.sd==="1"));
     const sm=$("#sk-msg"); if(sm){ sm.textContent=""; sm.className="lverr"; }
   }
-  if(id==="s-review"){ ladeReview().catch(()=>{}); }
+  if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
+  if(id==="s-brief"){ ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); }
+  if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -3321,6 +3552,18 @@ document.addEventListener("click",e=>{
   if(bsv){ geburtstagSpeichern(bsv.dataset.bsave); return; }
   const bcl=e.target.closest("[data-bclear]");
   if(bcl){ geburtstagEntfernen(bcl.dataset.bclear); return; }
+
+  /* Aufgaben (Nina verteilt) */
+  const tkdone=e.target.closest("[data-tkdone]");
+  if(tkdone){ aufgabeAbhaken(tkdone.dataset.tkdone); return; }
+  const tkdel=e.target.closest("[data-tkdel]");
+  if(tkdel){ aufgabeLoeschen(tkdel.dataset.tkdel); return; }
+  const tkw=e.target.closest("[data-tkwho]");
+  if(tkw){ tkWho=tkw.dataset.tkwho; $$("#tk-who .dep").forEach(b=>b.classList.toggle("on", b===tkw)); return; }
+  const tkm=e.target.closest("[data-tkmode]");
+  if(tkm){ tkMode=tkm.dataset.tkmode; $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b===tkm)); return; }
+  if(e.target.closest("#tk-mic")){ aufgabeSprechen(); return; }
+  if(e.target.closest("#tk-send")){ aufgabeSenden(); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
