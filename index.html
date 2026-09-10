@@ -1660,7 +1660,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10e";
+const APP_VERSION = "2026-09-10f";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2383,8 +2383,21 @@ async function fuelleCockpit(){
     const el=$("#kpi-bday"); if(el) el.textContent = soon.length ? soon[0].name : "—";
   }catch(e){ const el=$("#kpi-bday"); if(el) el.textContent="—"; }
 
-  /* Tagesumsatz: kommt aus KumoDent-Zahlungen, noch nicht angebunden -> Strich. */
-  const rev=$("#kpi-rev"); if(rev) rev.textContent="—";
+  /* Tagesumsatz aus KumoDent (serverseitig summiert, nur die Zahl). Bei Fehler
+     bleibt der neutrale Strich statt einer erfundenen Zahl. */
+  try{
+    const r=await fetch(SB.url+"/functions/v1/tagesumsatz",
+      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+    if(r.ok){ const d=await r.json(); const el=$("#kpi-rev");
+      if(el){ el.textContent=fmtRp(d.total||0); el.style.color=""; el.style.fontSize="20px"; } }
+  }catch(e){}
+}
+
+/* Betrag in Rupiah, kompakt fuer die Kachel: ab einer Million als "jt" (juta). */
+function fmtRp(n){
+  n=Number(n)||0;
+  if(n>=1e6) return "Rp "+(n/1e6).toLocaleString("en-US",{maximumFractionDigits:1})+" jt";
+  return "Rp "+Math.round(n).toLocaleString("en-US");
 }
 
 /* Aufgaben-Kachel fuer die Leitung: erledigt/gesamt. Offline aus dem
