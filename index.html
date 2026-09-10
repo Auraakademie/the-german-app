@@ -428,7 +428,7 @@
      deshalb die Aufmerksamkeitsfarbe der Marke, nicht das Gruen des Fertigen
      und nicht das Rot einer Stoerung. Es ist nichts kaputt, es ist nur dran. */
   /* ---- Urlaub ---- */
-  .lvrow{display:flex;gap:8px;margin-bottom:14px}
+  .lvrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
   .lvlab{display:block;font-size:13px;color:var(--ink-2);margin:10px 0 6px;
     font-family:"TG Text",system-ui,sans-serif}
   .lvin{width:100%;box-sizing:border-box;padding:13px 14px;border-radius:12px;
@@ -719,6 +719,11 @@
       <h1 data-t="lvH"></h1>
       <p class="sub" id="lv-year"></p>
 
+      <!-- Persoenlicher Teil (eigener Resturlaub, Krank melden, Urlaub
+           beantragen, eigene Antraege). Die reine Leitung (Nina, Micha)
+           braucht das nicht und bekommt es ausgeblendet; die Team-Uebersicht
+           unten (lv-chef) bleibt fuer sie sichtbar. -->
+      <div id="lv-personal">
       <div class="glass hero">
         <div class="ring">
           <svg viewBox="0 0 76 76" aria-hidden="true">
@@ -788,6 +793,7 @@
 
       <p class="eyebrow" data-t="lvMine"></p>
       <div id="lv-list"></div>
+      </div><!-- /lv-personal -->
 
       <!-- Nur fuer die Leitung. Steht UNTER dem eigenen Stand, weil auch
            Hendra zuerst sein eigener Mitarbeiter ist und dann erst der,
@@ -870,8 +876,12 @@
       </div>
       <p class="lverr" id="tk-mic-hint" style="margin:4px 0 0" hidden></p>
 
+      <button class="pinrst" id="tk-photo-btn" style="margin-top:12px">&#128247; <span data-t="tkPhoto"></span></button>
+      <input type="file" id="tk-photo-input" accept="image/*" style="display:none">
+      <img id="tk-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
+
       <label class="lvlab" data-t="tkWho" style="margin-top:16px"></label>
-      <div class="lvrow" id="tk-who"></div>
+      <select class="lvin" id="tk-who" style="width:100%"></select>
 
       <label class="lvlab" data-t="tkHow" style="margin-top:16px"></label>
       <div class="lvrow" id="tk-mode">
@@ -1030,6 +1040,9 @@ const T={
   tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
+  tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
+  tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
+  tkPhotoBad:"That photo could not be read. Please take a new one.",
   tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
@@ -1130,6 +1143,9 @@ const T={
   tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
+  tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
+  tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
+  tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
   tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
@@ -1622,7 +1638,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10c";
+const APP_VERSION = "2026-09-10d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1947,7 +1963,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -2498,14 +2514,16 @@ async function ladeMeineAufgaben(){
     try{ const c=localStorage.getItem(key); if(c) liste=JSON.parse(c) }catch(_){}
   }
   const zeilen = liste.map(a=>`
-    <div class="lvitem" data-tkrow="${a.id}">
+    <div class="lvitem" data-tkrow="${a.id}" style="flex-wrap:wrap">
       <div class="d"><b>${escHtml(a.text)}</b><small>${escHtml(a.von)}</small></div>
       <button class="pinrst" data-tkdone="${a.id}">${t.tkTick}</button>
+      ${a.photo_path?`<img class="tkfoto" data-foto="${escHtml(a.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
     </div>`).join("");
   if(tit) tit.hidden = (liste.length===0 && !offline);
   box.innerHTML =
     (offline ? `<p class="lverr">${liste.length?t.tkOffline:t.tkOfflineNone}</p>` : "")
     + zeilen;
+  $$("#mytasks img.tkfoto").forEach(img=>ladeFoto(img.dataset.foto, img));
 }
 
 /* Mitarbeiter hakt ab -> Postausgang (offline-sicher, person-gebunden),
@@ -2540,17 +2558,19 @@ async function ladeAufgabenUebersicht(){
     const fertig=a.erledigt, spaet=a.abgelaufen;
     const status = fertig ? (t.tkDoneBy+" "+escHtml(a.erledigt_von||""))
                  : spaet ? t.tkExpired : t.tkOpenLbl;
-    return `<div class="lvitem">
+    return `<div class="lvitem" style="flex-wrap:wrap">
       <div class="d"><b>${escHtml(a.text)}</b>
         <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)} &middot; ${status}</small>
         <div class="rvfix"><button class="lvno" data-tkdel="${a.id}">${t.tkDelete}</button></div>
       </div>
       <span class="lvst ${fertig?"":"requested"}">${fertig?"&#10003;":spaet?"!":"&bull;"}</span>
+      ${a.photo_path?`<img class="tkfoto" data-foto="${escHtml(a.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
     </div>`;
   }).join("");
   box.innerHTML =
     (offline ? `<p class="lverr">${liste.length?t.tkOffline:t.tkOfflineNone}</p>` : "")
     + (liste.length ? zeilen : (offline?"":`<p class="lverr">${t.tkNone}</p>`));
+  $$("#rv-tasks img.tkfoto").forEach(img=>ladeFoto(img.dataset.foto, img));
 }
 
 async function aufgabeLoeschen(id){
@@ -2560,34 +2580,98 @@ async function aufgabeLoeschen(id){
 
 /* Neue-Aufgabe-Bildschirm frisch aufbauen */
 function zeichneAufgabeNeu(){
-  tkMode="once"; tkWho=null;
+  tkMode="once";
   const tx=$("#tk-text"); if(tx) tx.value="";
   const msg=$("#tk-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   const hint=$("#tk-mic-hint"); if(hint) hint.hidden=true;
   $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b.dataset.tkmode==="once"));
+  /* Namen als Aufklapp-Menue: bei vielen Personen lief die Knopf-Reihe aus dem
+     Bild (Dennis, 10.09.2026). Ein natives Auswahlmenue tippt sich am Handy
+     sauber auf und scrollt. */
   const who=$("#tk-who"); if(who){
-    who.innerHTML = Object.values(PEOPLE).filter(p=>!p.demo)
-      .map(p=>`<button class="dep" data-tkwho="${p.id}">${escHtml(p.n)}</button>`).join("");
+    who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>` +
+      Object.values(PEOPLE).filter(p=>!p.demo && p.id)
+        .map(p=>`<option value="${p.id}">${escHtml(p.n)}</option>`).join("");
+    who.value="";
   }
+  /* Foto zuruecksetzen. */
+  tkPhotoBlob=null;
+  const pin=$("#tk-photo-input"); if(pin) pin.value="";
+  const pv=$("#tk-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
 }
 
-let tkSending=false;
+let tkSending=false, tkPhotoBlob=null;
 async function aufgabeSenden(){
   const t=L(), msg=$("#tk-msg"), btn=$("#tk-send");
   if(tkSending) return;
   const text=($("#tk-text").value||"").trim();
+  const wer=($("#tk-who")||{}).value||"";
   msg.className="lverr"; msg.textContent="";
-  if(text.length<2 || !tkWho){ msg.textContent=t.tkErr; return; }
+  if(text.length<2 || !wer){ msg.textContent=t.tkErr; return; }
   tkSending=true; if(btn) btn.disabled=true;
   try{
-    await sbSend("rpc/aufgabe_erstellen", {p_assigned:tkWho, p_text:text, p_mode:tkMode});
-    msg.className="lverr good"; msg.textContent=t.tkSent;
+    const neu = await sbSend("rpc/aufgabe_erstellen", {p_assigned:wer, p_text:text, p_mode:tkMode});
+    /* neu = die neue Aufgaben-ID (die Funktion gibt sie zurueck). Damit das
+       Foto ihr zugeordnet wird. Im Demo-Modus ist neu null -> kein Upload. */
+    const id = (typeof neu==="string") ? neu : (neu && neu.id);
+    let fotoOk=true;
+    if(id && tkPhotoBlob){
+      msg.className="lverr"; msg.textContent=t.tkPhotoWait;
+      try{
+        const pfad = id + "/" + Math.random().toString(36).slice(2) + ".jpg";
+        const up = await fetch(SB.url+"/storage/v1/object/task-photos/"+pfad, {
+          method:"POST",
+          headers:{ apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg" },
+          body: tkPhotoBlob });
+        if(up.ok){ await sbSend("rpc/aufgabe_foto_setzen", {p_task:id, p_path:pfad}); }
+        else { fotoOk=false; }
+      }catch(e){ fotoOk=false; }
+    }
     tkSending=false; if(btn) btn.disabled=false;
+    /* Bruno-Fund 2: Foto-Upload nicht stumm scheitern lassen. Aufgabe steht,
+       aber der Nutzer erfaehrt, dass das Bild nicht ankam. */
+    if(!fotoOk){ try{ alert(t.tkPhotoFail) }catch(e){} }
+    msg.className="lverr good"; msg.textContent=t.tkSent;
     go("s-review");
   }catch(e){
     tkSending=false; if(btn) btn.disabled=false;
     msg.className="lverr"; msg.textContent=t.tkErr;
   }
+}
+
+/* Foto waehlen/aufnehmen, klein rechnen (Bali-Netz) und als Vorschau zeigen. */
+function tkFotoGewaehlt(file){
+  if(!file) return;
+  const t=L(), img=new Image(), rd=new FileReader();
+  /* Bruno-Fund 3: nicht lesbares Bild (z.B. HEIC auf Android) nicht stumm
+     schlucken. Fehler -> Hinweis, Foto bleibt leer, Aufgabe geht ohne Bild. */
+  const kaputt=()=>{ tkPhotoBlob=null;
+    const pv=$("#tk-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+    const pi=$("#tk-photo-input"); if(pi) pi.value="";
+    try{ alert(t.tkPhotoBad) }catch(e){} };
+  rd.onerror=kaputt;
+  rd.onload=()=>{ img.onerror=kaputt; img.onload=()=>{
+    const max=1280; let w=img.width, h=img.height;
+    if(!w||!h){ kaputt(); return; }
+    if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=>{ if(!b){ kaputt(); return; } tkPhotoBlob=b;
+      const pv=$("#tk-photo-prev"); if(pv){ pv.src=c.toDataURL("image/jpeg",0.7); pv.style.display="block"; }
+    }, "image/jpeg", 0.7);
+  }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+
+/* Ein Aufgaben-Foto sicher laden (RLS-geschuetzt) und ins img-Element setzen. */
+async function ladeFoto(pfad, img){
+  if(!pfad || !img) return;
+  try{
+    const r=await fetch(SB.url+"/storage/v1/object/authenticated/task-photos/"+pfad,
+      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+    if(!r.ok) return;
+    img.src=URL.createObjectURL(await r.blob()); img.style.display="block";
+  }catch(e){}
 }
 
 /* Sprache: webkitSpeechRecognition (Android/Chrome). Auf dem iPhone gibt es
@@ -3495,6 +3579,9 @@ function go(id, push){
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){
     ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{});
+    /* Reine Leitung (Nina, Micha) sieht nur die Team-Uebersicht, nicht den
+       eigenen Antrag/Krank (Dennis, 10.09.2026). Bildschirm + lv-chef bleiben. */
+    const lp=$("#lv-personal"); if(lp) lp.hidden = !!(me() && me().lead && !me().mgr);
     /* Bruno-Hinweis: Krank-Auswahl frisch. Sonst bleibt am geteilten
        Tresen-Handy die Tage-Auswahl der letzten Person stehen. */
     skTage=1;
@@ -3513,6 +3600,13 @@ function go(id, push){
   /* Auf dem Anmeldebildschirm steht die Marke schon gross in der Mitte.
      Dann muss sie nicht zusaetzlich in der Kopfzeile stehen. */
   $(".scroll").scrollTop=0}
+
+/* Foto ausgewaehlt/aufgenommen (Datei-Feld). */
+document.addEventListener("change",e=>{
+  if(e.target && e.target.id==="tk-photo-input"){
+    const f=e.target.files && e.target.files[0]; if(f) tkFotoGewaehlt(f);
+  }
+});
 
 document.addEventListener("click",e=>{
   if(e.target.closest("#mode")){
@@ -3572,6 +3666,7 @@ document.addEventListener("click",e=>{
   const tkm=e.target.closest("[data-tkmode]");
   if(tkm){ tkMode=tkm.dataset.tkmode; $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b===tkm)); return; }
   if(e.target.closest("#tk-mic")){ aufgabeSprechen(); return; }
+  if(e.target.closest("#tk-photo-btn")){ const pi=$("#tk-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#tk-send")){ aufgabeSenden(); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
