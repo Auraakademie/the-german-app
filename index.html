@@ -678,6 +678,10 @@
       <p class="eyebrow" id="mt-title" data-t="myTasks" hidden></p>
       <div id="mytasks"></div>
 
+      <!-- Aufgabe verteilen: fuer alle, die Empfaenger haben duerfen (Aerzte an
+           ihre Assistenten, Dilla, Leitung). Versteckt fuer den Rest. -->
+      <button class="glass next" id="new-task-brief" data-go="s-tasknew" data-t="tkNew" hidden style="margin-top:12px"></button>
+
       <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
            kommt hier zurueck zur Namensliste. Auf der Uebersicht sichtbar,
            weil hier die meisten landen (Dennis, 04.09.2026). -->
@@ -1660,7 +1664,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-10f";
+const APP_VERSION = "2026-09-11";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2675,19 +2679,35 @@ function zeichneAufgabeNeu(){
   const msg=$("#tk-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   const hint=$("#tk-mic-hint"); if(hint) hint.hidden=true;
   $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b.dataset.tkmode==="once"));
-  /* Namen als Aufklapp-Menue: bei vielen Personen lief die Knopf-Reihe aus dem
-     Bild (Dennis, 10.09.2026). Ein natives Auswahlmenue tippt sich am Handy
-     sauber auf und scrollt. */
-  const who=$("#tk-who"); if(who){
-    who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>` +
-      Object.values(PEOPLE).filter(p=>!p.demo && p.id)
-        .map(p=>`<option value="${p.id}">${escHtml(p.n)}</option>`).join("");
-    who.value="";
-  }
   /* Foto zuruecksetzen. */
   tkPhotoBlob=null;
   const pin=$("#tk-photo-input"); if(pin) pin.value="";
   const pv=$("#tk-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+  /* Namen-Menue: NUR die erlaubten Empfaenger (Nina 11.09.2026). Aerzte sehen
+     ihre Assistenten, Leitung alle. Kommt aus rpc/aufgabe_ziele, nicht mehr aus
+     der ganzen PEOPLE-Liste. */
+  const who=$("#tk-who"); if(who){
+    who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>`;
+    who.value="";
+    aufgabeZiele().catch(()=>{});
+  }
+}
+
+/* Zeigt den "+ New task"-Knopf auf s-brief nur, wenn der Nutzer ueberhaupt
+   jemandem eine Aufgabe geben darf (Leitung, Aerzte, Dilla). */
+async function zeigeNeueAufgabe(){
+  const b=$("#new-task-brief"); if(!b) return;
+  try{ const ok=await sbGet("rpc/darf_aufgeben"); b.hidden = (ok!==true); }
+  catch(e){ b.hidden=true; }
+}
+
+async function aufgabeZiele(){
+  const who=$("#tk-who"); if(!who) return;
+  let ziele=[];
+  try{ ziele = await sbGet("rpc/aufgabe_ziele") }catch(e){ ziele=[]; }
+  who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>` +
+    ziele.map(p=>`<option value="${p.id}">${escHtml(p.name)}</option>`).join("");
+  who.value="";
 }
 
 let tkSending=false, tkPhotoBlob=null;
@@ -3685,7 +3705,7 @@ function go(id, push){
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
