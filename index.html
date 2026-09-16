@@ -682,6 +682,14 @@
            ihre Assistenten, Dilla, Leitung). Versteckt fuer den Rest. -->
       <button class="glass next" id="new-task-brief" data-go="s-tasknew" data-t="tkNew" hidden style="margin-top:12px"></button>
 
+      <!-- Offene Chats/Anfragen: gemeinsame Liste fuer den Empfang. Ueberlebt
+           den Schichtwechsel. Sichtbar fuer Empfang + Leitung. -->
+      <button class="glass next" id="chat-open" data-go="s-chats" hidden style="margin-top:12px">
+        <span class="rm" id="chat-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="chTileT"></span>
+          <span class="mt" data-t="chTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
       <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
            kommt hier zurueck zur Namensliste. Auf der Uebersicht sichtbar,
            weil hier die meisten landen (Dennis, 04.09.2026). -->
@@ -974,6 +982,36 @@
       <p class="lverr" id="bl-msg"></p>
     </section>
 
+    <!-- Offene Chats: gemeinsame Empfangs-Liste. -->
+    <section class="screen" id="s-chats">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="chH"></h1>
+      <p class="sub" data-t="chS"></p>
+      <button class="glass next" data-go="s-chatneu" data-t="chNew"></button>
+      <div id="ch-list" style="margin-top:14px"></div>
+    </section>
+
+    <!-- Offenen Chat eintragen. -->
+    <section class="screen" id="s-chatneu">
+      <button class="back" data-go="s-chats">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="chNewH"></h1>
+
+      <label class="lvlab" data-t="chName"></label>
+      <input class="lvin" id="ch-name" style="width:100%">
+
+      <label class="lvlab" data-t="chCat"></label>
+      <select class="lvin" id="ch-cat" style="width:100%"></select>
+
+      <label class="lvlab" data-t="chDoc"></label>
+      <select class="lvin" id="ch-doc" style="width:100%"></select>
+
+      <label class="lvlab" data-t="chNote"></label>
+      <textarea class="lvin" id="ch-note" rows="2" style="resize:none"></textarea>
+
+      <button class="bigcheck" id="ch-save" style="margin-top:20px"><span class="bx"></span><span data-t="chSave"></span></button>
+      <p class="lverr" id="ch-msg"></p>
+    </section>
+
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
          hier fehlende Geburtstage ein und korrigiert die zwei abgeleiteten. -->
     <section class="screen" id="s-bdayedit">
@@ -1126,6 +1164,14 @@ const T={
   blErr:"Add a photo or a note first.",
   blPhotoFail:"The photo did not upload. Nothing was saved. Please try again.",
   blCats:{rent:"Rent",bpjs:"BPJS",insurance:"Insurance",vendor:"Vendor",customer_payment:"Customer payment",software:"Software / AI",other:"Other"},
+  chTileT:"Open chats", chTileS:"waiting for an answer",
+  chH:"Open chats", chS:"Things waiting on the doctor or the patient. Everyone sees the same list.",
+  chNew:"+ Add", chNewH:"New open chat",
+  chName:"Patient name", chCat:"Waiting for...", chDoc:"Which doctor? (optional)", chNote:"Note (what is it about?)",
+  chSave:"Add to list", chDone:"Resolved", chNone:"Nothing open. All answered.",
+  chNameErr:"Enter a patient name.", chErr:"Could not save. Try again.",
+  chCatNone:"— pick one (optional) —", chDocNone:"— no doctor —",
+  chCats:{ask_doctor:"Ask the doctor",waiting_doctor:"Waiting for the doctor",waiting_patient:"Waiting for the patient",other:"Other"},
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
   tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
   tkPhotoBad:"That photo could not be read. Please take a new one.",
@@ -1239,6 +1285,14 @@ const T={
   blErr:"Tambah foto atau catatan dulu.",
   blPhotoFail:"Foto gagal terunggah. Belum tersimpan. Coba lagi.",
   blCats:{rent:"Sewa",bpjs:"BPJS",insurance:"Asuransi",vendor:"Pemasok",customer_payment:"Pembayaran pasien",software:"Software / AI",other:"Lainnya"},
+  chTileT:"Chat terbuka", chTileS:"menunggu jawaban",
+  chH:"Chat terbuka", chS:"Yang masih menunggu dokter atau pasien. Semua melihat daftar yang sama.",
+  chNew:"+ Tambah", chNewH:"Chat terbuka baru",
+  chName:"Nama pasien", chCat:"Menunggu...", chDoc:"Dokter mana? (opsional)", chNote:"Catatan (tentang apa?)",
+  chSave:"Tambah ke daftar", chDone:"Selesai", chNone:"Tidak ada yang terbuka. Semua terjawab.",
+  chNameErr:"Masukkan nama pasien.", chErr:"Gagal menyimpan. Coba lagi.",
+  chCatNone:"— pilih (opsional) —", chDocNone:"— tanpa dokter —",
+  chCats:{ask_doctor:"Tanya dokter",waiting_doctor:"Menunggu dokter",waiting_patient:"Menunggu pasien",other:"Lainnya"},
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
   tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
   tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
@@ -1735,7 +1789,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-16";
+const APP_VERSION = "2026-09-16b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2068,7 +2122,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -2963,6 +3017,80 @@ async function belegSpeichern(){
 async function belegLoeschen(id){
   try{ await sbSend("rpc/beleg_loeschen", {p_id:id}); }catch(e){}
   ladeBelege().catch(()=>{});
+}
+
+/* ================= Offene Chats (Empfang) ================= */
+function chCatText(c){ const t=L(); return c ? ((t.chCats&&t.chCats[c])||c) : ""; }
+
+/* Knopf + Zahl offener Chats auf s-brief, nur fuer Empfang/Leitung. */
+async function zeigeChats(){
+  const b=$("#chat-open"); if(!b) return;
+  let darf=false;
+  try{ darf = await sbGet("rpc/darf_chats") }catch(e){ darf=false; }
+  b.hidden = (darf!==true);
+  if(darf===true){ try{ const l=await sbGet("rpc/chat_liste"); const el=$("#chat-badge"); if(el) el.textContent = (l&&l.length)||0; }catch(e){} }
+}
+
+async function ladeChats(){
+  const t=L(), box=$("#ch-list"); if(!box) return;
+  let liste=[];
+  try{ liste = await sbGet("rpc/chat_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${t.chNone}</p>`; return }
+  box.innerHTML = liste.map(c=>{
+    const kat = c.category ? chCatText(c.category) : "";
+    const arzt = c.doctor ? (" &middot; "+escHtml(c.doctor)) : "";
+    const wann = new Date(c.created_at).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short"});
+    return `<div class="lvitem" data-chrow="${c.id}">
+      <div class="d"><b>${escHtml(c.patient_name)}</b>
+        <small>${kat}${arzt}${c.note?"<br>"+escHtml(c.note):""}
+          <br>${escHtml(c.wer||"")} &middot; ${wann}</small></div>
+      <button class="pinrst" data-chdone="${c.id}">${t.chDone}</button>
+    </div>`;
+  }).join("");
+}
+
+async function zeichneChatNeu(){
+  const t=L();
+  const nm=$("#ch-name"); if(nm) nm.value="";
+  const nt=$("#ch-note"); if(nt) nt.value="";
+  const msg=$("#ch-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  const cat=$("#ch-cat"); if(cat) cat.innerHTML =
+    `<option value="">${escHtml(t.chCatNone)}</option>` +
+    ["ask_doctor","waiting_doctor","waiting_patient","other"]
+      .map(c=>`<option value="${c}">${escHtml(chCatText(c))}</option>`).join("");
+  const doc=$("#ch-doc"); if(doc){
+    doc.innerHTML = `<option value="">${escHtml(t.chDocNone)}</option>`;
+    try{ const az=await sbGet("rpc/aerzte_liste");
+      doc.innerHTML += (az||[]).map(a=>`<option value="${a.id}">${escHtml(a.name)}</option>`).join("");
+    }catch(e){}
+  }
+}
+
+let chatSending=false;
+async function chatSpeichern(){
+  const t=L(), msg=$("#ch-msg"), btn=$("#ch-save");
+  if(chatSending) return;
+  const name=($("#ch-name")||{}).value||"";
+  const cat=($("#ch-cat")||{}).value||null;
+  const doc=($("#ch-doc")||{}).value||null;
+  const note=($("#ch-note")||{}).value||"";
+  msg.className="lverr"; msg.textContent="";
+  if(name.trim().length<1){ msg.textContent=t.chNameErr; return; }
+  chatSending=true; if(btn) btn.disabled=true;
+  try{
+    await sbSend("rpc/chat_hinzufuegen", {p_patient:name, p_category:cat, p_doctor:doc, p_note:note});
+    chatSending=false; if(btn) btn.disabled=false;
+    go("s-chats");
+  }catch(e){ chatSending=false; if(btn) btn.disabled=false; msg.textContent=t.chErr; }
+}
+
+async function chatErledigt(id){
+  /* Bruno-Fund A: erst senden, dann erst wegnehmen. Sonst sah es offline
+     erledigt aus und kam beim naechsten Laden zurueck (falscher Erfolg). */
+  try{ await sbSend("rpc/chat_erledigt", {p_id:id}); }
+  catch(e){ try{ alert(L().chErr) }catch(_){}; return; }
+  const row=$("#ch-list [data-chrow='"+id+"']"); if(row) row.remove();
+  ladeChats().catch(()=>{});
 }
 
 
@@ -3888,10 +4016,12 @@ function go(id, push){
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
+  if(id==="s-chats"){ ladeChats().catch(()=>{}); }
+  if(id==="s-chatneu"){ zeichneChatNeu().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -3976,6 +4106,9 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#bl-photo-btn")){ const pi=$("#bl-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#bl-save")){ belegSpeichern(); return; }
   const bld=e.target.closest("[data-bldel]"); if(bld){ belegLoeschen(bld.dataset.bldel); return; }
+  /* Offene Chats */
+  if(e.target.closest("#ch-save")){ chatSpeichern(); return; }
+  const chd=e.target.closest("[data-chdone]"); if(chd){ chatErledigt(chd.dataset.chdone); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
