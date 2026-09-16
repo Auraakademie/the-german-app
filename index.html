@@ -712,6 +712,13 @@
           <span class="mt" data-t="tkTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
+      <!-- Belegkasten. Nur Leitung. -->
+      <button class="glass next" id="beleg-open" data-go="s-belege" hidden style="margin-top:12px">
+        <span class="rm">&#128179;</span>
+        <span style="flex:1"><span class="tt" data-t="blTileT"></span>
+          <span class="mt" data-t="blTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
       <button class="glass next" id="lv-open" data-go="s-leave" style="margin-top:22px">
         <span class="rm" id="lv-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="lvH"></span>
@@ -914,11 +921,57 @@
         <button class="dep"    data-tkmode="today"     data-t="tkToday"></button>
         <button class="dep"    data-tkmode="week"      data-t="tkWeek"></button>
         <button class="dep"    data-tkmode="recurring" data-t="tkDaily"></button>
+        <button class="dep"    data-tkmode="monthly"   data-t="tkMonthly"></button>
+      </div>
+      <div id="tk-day-wrap" hidden style="margin-bottom:14px">
+        <label class="lvlab" data-t="tkDayLabel"></label>
+        <input class="lvin" id="tk-day" type="number" inputmode="numeric" min="1" max="31" placeholder="1&ndash;31" style="width:100px">
       </div>
 
       <button class="bigcheck" id="tk-send" style="margin-top:20px">
         <span class="bx"></span><span data-t="tkSend"></span></button>
       <p class="lverr" id="tk-msg"></p>
+    </section>
+
+    <!-- Belegkasten: nur Leitung. Monatsliste aller Belege. -->
+    <section class="screen" id="s-belege">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="blH"></h1>
+      <p class="sub" id="bl-month"></p>
+      <button class="glass next" data-go="s-belegneu" data-t="blNew"></button>
+      <div id="bl-list" style="margin-top:14px"></div>
+    </section>
+
+    <!-- Beleg erfassen. -->
+    <section class="screen" id="s-belegneu">
+      <button class="back" data-go="s-belege">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="blNewH"></h1>
+      <p class="sub" data-t="blNewS"></p>
+
+      <label class="lvlab" data-t="blKind"></label>
+      <div class="lvrow" id="bl-kind">
+        <button class="dep on" data-blkind="out" data-t="blOut"></button>
+        <button class="dep"    data-blkind="in"  data-t="blIn"></button>
+      </div>
+
+      <label class="lvlab" data-t="blCat"></label>
+      <select class="lvin" id="bl-cat" style="width:100%"></select>
+
+      <label class="lvlab" data-t="blAmount"></label>
+      <input class="lvin" id="bl-amount" type="number" inputmode="numeric" placeholder="IDR">
+
+      <label class="lvlab" data-t="blDate"></label>
+      <input class="lvin" id="bl-date" type="date">
+
+      <label class="lvlab" data-t="blNote"></label>
+      <textarea class="lvin" id="bl-note" rows="2" style="resize:none"></textarea>
+
+      <button class="pinrst" id="bl-photo-btn" style="margin-top:12px">&#128247; <span data-t="blPhoto"></span></button>
+      <input type="file" id="bl-photo-input" accept="image/*" style="display:none">
+      <img id="bl-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
+
+      <button class="bigcheck" id="bl-save" style="margin-top:20px"><span class="bx"></span><span data-t="blSave"></span></button>
+      <p class="lverr" id="bl-msg"></p>
     </section>
 
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
@@ -1065,10 +1118,19 @@ const T={
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
   ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue",
+  blTileT:"Receipts", blTileS:"this month, in and out",
+  blH:"Receipts", blNew:"+ Add receipt", blNewH:"New receipt", blNewS:"Snap it now, so you don't hunt at month end.",
+  blKind:"In or out?", blOut:"Payment out", blIn:"Money in",
+  blCat:"Category", blAmount:"Amount (IDR)", blDate:"Date", blNote:"Note (what was it for?)",
+  blPhoto:"Add photo of receipt", blSave:"Save receipt", blNone:"No receipts this month yet.",
+  blErr:"Add a photo or a note first.",
+  blPhotoFail:"The photo did not upload. Nothing was saved. Please try again.",
+  blCats:{rent:"Rent",bpjs:"BPJS",insurance:"Insurance",vendor:"Vendor",customer_payment:"Customer payment",software:"Software / AI",other:"Other"},
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
   tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
   tkPhotoBad:"That photo could not be read. Please take a new one.",
-  tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day",
+  tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day", tkModeMonthly:"every month",
+  tkMonthly:"Monthly", tkDayLabel:"Which day of the month?", tkDayErr:"Enter a day from 1 to 31.",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
@@ -1169,10 +1231,19 @@ const T={
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
   ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini",
+  blTileT:"Bukti", blTileS:"bulan ini, masuk dan keluar",
+  blH:"Bukti pembayaran", blNew:"+ Tambah bukti", blNewH:"Bukti baru", blNewS:"Foto sekarang, biar tidak cari-cari akhir bulan.",
+  blKind:"Masuk atau keluar?", blOut:"Pembayaran keluar", blIn:"Uang masuk",
+  blCat:"Kategori", blAmount:"Jumlah (IDR)", blDate:"Tanggal", blNote:"Catatan (untuk apa?)",
+  blPhoto:"Tambah foto bukti", blSave:"Simpan bukti", blNone:"Belum ada bukti bulan ini.",
+  blErr:"Tambah foto atau catatan dulu.",
+  blPhotoFail:"Foto gagal terunggah. Belum tersimpan. Coba lagi.",
+  blCats:{rent:"Sewa",bpjs:"BPJS",insurance:"Asuransi",vendor:"Pemasok",customer_payment:"Pembayaran pasien",software:"Software / AI",other:"Lainnya"},
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
   tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
   tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
-  tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari",
+  tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari", tkModeMonthly:"setiap bulan",
+  tkMonthly:"Bulanan", tkDayLabel:"Tanggal berapa tiap bulan?", tkDayErr:"Masukkan tanggal 1 sampai 31.",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
@@ -1664,7 +1735,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-11";
+const APP_VERSION = "2026-09-16";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1997,7 +2068,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -2588,7 +2659,7 @@ function escHtml(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&am
 
 function tkModeText(m){
   const t=L();
-  return {once:t.tkModeOnce,hours:t.tkModeHours,today:t.tkModeToday,week:t.tkModeWeek,recurring:t.tkModeDaily}[m]||m;
+  return {once:t.tkModeOnce,hours:t.tkModeHours,today:t.tkModeToday,week:t.tkModeWeek,recurring:t.tkModeDaily,monthly:t.tkModeMonthly}[m]||m;
 }
 
 /* Mitarbeiter: meine offenen Aufgaben.
@@ -2679,6 +2750,8 @@ function zeichneAufgabeNeu(){
   const msg=$("#tk-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   const hint=$("#tk-mic-hint"); if(hint) hint.hidden=true;
   $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b.dataset.tkmode==="once"));
+  const dw=$("#tk-day-wrap"); if(dw) dw.hidden=true;
+  const dd=$("#tk-day"); if(dd) dd.value="";
   /* Foto zuruecksetzen. */
   tkPhotoBlob=null;
   const pin=$("#tk-photo-input"); if(pin) pin.value="";
@@ -2718,9 +2791,17 @@ async function aufgabeSenden(){
   const wer=($("#tk-who")||{}).value||"";
   msg.className="lverr"; msg.textContent="";
   if(text.length<2 || !wer){ msg.textContent=t.tkErr; return; }
+  /* Monatlich: Tag im Monat noetig. */
+  let tag=null;
+  if(tkMode==="monthly"){
+    tag=Number(($("#tk-day")||{}).value);
+    if(!(tag>=1 && tag<=31)){ msg.textContent=t.tkDayErr; return; }
+  }
   tkSending=true; if(btn) btn.disabled=true;
   try{
-    const neu = await sbSend("rpc/aufgabe_erstellen", {p_assigned:wer, p_text:text, p_mode:tkMode});
+    const koerper={p_assigned:wer, p_text:text, p_mode:tkMode};
+    if(tag) koerper.p_day=tag;
+    const neu = await sbSend("rpc/aufgabe_erstellen", koerper);
     /* neu = die neue Aufgaben-ID (die Funktion gibt sie zurueck). Damit das
        Foto ihr zugeordnet wird. Im Demo-Modus ist neu null -> kein Upload. */
     const id = (typeof neu==="string") ? neu : (neu && neu.id);
@@ -2774,15 +2855,116 @@ function tkFotoGewaehlt(file){
 }
 
 /* Ein Aufgaben-Foto sicher laden (RLS-geschuetzt) und ins img-Element setzen. */
-async function ladeFoto(pfad, img){
+async function ladeFoto(pfad, img, bucket){
   if(!pfad || !img) return;
   try{
-    const r=await fetch(SB.url+"/storage/v1/object/authenticated/task-photos/"+pfad,
+    const r=await fetch(SB.url+"/storage/v1/object/authenticated/"+(bucket||"task-photos")+"/"+pfad,
       {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
     if(!r.ok) return;
     img.src=URL.createObjectURL(await r.blob()); img.style.display="block";
   }catch(e){}
 }
+
+/* ================= Belegkasten (Nina) ================= */
+let belegPhotoBlob=null, belegKind="out";
+const BELEG_CATS=["rent","bpjs","insurance","vendor","customer_payment","software","other"];
+function belegCatText(c){ const t=L(); return (t.blCats&&t.blCats[c])||c; }
+
+async function ladeBelege(){
+  const t=L(), box=$("#bl-list"), ml=$("#bl-month"); if(!box) return;
+  if(ml) ml.textContent = new Date().toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric"});
+  let liste=[];
+  try{ liste = await sbGet("rpc/belege_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${t.blNone}</p>`; return }
+  box.innerHTML = liste.map(b=>{
+    const betrag = b.amount!=null ? fmtRp(b.amount) : "";
+    const vz = b.kind==="in" ? "+" : "&minus;";
+    return `<div class="lvitem" style="flex-wrap:wrap">
+      <div class="d"><b>${belegCatText(b.category)} ${betrag?("&middot; "+vz+" "+betrag):""}</b>
+        <small>${b.on_day} &middot; ${escHtml(b.wer||"")}${b.note?" &middot; "+escHtml(b.note):""}</small>
+        <div class="rvfix"><button class="lvno" data-bldel="${b.id}">${t.tkDelete}</button></div>
+      </div>
+      ${b.photo_path?`<img class="blfoto" data-foto="${escHtml(b.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
+    </div>`;
+  }).join("");
+  $$("#bl-list img.blfoto").forEach(img=>ladeFoto(img.dataset.foto, img, "belege"));
+}
+
+function zeichneBelegNeu(){
+  const t=L();
+  belegKind="out"; belegPhotoBlob=null;
+  $$("#bl-kind .dep").forEach(b=>b.classList.toggle("on", b.dataset.blkind==="out"));
+  const cat=$("#bl-cat"); if(cat) cat.innerHTML = BELEG_CATS.map(c=>`<option value="${c}">${escHtml(belegCatText(c))}</option>`).join("");
+  const am=$("#bl-amount"); if(am) am.value="";
+  const nt=$("#bl-note"); if(nt) nt.value="";
+  const dt=$("#bl-date"); if(dt) dt.value=heuteISO();
+  const msg=$("#bl-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  const pin=$("#bl-photo-input"); if(pin) pin.value="";
+  const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+}
+
+function belegFotoGewaehlt(file){
+  if(!file) return;
+  const t=L(), img=new Image(), rd=new FileReader();
+  const kaputt=()=>{ belegPhotoBlob=null; const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+    const pi=$("#bl-photo-input"); if(pi) pi.value=""; try{ alert(t.tkPhotoBad) }catch(e){} };
+  rd.onerror=kaputt;
+  rd.onload=()=>{ img.onerror=kaputt; img.onload=()=>{
+    const max=1280; let w=img.width, h=img.height;
+    if(!w||!h){ kaputt(); return; }
+    if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=>{ if(!b){ kaputt(); return; } belegPhotoBlob=b;
+      const pv=$("#bl-photo-prev"); if(pv){ pv.src=c.toDataURL("image/jpeg",0.7); pv.style.display="block"; }
+    }, "image/jpeg", 0.7);
+  }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+
+let belegSending=false;
+async function belegSpeichern(){
+  const t=L(), msg=$("#bl-msg"), btn=$("#bl-save");
+  if(belegSending) return;
+  const cat=($("#bl-cat")||{}).value||"other";
+  /* Leeres Betragsfeld bleibt leer (null), nicht 0 (Bruno-Hinweis, bei Geld wichtig). */
+  const amtRaw=(($("#bl-amount")||{}).value||"").trim();
+  const amt = amtRaw==="" ? null : Number(amtRaw);
+  const note=($("#bl-note")||{}).value||"";
+  const day=($("#bl-date")||{}).value||heuteISO();
+  msg.className="lverr"; msg.textContent="";
+  /* Ein Beleg braucht mindestens ein Foto ODER eine Notiz, sonst ist er leer. */
+  if(!belegPhotoBlob && note.trim().length<2){ msg.textContent=t.blErr; return; }
+  belegSending=true; if(btn) btn.disabled=true;
+  let pfad=null;
+  try{
+    /* Foto hochladen. Im Demo NICHT (sonst verwaiste Datei im Bucket, Bruno 2).
+       Bruno 1: Bei einem Finanzbeleg IST das Foto der Inhalt. Scheitert der
+       Upload (z.B. Zugang nach 1h abgelaufen), Sitzung erneuern + einmal
+       wiederholen; klappt es dann immer noch nicht, laut warnen und NICHT
+       speichern, damit kein bildloser Beleg entsteht. */
+    if(belegPhotoBlob && !demoAktiv()){
+      const p = Math.random().toString(36).slice(2)+".jpg";
+      const ziel = SB.url+"/storage/v1/object/belege/"+p;
+      let up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:belegPhotoBlob});
+      if(!up.ok && await erneuereSitzung()){
+        up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:belegPhotoBlob});
+      }
+      if(up.ok){ pfad=p; }
+      else{ belegSending=false; if(btn) btn.disabled=false; try{ alert(t.blPhotoFail) }catch(e){} return; }
+    }
+    await sbSend("rpc/beleg_hinzufuegen", {p_kind:belegKind, p_category:cat,
+      p_amount: isNaN(amt)?null:amt, p_note:note, p_photo:pfad, p_on_day:day});
+    belegSending=false; if(btn) btn.disabled=false;
+    go("s-belege");
+  }catch(e){ belegSending=false; if(btn) btn.disabled=false; msg.textContent=t.blErr; }
+}
+
+async function belegLoeschen(id){
+  try{ await sbSend("rpc/beleg_loeschen", {p_id:id}); }catch(e){}
+  ladeBelege().catch(()=>{});
+}
+
 
 /* Sprache: webkitSpeechRecognition (Android/Chrome). Auf dem iPhone gibt es
    das Mikrofon direkt auf der Tastatur, dann nur ein Hinweis. */
@@ -3514,6 +3696,7 @@ function renderRooms(){
   }
   zaehleAufgaben();
   const ato=$("#att-open"); if(ato) ato.hidden = TESTLAUF || !istLeitung();
+  const blo=$("#beleg-open"); if(blo) blo.hidden = TESTLAUF || !istLeitung();
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
      echten Assistentin nicht angezeigt werden, aus demselben Grund wie die
@@ -3707,6 +3890,8 @@ function go(id, push){
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
   if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
+  if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
+  if(id==="s-belegneu"){ zeichneBelegNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -3718,6 +3903,9 @@ function go(id, push){
 document.addEventListener("change",e=>{
   if(e.target && e.target.id==="tk-photo-input"){
     const f=e.target.files && e.target.files[0]; if(f) tkFotoGewaehlt(f);
+  }
+  if(e.target && e.target.id==="bl-photo-input"){
+    const f=e.target.files && e.target.files[0]; if(f) belegFotoGewaehlt(f);
   }
 });
 
@@ -3777,10 +3965,17 @@ document.addEventListener("click",e=>{
   const tkw=e.target.closest("[data-tkwho]");
   if(tkw){ tkWho=tkw.dataset.tkwho; $$("#tk-who .dep").forEach(b=>b.classList.toggle("on", b===tkw)); return; }
   const tkm=e.target.closest("[data-tkmode]");
-  if(tkm){ tkMode=tkm.dataset.tkmode; $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b===tkm)); return; }
+  if(tkm){ tkMode=tkm.dataset.tkmode; $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b===tkm));
+    const dw=$("#tk-day-wrap"); if(dw) dw.hidden = tkMode!=="monthly"; return; }
   if(e.target.closest("#tk-mic")){ aufgabeSprechen(); return; }
   if(e.target.closest("#tk-photo-btn")){ const pi=$("#tk-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#tk-send")){ aufgabeSenden(); return; }
+  /* Belegkasten */
+  const blk=e.target.closest("[data-blkind]");
+  if(blk){ belegKind=blk.dataset.blkind; $$("#bl-kind .dep").forEach(b=>b.classList.toggle("on", b===blk)); return; }
+  if(e.target.closest("#bl-photo-btn")){ const pi=$("#bl-photo-input"); if(pi) pi.click(); return; }
+  if(e.target.closest("#bl-save")){ belegSpeichern(); return; }
+  const bld=e.target.closest("[data-bldel]"); if(bld){ belegLoeschen(bld.dataset.bldel); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
