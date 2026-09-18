@@ -440,6 +440,8 @@
     font-family:"TG Text",system-ui,sans-serif;color:var(--ink-2)}
   .lverr.bad{color:#C4553B}
   .lverr.good{color:var(--ok)}
+  /* Vom Scan geschaetzter Betrag: sichtbar anders, bis jemand ihn anfasst. */
+  .lvin.blguess{background:#FFF4D6;border-color:#E6C200}
   .pinrst{background:none;border:1px solid rgba(0,0,0,.18);border-radius:8px;
   padding:5px 10px;font-size:12px;color:#5b6b6a;margin-right:10px;cursor:pointer}
 .ver{text-align:center;font-size:11px;opacity:.35;margin-top:26px;letter-spacing:1px}
@@ -977,6 +979,7 @@
       <button class="pinrst" id="bl-photo-btn" style="margin-top:12px">&#128247; <span data-t="blPhoto"></span></button>
       <input type="file" id="bl-photo-input" accept="image/*" style="display:none">
       <img id="bl-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
+      <button class="pinrst" id="bl-scan" hidden style="margin-top:10px">&#128269; <span data-t="blScan"></span></button>
 
       <button class="bigcheck" id="bl-save" style="margin-top:20px"><span class="bx"></span><span data-t="blSave"></span></button>
       <p class="lverr" id="bl-msg"></p>
@@ -1163,6 +1166,8 @@ const T={
   blPhoto:"Add photo of receipt", blSave:"Save receipt", blNone:"No receipts this month yet.",
   blErr:"Add a photo or a note first.",
   blPhotoFail:"The photo did not upload. Nothing was saved. Please try again.",
+  blScan:"Read amount from photo", blScanning:"Reading photo…",
+  blScanOk:"Read this — please check it", blScanNone:"Could not read it. Please type the amount.",
   blCats:{rent:"Rent",bpjs:"BPJS",insurance:"Insurance",vendor:"Vendor",customer_payment:"Customer payment",software:"Software / AI",other:"Other"},
   chTileT:"Open chats", chTileS:"waiting for an answer",
   chH:"Open chats", chS:"Things waiting on the doctor or the patient. Everyone sees the same list.",
@@ -1284,6 +1289,8 @@ const T={
   blPhoto:"Tambah foto bukti", blSave:"Simpan bukti", blNone:"Belum ada bukti bulan ini.",
   blErr:"Tambah foto atau catatan dulu.",
   blPhotoFail:"Foto gagal terunggah. Belum tersimpan. Coba lagi.",
+  blScan:"Baca jumlah dari foto", blScanning:"Membaca foto…",
+  blScanOk:"Terbaca — mohon periksa", blScanNone:"Tidak terbaca. Silakan ketik jumlahnya.",
   blCats:{rent:"Sewa",bpjs:"BPJS",insurance:"Asuransi",vendor:"Pemasok",customer_payment:"Pembayaran pasien",software:"Software / AI",other:"Lainnya"},
   chTileT:"Chat terbuka", chTileS:"menunggu jawaban",
   chH:"Chat terbuka", chS:"Yang masih menunggu dokter atau pasien. Semua melihat daftar yang sama.",
@@ -1789,7 +1796,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-16b";
+const APP_VERSION = "2026-09-18a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2944,23 +2951,30 @@ async function ladeBelege(){
   $$("#bl-list img.blfoto").forEach(img=>ladeFoto(img.dataset.foto, img, "belege"));
 }
 
+/* Jede neue Erfassung / jedes neue Foto bekommt eine hoehere Nummer. Ein
+   langsamer Scan darf nur schreiben, solange die Nummer noch seine ist,
+   sonst landet ein alter Betrag im neuen Formular (Bruno-Fund 2). */
+let belegFormSeq=0;
 function zeichneBelegNeu(){
   const t=L();
+  belegFormSeq++;
   belegKind="out"; belegPhotoBlob=null;
   $$("#bl-kind .dep").forEach(b=>b.classList.toggle("on", b.dataset.blkind==="out"));
   const cat=$("#bl-cat"); if(cat) cat.innerHTML = BELEG_CATS.map(c=>`<option value="${c}">${escHtml(belegCatText(c))}</option>`).join("");
-  const am=$("#bl-amount"); if(am) am.value="";
+  const am=$("#bl-amount"); if(am){ am.value=""; am.classList.remove("blguess"); }
   const nt=$("#bl-note"); if(nt) nt.value="";
   const dt=$("#bl-date"); if(dt) dt.value=heuteISO();
   const msg=$("#bl-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   const pin=$("#bl-photo-input"); if(pin) pin.value="";
   const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+  const sc=$("#bl-scan"); if(sc) sc.hidden=true;
 }
 
 function belegFotoGewaehlt(file){
   if(!file) return;
   const t=L(), img=new Image(), rd=new FileReader();
   const kaputt=()=>{ belegPhotoBlob=null; const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+    const sc=$("#bl-scan"); if(sc) sc.hidden=true;
     const pi=$("#bl-photo-input"); if(pi) pi.value=""; try{ alert(t.tkPhotoBad) }catch(e){} };
   rd.onerror=kaputt;
   rd.onload=()=>{ img.onerror=kaputt; img.onload=()=>{
@@ -2969,8 +2983,13 @@ function belegFotoGewaehlt(file){
     if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
     const c=document.createElement("canvas"); c.width=w; c.height=h;
     c.getContext("2d").drawImage(img,0,0,w,h);
-    c.toBlob(b=>{ if(!b){ kaputt(); return; } belegPhotoBlob=b;
+    c.toBlob(b=>{ if(!b){ kaputt(); return; } belegPhotoBlob=b; belegFormSeq++;
+      const am=$("#bl-amount"); if(am) am.classList.remove("blguess");
       const pv=$("#bl-photo-prev"); if(pv){ pv.src=c.toDataURL("image/jpeg",0.7); pv.style.display="block"; }
+      /* Foto da: Angebot "Betrag automatisch lesen" zeigen. Reines Angebot,
+         nichts verlaesst das Handy, der Mensch bestaetigt am Ende immer selbst.
+         Laeuft gerade noch ein alter Scan, Knopf gesperrt lassen (Bruno-Fund 9). */
+      const sc=$("#bl-scan"); if(sc){ sc.hidden=false; sc.disabled=belegScanning; const lab=sc.querySelector("span"); if(lab) lab.textContent=belegScanning?t.blScanning:t.blScan; }
     }, "image/jpeg", 0.7);
   }; img.src=rd.result; };
   rd.readAsDataURL(file);
@@ -2980,6 +2999,9 @@ let belegSending=false;
 async function belegSpeichern(){
   const t=L(), msg=$("#bl-msg"), btn=$("#bl-save");
   if(belegSending) return;
+  /* Nicht speichern, solange der Scan noch laeuft: sonst geht der Beleg mit
+     leerem Betrag raus, obwohl der Scan gleich einen liefert (Bruno-Fund 3). */
+  if(belegScanning){ if(msg){ msg.className="lverr"; msg.textContent=t.blScanning; } return; }
   const cat=($("#bl-cat")||{}).value||"other";
   /* Leeres Betragsfeld bleibt leer (null), nicht 0 (Bruno-Hinweis, bei Geld wichtig). */
   const amtRaw=(($("#bl-amount")||{}).value||"").trim();
@@ -3017,6 +3039,119 @@ async function belegSpeichern(){
 async function belegLoeschen(id){
   try{ await sbSend("rpc/beleg_loeschen", {p_id:id}); }catch(e){}
   ladeBelege().catch(()=>{});
+}
+
+/* ---- Beleg automatisch lesen (OCR direkt auf dem Handy) ----
+   Grundsatz: Das Foto verlaesst das Geraet NICHT fuer die Erkennung. Die
+   Texterkennung (Tesseract) laeuft im Browser. Wir laden sie erst beim
+   ersten Tippen nach (spart Ladezeit fuer alle, die sie nicht brauchen).
+   Ergebnis wird nur VORGESCHLAGEN; der Mensch prueft und speichert selbst. */
+let belegOcrReady=null;
+function ladeTesseract(){
+  if(belegOcrReady) return belegOcrReady;
+  belegOcrReady = new Promise((ok,fail)=>{
+    if(window.Tesseract){ ok(window.Tesseract); return; }
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    s.onload=()=>{ if(window.Tesseract){ ok(window.Tesseract); } else { belegOcrReady=null; fail(new Error("no tesseract")); } };
+    s.onerror=()=>{ belegOcrReady=null; fail(new Error("load failed")); };
+    document.head.appendChild(s);
+  });
+  return belegOcrReady;
+}
+
+/* Eine Zahl aus dem Beleg zu einem Rupiah-Ganzbetrag machen.
+   Indonesien nutzt "." als Tausendertrenner (150.000). Kommt beides vor
+   (150.000,00), ist der letzte Trenner das Dezimalkomma und die zwei
+   Nachkommastellen fallen weg. Rupiah hat praktisch nie Nachkommastellen. */
+function belegNormZahl(s){
+  s=(s||"").replace(/[^\d.,]/g,""); if(!s) return null;
+  const ld=s.lastIndexOf("."), lc=s.lastIndexOf(",");
+  let intPart=s;
+  if(ld>=0 && lc>=0){ const dec=Math.max(ld,lc); if(s.slice(dec+1).length===2) intPart=s.slice(0,dec); }
+  const n=parseInt(intPart.replace(/[.,]/g,""),10);
+  return isNaN(n)?null:n;
+}
+
+/* Aus dem erkannten Text den zu zahlenden Gesamtbetrag ziehen. Zwei Stufen:
+   Stufe 1 ist der Endbetrag (grand total / total bayar / amount due) und
+   schlaegt alles. Stufe 2 ist ein einfaches "total"/"jumlah"/"bayar". Zeilen
+   mit Zwischensumme, Steuer, Rabatt, Rueckgeld werden ganz gemieden.
+   WICHTIG (Bruno-Fund 1): Gibt es KEIN Gesamt-Stichwort, wird NICHT geraten.
+   Sonst wird eine Telefon- oder Steuernummer zum Millionenbetrag. Lieber
+   nichts eintragen, der Mensch tippt dann selbst. */
+function belegLiesBetrag(text){
+  const t=(text||"").toLowerCase().split(/\r?\n/);
+  const numRe=/(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?|\d{4,})/g;
+  /* Immer verwerfen: Zwischensumme, Rabatt, Rueckgeld. Das ist nie der Endbetrag. */
+  const hartSchlecht=/(sub\s*total|subtotal|kembali|change|kredit|credit|discount|diskon|potongan)/;
+  /* Steuer-Woerter nur dann verwerfen, wenn KEIN Gesamt-Stichwort in derselben
+     Zeile steht. So bleibt "Total termasuk PPN 111.000" ein gueltiger Endbetrag
+     (Bruno-Hinweis: auf indonesischen Belegen sehr haeufig), eine reine
+     "PPN 11% 5.500"-Zeile wird aber weiter gemieden. */
+  const steuerWort=/(ppn|pajak|\btax\b|dpp)/;
+  const stufe1=/(grand\s*total|total\s*bayar|total\s*due|amount\s*due|total\s*tagihan|total\s*pembayaran)/;
+  const stufe2=/(\btotal\b|\bjumlah\b|\bbayar\b)/;
+  let hi=[], mid=[];
+  for(const ln of t){
+    if(hartSchlecht.test(ln)) continue;
+    const istGesamt = stufe1.test(ln) || stufe2.test(ln);
+    if(steuerWort.test(ln) && !istGesamt) continue;
+    if(!istGesamt) continue; /* Ohne Gesamt-Stichwort NICHT raten (Fund 1). */
+    const treffer=ln.match(numRe); if(!treffer) continue;
+    for(const m of treffer){ const v=belegNormZahl(m); if(v==null||v<1000) continue;
+      if(stufe1.test(ln)) hi.push(v); else mid.push(v);
+    }
+  }
+  if(hi.length) return Math.max(...hi);
+  if(mid.length) return Math.max(...mid);
+  return null;
+}
+
+/* Ein Datum finden (dd/mm/yyyy, dd-mm-yyyy oder yyyy-mm-dd). Nur uebernehmen,
+   wenn das Jahr plausibel ist. Sonst bleibt das vorbelegte Heute stehen. */
+function belegLiesDatum(text){
+  const m1=(text||"").match(/\b(\d{1,2})[.\/-](\d{1,2})[.\/-](20\d{2})\b/);
+  if(m1){ const d=+m1[1], mo=+m1[2], y=+m1[3];
+    if(d>=1&&d<=31&&mo>=1&&mo<=12) return y+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
+  const m2=(text||"").match(/\b(20\d{2})[.\/-](\d{1,2})[.\/-](\d{1,2})\b/);
+  if(m2){ const y=+m2[1], mo=+m2[2], d=+m2[3];
+    if(d>=1&&d<=31&&mo>=1&&mo<=12) return y+"-"+String(mo).padStart(2,"0")+"-"+String(d).padStart(2,"0"); }
+  return null;
+}
+
+let belegScanning=false;
+async function belegScan(){
+  const t=L(), sc=$("#bl-scan"), msg=$("#bl-msg"), lab=sc?sc.querySelector("span"):null;
+  if(belegScanning || !belegPhotoBlob) return;
+  belegScanning=true; if(sc) sc.disabled=true; if(lab) lab.textContent=t.blScanning;
+  if(msg){ msg.className="lverr"; msg.textContent=""; }
+  /* Merken, fuer welches Formular und welches Foto dieser Scan laeuft. */
+  const meinSeq=belegFormSeq, meinBlob=belegPhotoBlob;
+  let url=null, worker=null;
+  try{
+    const T=await ladeTesseract();
+    url=URL.createObjectURL(meinBlob);
+    worker=await T.createWorker("eng");
+    const res=await worker.recognize(url);
+    const text=(res && res.data && res.data.text) || "";
+    const betrag=belegLiesBetrag(text), datum=belegLiesDatum(text);
+    /* Hat sich das Formular oder das Foto zwischenzeitlich geaendert, ist dieses
+       Ergebnis veraltet: still verwerfen, nichts ins neue Formular schreiben. */
+    if(meinSeq!==belegFormSeq || meinBlob!==belegPhotoBlob) return;
+    if(betrag!=null){ const am=$("#bl-amount"); if(am){ am.value=betrag; am.classList.add("blguess");
+        am.addEventListener("input",()=>am.classList.remove("blguess"),{once:true}); } }
+    if(datum){ const dt=$("#bl-date"); if(dt) dt.value=datum; }
+    if(msg){ msg.className = betrag!=null ? "lverr good" : "lverr bad"; msg.textContent = betrag!=null ? t.blScanOk : t.blScanNone; }
+  }catch(e){
+    /* Offline, CDN blockiert oder nichts erkannt: kein Drama, manuelles
+       Tippen bleibt. Wir melden es nur ruhig. */
+    if(msg){ msg.className="lverr bad"; msg.textContent=t.blScanNone; }
+  }finally{
+    if(worker){ try{ await worker.terminate() }catch(e){} }
+    if(url){ try{ URL.revokeObjectURL(url) }catch(e){} }
+    belegScanning=false; if(sc) sc.disabled=false; if(lab) lab.textContent=t.blScan;
+  }
 }
 
 /* ================= Offene Chats (Empfang) ================= */
@@ -4104,6 +4239,7 @@ document.addEventListener("click",e=>{
   const blk=e.target.closest("[data-blkind]");
   if(blk){ belegKind=blk.dataset.blkind; $$("#bl-kind .dep").forEach(b=>b.classList.toggle("on", b===blk)); return; }
   if(e.target.closest("#bl-photo-btn")){ const pi=$("#bl-photo-input"); if(pi) pi.click(); return; }
+  if(e.target.closest("#bl-scan")){ belegScan(); return; }
   if(e.target.closest("#bl-save")){ belegSpeichern(); return; }
   const bld=e.target.closest("[data-bldel]"); if(bld){ belegLoeschen(bld.dataset.bldel); return; }
   /* Offene Chats */
