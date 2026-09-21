@@ -567,6 +567,11 @@
       <h1 data-t="loginH"></h1>
       <p class="sub" data-t="loginS"></p>
       <div id="people"></div>
+      <!-- Schalter fuer den geteilten Empfangstresen. Ein Gerät, das so
+           markiert ist, merkt sich NIEMANDEN und fragt beim Start immer neu,
+           wer da ist. Persoenliche Handys lassen den Schalter aus und werden
+           weiter automatisch angemeldet. -->
+      <button class="ghost" id="sharedtoggle" hidden style="margin-top:10px;font-size:13px;opacity:.8"></button>
       <!-- Sichtbare Version. Damit Dennis auf jedem Handy mit einem Blick
            sieht, ob die frische Fassung geladen ist, statt zu raten.
            Auch der stille Selbst-Aktualisierer unten haengt daran. -->
@@ -690,6 +695,19 @@
         <span class="rm" id="chat-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="chTileT"></span>
           <span class="mt" data-t="chTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
+      <!-- Behandlungszimmer -> Empfang. Senden: jede Person (Arzt/Helfer oben).
+           Board: Empfang + Leitung (unten), sehen von wem es kommt und haken ab. -->
+      <button class="glass next" id="notiz-send" data-go="s-notizneu" hidden style="margin-top:12px">
+        <span class="rm">&#9993;</span>
+        <span style="flex:1"><span class="tt" data-t="rnSendTile"></span>
+          <span class="mt" data-t="rnSendTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+      <button class="glass next" id="notiz-open" data-go="s-raumnotiz" hidden style="margin-top:12px">
+        <span class="rm" id="notiz-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="rnBoardTile"></span>
+          <span class="mt" data-t="rnBoardTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
       <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
@@ -1015,6 +1033,30 @@
       <p class="lverr" id="ch-msg"></p>
     </section>
 
+    <!-- Behandlungszimmer -> Empfang: das Board (unten am Empfang). -->
+    <section class="screen" id="s-raumnotiz">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="rnBoardH"></h1>
+      <p class="sub" data-t="rnBoardS"></p>
+      <div id="rn-list" style="margin-top:14px"></div>
+    </section>
+
+    <!-- An den Empfang senden (oben im Behandlungszimmer). -->
+    <section class="screen" id="s-notizneu">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="rnNewH"></h1>
+      <p class="sub" data-t="rnNewS"></p>
+
+      <label class="lvlab" data-t="rnPatient"></label>
+      <input class="lvin" id="rn-patient" style="width:100%" placeholder="z.B. Mr. M.">
+
+      <label class="lvlab" data-t="rnTask"></label>
+      <textarea class="lvin" id="rn-task" rows="3" style="resize:none"></textarea>
+
+      <button class="bigcheck" id="rn-save" style="margin-top:20px"><span class="bx"></span><span data-t="rnSave"></span></button>
+      <p class="lverr" id="rn-msg"></p>
+    </section>
+
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
          hier fehlende Geburtstage ein und korrigiert die zwei abgeleiteten. -->
     <section class="screen" id="s-bdayedit">
@@ -1137,6 +1179,8 @@ const T={
   nextUp:"Next patient",
   noSops:"No routines have been set up for your area yet. Your tasks will appear here.",
   notMe:"Not me \u2013 someone else",
+  sharedSet:"\ud83d\udcbb Make this the shared front-desk device",
+  sharedOn:"\u2713 Shared front-desk device \u2013 always asks who you are (tap to undo)",
   leadHere:"Your view",
   rvH:"What is stuck", rvToday:"Today", rvWeek:"This week, repeated",
   rvNothing:"Nothing stuck today. Good day.",
@@ -1175,6 +1219,14 @@ const T={
   chName:"Patient name", chCat:"Waiting for...", chDoc:"Which doctor? (optional)", chNote:"Note (what is it about?)",
   chSave:"Add to list", chDone:"Resolved", chNone:"Nothing open. All answered.",
   chNameErr:"Enter a patient name.", chErr:"Could not save. Try again.",
+  rnSendTile:"Send to reception", rnSendTileS:"a note from the treatment room",
+  rnBoardTile:"From treatment rooms", rnBoardTileS:"to handle at the desk",
+  rnBoardH:"From the treatment rooms",
+  rnBoardS:"What the rooms sent down. You see who it is from. Tick when done.",
+  rnNewH:"Send to reception", rnNewS:"A quick note for the front desk. It shows your name.",
+  rnPatient:"Patient (short, optional)", rnTask:"What should reception do?",
+  rnSave:"Send to reception", rnDone:"Done", rnNone:"Nothing open.",
+  rnErr:"Could not send. Try again.", rnTaskErr:"Write what to do first.",
   chCatNone:"— pick one (optional) —", chDocNone:"— no doctor —",
   chCats:{ask_doctor:"Ask the doctor",waiting_doctor:"Waiting for the doctor",waiting_patient:"Waiting for the patient",other:"Other"},
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
@@ -1260,6 +1312,8 @@ const T={
   nextUp:"Pasien berikutnya",
   noSops:"Belum ada prosedur untuk bagian Anda. Tugas Anda akan muncul di sini.",
   notMe:"Bukan saya \u2013 orang lain",
+  sharedSet:"\ud83d\udcbb Jadikan ini perangkat bersama meja depan",
+  sharedOn:"\u2713 Perangkat bersama meja depan \u2013 selalu tanya siapa Anda (ketuk untuk batal)",
   leadHere:"Tampilan Anda",
   rvH:"Apa yang tersendat", rvToday:"Hari ini", rvWeek:"Minggu ini, berulang",
   rvNothing:"Tidak ada yang tersendat hari ini. Hari yang baik.",
@@ -1298,6 +1352,14 @@ const T={
   chName:"Nama pasien", chCat:"Menunggu...", chDoc:"Dokter mana? (opsional)", chNote:"Catatan (tentang apa?)",
   chSave:"Tambah ke daftar", chDone:"Selesai", chNone:"Tidak ada yang terbuka. Semua terjawab.",
   chNameErr:"Masukkan nama pasien.", chErr:"Gagal menyimpan. Coba lagi.",
+  rnSendTile:"Kirim ke resepsionis", rnSendTileS:"catatan dari ruang perawatan",
+  rnBoardTile:"Dari ruang perawatan", rnBoardTileS:"untuk ditangani di meja depan",
+  rnBoardH:"Dari ruang perawatan",
+  rnBoardS:"Yang dikirim dari ruang. Anda lihat dari siapa. Centang bila selesai.",
+  rnNewH:"Kirim ke resepsionis", rnNewS:"Catatan singkat untuk meja depan. Nama Anda ikut tampil.",
+  rnPatient:"Pasien (singkat, opsional)", rnTask:"Apa yang harus dilakukan resepsionis?",
+  rnSave:"Kirim ke resepsionis", rnDone:"Selesai", rnNone:"Tidak ada yang terbuka.",
+  rnErr:"Gagal mengirim. Coba lagi.", rnTaskErr:"Tulis dulu apa yang harus dilakukan.",
   chCatNone:"— pilih (opsional) —", chDocNone:"— tanpa dokter —",
   chCats:{ask_doctor:"Tanya dokter",waiting_doctor:"Menunggu dokter",waiting_patient:"Menunggu pasien",other:"Lainnya"},
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
@@ -1796,7 +1858,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-18a";
+const APP_VERSION = "2026-09-21a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -1848,6 +1910,20 @@ function renderPeople(){
      <div class="avatar">${p.img?'<img src="'+p.img+'" alt="">':p.n[0]}</div>
      <div><div class="name">${p.n}</div><div class="role">${p.r[S.lang]}</div></div>
      <div class="chev">&rsaquo;</div></div></button>`).join("");
+  zeichneGeteilt();
+}
+/* Beschriftung des Geteilt-Schalters nach Zustand. Kein data-t, weil der Text
+   vom Zustand abhaengt. */
+function zeichneGeteilt(){
+  const b=$("#sharedtoggle"); if(!b) return;
+  /* Normal unsichtbar (geparkt). Sichtbar nur, wenn das Geraet schon als geteilt
+     markiert ist ODER die App einmalig mit ?tresen=1 geoeffnet wurde (Einrichtung
+     des Empfangs-PC). Persoenliche Handys sehen den Schalter nie. */
+  const zeigen = S.geteilt || new URLSearchParams(location.search).get("tresen")==="1";
+  b.hidden = !zeigen;
+  if(!zeigen) return;
+  b.textContent = S.geteilt ? L().sharedOn : L().sharedSet;
+  b.classList.toggle("on", !!S.geteilt);
 }
 /* Gefunden am 14.08.2026, als die Ablaeufe aus der Datenbank kamen: Diese
    Zeile setzte voraus, dass JEDE Aufgabe eine Zeit hat. Eine ohne liess den
@@ -2129,7 +2205,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -3228,6 +3304,62 @@ async function chatErledigt(id){
   ladeChats().catch(()=>{});
 }
 
+/* ================= Behandlungszimmer -> Empfang (raum_notiz) =================
+   Arzt/Helfer oben sendet Patient + Aufgabe, Empfang unten sieht VON WEM und
+   hakt ab. Struktur wie die offenen Chats, nur andere Richtung. */
+async function zeigeNotiz(){
+  /* Senden darf jede Person (der Server prueft). Nicht im Testlauf. */
+  const s=$("#notiz-send"); if(s) s.hidden = TESTLAUF;
+  /* Das Board sehen nur Empfang + Leitung, mit Zahl der offenen Notizen. */
+  const b=$("#notiz-open"); if(!b) return;
+  let darf=false;
+  try{ darf = await sbGet("rpc/darf_chats") }catch(e){ darf=false; }
+  b.hidden = (darf!==true) || TESTLAUF;
+  if(darf===true){ try{ const l=await sbGet("rpc/raum_notiz_liste"); const el=$("#notiz-badge"); if(el) el.textContent=(l&&l.length)||0; }catch(e){} }
+}
+async function ladeNotiz(){
+  const t=L(), box=$("#rn-list"); if(!box) return;
+  let liste=[];
+  try{ liste = await sbGet("rpc/raum_notiz_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${t.rnNone}</p>`; return }
+  box.innerHTML = liste.map(n=>{
+    const wann = new Date(n.created_at).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short"});
+    const pat = n.patient ? "<b>"+escHtml(n.patient)+"</b><br>" : "";
+    return `<div class="lvitem" data-rnrow="${n.id}">
+      <div class="d">${pat}<span>${escHtml(n.task)}</span>
+        <small><br>${escHtml(n.wer||"")} &middot; ${wann}</small></div>
+      <button class="pinrst" data-rndone="${n.id}">${t.rnDone}</button>
+    </div>`;
+  }).join("");
+}
+function zeichneNotizNeu(){
+  const p=$("#rn-patient"); if(p) p.value="";
+  const tk=$("#rn-task"); if(tk) tk.value="";
+  const msg=$("#rn-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+}
+let notizSending=false;
+async function notizSpeichern(){
+  const t=L(), msg=$("#rn-msg"), btn=$("#rn-save");
+  if(notizSending) return;
+  const patient=($("#rn-patient")||{}).value||"";
+  const task=($("#rn-task")||{}).value||"";
+  msg.className="lverr"; msg.textContent="";
+  if(task.trim().length<1){ msg.textContent=t.rnTaskErr; return; }
+  notizSending=true; if(btn) btn.disabled=true;
+  try{
+    await sbSend("rpc/raum_notiz_hinzufuegen", {p_patient:patient, p_task:task});
+    notizSending=false; if(btn) btn.disabled=false;
+    go("s-brief");
+  }catch(e){ notizSending=false; if(btn) btn.disabled=false; msg.textContent=t.rnErr; }
+}
+/* Erledigt: erst senden, dann wegnehmen (wie bei den Chats, Bruno-Fund). */
+async function notizErledigt(id){
+  try{ await sbSend("rpc/raum_notiz_erledigt", {p_id:id}); }
+  catch(e){ try{ alert(L().rnErr) }catch(_){}; return; }
+  const row=$("#rn-list [data-rnrow='"+id+"']"); if(row) row.remove();
+  ladeNotiz().catch(()=>{});
+}
+
 
 /* Sprache: webkitSpeechRecognition (Android/Chrome). Auf dem iPhone gibt es
    das Mikrofon direkt auf der Tastatur, dann nur ein Hinweis. */
@@ -3815,6 +3947,28 @@ function merkeGeraet(p){
   S.geraet = p.id || null;
   S.geraetName = p.n;
 }
+/* Den geteilten Empfangstresen ein- und ausschalten. An: das Geraet merkt sich
+   niemanden mehr und startet immer bei der Namensliste. Beim Einschalten die
+   aktuelle Person gleich abmelden, damit nicht die Vorperson haengen bleibt. */
+function geteiltUmschalten(){
+  const einschalten = !S.geteilt;
+  if(einschalten){
+    /* Erst die offenen Haken der aktuellen Person rausschicken, DANN alles
+       leeren (wie "Nicht ich", Bruno-Fund 3), damit nichts haengen bleibt. */
+    S.geteilt = true;
+    leerePostausgang().finally(()=>{ vergissGeraet(); zeichneGeteilt(); go("s-login", false); });
+  } else {
+    S.geteilt = false; save(); zeichneGeteilt(); go("s-login", false);
+  }
+}
+/* Beim Personenwechsel MUSS der Haken-Zustand der Vorperson weg, sonst sieht
+   die Naechste fremde gruene Haken und ihr Haken laeuft unter dem falschen
+   SOP-Lauf (Bruno-Fund 1, schwer). Leert die lokalen Zustaende und den
+   Lauf-Cache. */
+function sitzungZuruecksetzen(){
+  S.done=[]; S.blocked={}; S.steps={};
+  for(const k in LAUF) delete LAUF[k];
+}
 function vergissGeraet(){
   /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
      nicht der Stand der Vorperson liegen bleibt (Bruno-Hinweis). */
@@ -3823,7 +3977,9 @@ function vergissGeraet(){
     localStorage.removeItem("tk_over");
   }catch(e){}
   S.geraet=null; S.geraetName=null; S.refresh=null; S.token=null; S.me=null;
-  S.started=null; S.startedAt=null; save();
+  S.started=null; S.startedAt=null;
+  sitzungZuruecksetzen();   /* Haken/Blockaden/Schritte/Lauf-Cache der Vorperson weg */
+  save();
 }
 
 function pinOk(){
@@ -4151,12 +4307,14 @@ function go(id, push){
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
   if(id==="s-chats"){ ladeChats().catch(()=>{}); }
   if(id==="s-chatneu"){ zeichneChatNeu().catch(()=>{}); }
+  if(id==="s-raumnotiz"){ ladeNotiz().catch(()=>{}); }
+  if(id==="s-notizneu"){ zeichneNotizNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -4179,6 +4337,7 @@ document.addEventListener("click",e=>{
     setMode(document.documentElement.getAttribute("data-mode")==="dark"?"light":"dark");return}
   const l=e.target.closest("[data-lang]");
   if(l){S.lang=l.dataset.lang;save();tr();return}
+  if(e.target.closest("#sharedtoggle")){ geteiltUmschalten(); return }
   const p=e.target.closest("[data-p]");
   if(p){ pinStart(+p.dataset.p); return }
   const pk=e.target.closest("[data-k]"); if(pk){ pinKey(pk.dataset.k); return }
@@ -4245,6 +4404,8 @@ document.addEventListener("click",e=>{
   /* Offene Chats */
   if(e.target.closest("#ch-save")){ chatSpeichern(); return; }
   const chd=e.target.closest("[data-chdone]"); if(chd){ chatErledigt(chd.dataset.chdone); return; }
+  if(e.target.closest("#rn-save")){ notizSpeichern(); return; }
+  const rnd=e.target.closest("[data-rndone]"); if(rnd){ notizErledigt(rnd.dataset.rndone); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
@@ -4429,6 +4590,10 @@ tr();
    laufen, sonst landet man - vor allem offline - auf s-brief ohne den
    Einstempel-Knopf und der Check-in fuer den Tag fehlt fuer immer. */
 tagesgrenze();
+/* Geteilter Empfangstresen: NIE die Vorperson wiederherstellen. Immer frisch
+   bei der Namensliste anfangen, damit die Naechste sich als sie selbst anmeldet
+   (sonst rastet der PC auf die erste Person ein). */
+if(S.geteilt){ S.me=null; S.token=null; S.refresh=null; S.started=null; S.startedAt=null; sitzungZuruecksetzen(); }
 NAV = S.me!=null ? ((S.lead||S.mgr||!S.started)?["s-login"]:["s-login","s-clock"]) : [];
 go(S.me!=null ? startziel() : "s-login", false);
 showBack();
