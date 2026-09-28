@@ -1858,7 +1858,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-28a";
+const APP_VERSION = "2026-09-28b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2158,13 +2158,13 @@ async function sbGet(pfad, zweiterVersuch){
    als Bilddaten in dieser Datei und muessen nicht ueber die Leitung. */
 async function ladePersonen(){
   try{
-    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,pin_set,is_demo");
+    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,sees_revenue,pin_set,is_demo");
     if(!rows.length) throw new Error("leer");
     const bilder = {}; PEOPLE.forEach(p=>{ if(p.img) bilder[p.n]=p.img; });
     PEOPLE = rows.map(r=>({
       id:r.id, n:r.name, dep:r.department||"management",
       r:{en:r.role_en, id:r.role_id}, pinSet:r.pin_set!==false,
-      lead:r.is_lead?1:0, mgr:r.is_manager?1:0,
+      lead:r.is_lead?1:0, mgr:r.is_manager?1:0, rev:r.sees_revenue?1:0,
       demo:r.is_demo?1:0,
       doc:/^Dr\./.test(r.name)&&r.department==="dental"?1:0,
       img:bilder[r.name]||null
@@ -3864,7 +3864,7 @@ function pinStart(k){
      Aerzte, Assistenten, Security) kommen mit einem Tipp auf den Namen rein,
      ganz ohne PIN. Die Sicherheit bleibt genau dort, wo die sensiblen Daten
      sind, und faellt dort weg, wo sie nur blockiert hat. */
-  if(!(p.lead || p.mgr)){ nameLogin(k); return; }
+  if(!(p.lead || p.mgr || p.rev)){ nameLogin(k); return; }
   zeigePinBildschirm(k);
 }
 function zeigePinBildschirm(k){
