@@ -1858,7 +1858,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-21a";
+const APP_VERSION = "2026-09-28a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -3810,6 +3810,38 @@ async function ohnePin(k){
   go(startziel());
 }
 
+/* Namens-Anmeldung OHNE PIN, fuer alle ausser Leitung/Inhaber/Manager.
+   Der Server stellt fuer Nicht-Leitung eine echte Sitzung aus, ohne dass ein
+   PIN eingegeben wird. Die drei Sensiblen (Nina, Micha, Hendra) laufen weiter
+   ueber zeigePinBildschirm. Dennis 28.09.2026. */
+async function nameLogin(k){
+  const p=PEOPLE[k]; pinFor=k;
+  if(online){
+    try{
+      const r = await fetch(SB.url+"/functions/v1/pin-login",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({person_id:p.id})});
+      const d = await r.json();
+      if(d.access_token){
+        S.token=d.access_token; S.refresh=d.refresh_token;
+        merkeGeraet(p); save(); pinOk();
+        /* Termine erst NACH der Anmeldung, sie haengen an der Sitzung. */
+        try{ await ladeTermine(); renderRooms() }catch(e){}
+        return;
+      }
+      /* Server verlangt wider Erwarten doch einen PIN (z.B. Rolle wurde zu
+         Leitung geaendert): dann den PIN-Bildschirm zeigen statt stumm zu
+         scheitern. */
+      if(d && d.needs_pin){ zeigePinBildschirm(k); return; }
+    }catch(e){}
+  }
+  /* Kein Netz: trotzdem rein, ehrlicher "wartet"-Zustand (wie ohnePin). Der
+     Postausgang sammelt und liefert nach, sobald wieder Netz da ist. */
+  S.me=k; rolleMerken(k); save(); tr(); renderRooms();
+  setState("warten");
+  go(startziel());
+}
+
 /* Einmal aus der Vorfuehrung heraus, fuer genau diese Person: der richtige
    PIN-Bildschirm. */
 function VORFUEHRUNG_AUS(k){
@@ -3824,24 +3856,25 @@ function VORFUEHRUNG_AUS(k){
 
 function pinStart(k){
   if(VORFUEHRUNG){ ohnePin(k); return }
+  const p=PEOPLE[k];
+  /* KERNAENDERUNG 28.09.2026 (Dennis): Der PIN war die Huerde, an der der
+     ganze Empfang gescheitert ist ("bis jetzt immer am PIN gescheitert").
+     Deshalb: PIN NUR NOCH fuer Leitung/Inhaber (Nina, Micha) und den Manager
+     (Hendra) - dort haengen Umsatz, Belege und Cockpit. ALLE anderen (Empfang,
+     Aerzte, Assistenten, Security) kommen mit einem Tipp auf den Namen rein,
+     ganz ohne PIN. Die Sicherheit bleibt genau dort, wo die sensiblen Daten
+     sind, und faellt dort weg, wo sie nur blockiert hat. */
+  if(!(p.lead || p.mgr)){ nameLogin(k); return; }
+  zeigePinBildschirm(k);
+}
+function zeigePinBildschirm(k){
   const p=PEOPLE[k]; pinFor=k; pinBuf=""; pinTries=0; pinFirst=null; pinAlt=null;
-  /* Wer noch keinen eigenen PIN hat, wird beim ersten Mal dazu gezwungen. */
-  /* Der Ablauf beim allerersten Mal:
-     Start-PIN von Hendra eingeben -> der Server antwortet "must_set_pin"
-     -> die Mitarbeiterin waehlt ihren eigenen. Danach kennt ihn niemand
-     ausser ihr, und erst ab da sagt ein Haken wirklich aus, wer geklickt hat.
-
-     Wer entscheidet, ist ausdruecklich der SERVER, nicht das Handy. Wuerde die
-     App selbst auf "eigenen PIN waehlen" springen, uebersaehe sie den
-     Start-PIN, und der Server lehnte das Setzen ab. Deshalb steht hier nur
-     "check". pinSet dient allein dem Hinweistext darunter. */
+  /* Der Server entscheidet ueber must_set_pin, nicht das Handy. Deshalb "check".
+     pinSet dient allein dem Hinweistext darunter. */
   pinMode = "check";
   $("#p-face").innerHTML = p.img?'<img src="'+p.img+'" alt="">':p.n[0];
   $("#p-name").textContent = p.n;
   $("#p-role").textContent = p.r[S.lang];
-  /* Beim ersten Mal steht klein dabei, welcher PIN gemeint ist. Ohne das
-     tippt jemand irgendetwas, bekommt "nicht richtig" und glaubt, das
-     Werkzeug sei kaputt. */
   $("#p-err").textContent = p.pinSet===false ? L().pinFirst : "";
   drawPin(); go("s-pin");
 }
