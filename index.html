@@ -1858,7 +1858,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-09-28b";
+const APP_VERSION = "2026-10-01a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2116,7 +2116,7 @@ async function ladeAnwesenheit(){
   const t=L();
   let rows=[];
   try{
-    const heute=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const heute=heuteISO();
     rows=await sbGet("app_attendance?select=*&on_day=eq."+heute+"&order=kam.asc");
   }catch(e){ return }
   box.innerHTML = rows.length ? rows.map(r=>`
@@ -2545,7 +2545,7 @@ const GRUND = {
    dort ein Haken statt einer Null - eine Null sieht aus wie ein Fehler. */
 async function zaehleHaengt(){
   try{
-    const heute=new Date().toISOString().slice(0,10);
+    const heute=heuteISO();
     const tag=await sbGet("app_day_review?select=status&on_day=eq."+heute);
     const n=tag.filter(r=>r.status!=="done").length;
     const b=$("#rv-badge"); if(b) b.textContent = n ? n : "\u2713";
@@ -2575,7 +2575,7 @@ async function fuelleCockpit(){
 
   /* Nicht erledigt + die Liste darunter. Offline aus dem Zwischenspeicher. */
   let tag=[], offline=false;
-  try{ const heute=new Date().toISOString().slice(0,10);
+  try{ const heute=heuteISO();
     tag=await sbGet("app_day_review?select=*&on_day=eq."+heute);
     try{ localStorage.setItem("ck_stuck", JSON.stringify(tag)) }catch(e){}
   }catch(e){ offline=true; try{ const c=localStorage.getItem("ck_stuck"); if(c) tag=JSON.parse(c) }catch(_){} }
@@ -2639,7 +2639,7 @@ function tageBisGeburtstag(tag, monat){
 
 async function ladeReview(){
   const t=L();
-  const heute = new Date().toISOString().slice(0,10);
+  const heute = heuteISO();
   let tag=[], woche=[];
   try{
     tag   = await sbGet("app_day_review?select=*&on_day=eq."+heute);
@@ -3513,7 +3513,7 @@ async function blattHolen(){
   const blob = new Blob(["\ufeff"+zeilen.join("\r\n")], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  const heute = new Date().toISOString().slice(0,10);
+  const heute = heuteISO();
   a.download = "THE-GERMAN-leave-"+heute+".csv";
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() }, 1000);
@@ -3720,23 +3720,29 @@ function tagesgrenze(){
      einchecken. Ohne das bliebe S.started ueber Nacht stehen und es gaebe
      keinen Check-in fuer den neuen Tag. */
   if(S.startedAt){
-    const tag = S.startedAt.slice(0,10);
-    const heute = new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    /* Den Einstempel-Zeitpunkt in Bali-Zeit betrachten, damit der Tageswechsel
+       an der Bali-Mitternacht liegt, nicht an der UTC-Mitternacht. */
+    const tag = new Date(new Date(S.startedAt).getTime()+8*3600000).toISOString().slice(0,10);
+    const heute = heuteISO();
     if(tag!==heute){ S.started=null; S.startedAt=null; save(); }
   }
 }
 function grenzenSetzen(){
   const f=$("#sk-from"); if(!f) return;
-  const tag = n => new Date(Date.now()+n*86400000 - new Date().getTimezoneOffset()*60000)
-                     .toISOString().slice(0,10);
+  const tag = baliTag;
   f.min = tag(-7); f.max = tag(30);
   const u=$("#lv-from"), b=$("#lv-to");
   if(u) u.min = tag(0);
   if(b) b.min = tag(0);
 }
 
-const heuteISO = () => new Date(Date.now() - new Date().getTimezoneOffset()*60000)
-                          .toISOString().slice(0,10);
+/* "Heute" IMMER in Bali-Zeit (WITA, UTC+8), egal welche Zeitzone das Geraet
+   hat. Fest +8, damit es auch auf einem Handy mit falscher Zeitzone oder auf
+   Dennis' Geraet in Deutschland den richtigen Praxis-Tag liefert. Passt zur
+   Datenbank, die seit 01.10.2026 ebenfalls auf Asia/Makassar laeuft. */
+const heuteISO = () => new Date(Date.now() + 8*3600000).toISOString().slice(0,10);
+/* Ein Datum relativ zu heute (n Tage), ebenfalls in Bali-Zeit. */
+const baliTag = n => new Date(Date.now() + n*86400000 + 8*3600000).toISOString().slice(0,10);
 
 /* ================= VORFUEHRUNG: kein PIN =================
    Dennis am 17.08.2026 vor dem Termin in der Praxis:
