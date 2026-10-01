@@ -635,6 +635,9 @@
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
+        <div class="glass kpi">
+          <div class="k" id="kpi-rev-month" style="color:var(--ink-3)">&mdash;</div>
+          <div class="lbl" data-t="ckRevMonth"></div></div>
       </div>
       <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
       <div id="cockpit-stuck" hidden></div>
@@ -1202,7 +1205,7 @@ const T={
   tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
-  ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue",
+  ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue", ckRevMonth:"This month's revenue",
   blTileT:"Receipts", blTileS:"this month, in and out",
   blH:"Receipts", blNew:"+ Add receipt", blNewH:"New receipt", blNewS:"Snap it now, so you don't hunt at month end.",
   blKind:"In or out?", blOut:"Payment out", blIn:"Money in",
@@ -1335,7 +1338,7 @@ const T={
   tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
-  ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini",
+  ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini", ckRevMonth:"Omzet bulan ini",
   blTileT:"Bukti", blTileS:"bulan ini, masuk dan keluar",
   blH:"Bukti pembayaran", blNew:"+ Tambah bukti", blNewH:"Bukti baru", blNewS:"Foto sekarang, biar tidak cari-cari akhir bulan.",
   blKind:"Masuk atau keluar?", blOut:"Pembayaran keluar", blIn:"Uang masuk",
@@ -1858,7 +1861,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01a";
+const APP_VERSION = "2026-10-01b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2601,6 +2604,15 @@ async function fuelleCockpit(){
     const r=await fetch(SB.url+"/functions/v1/tagesumsatz",
       {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
     if(r.ok){ const d=await r.json(); const el=$("#kpi-rev");
+      if(el){ el.textContent=fmtRp(d.total||0); el.style.color=""; el.style.fontSize="20px"; } }
+  }catch(e){}
+
+  /* Monatsumsatz (laufender Monat, serverseitig summiert, nur die Zahl). Wie
+     beim Tagesumsatz: bei Fehler bleibt der neutrale Strich. */
+  try{
+    const r=await fetch(SB.url+"/functions/v1/monatsumsatz",
+      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+    if(r.ok){ const d=await r.json(); const el=$("#kpi-rev-month");
       if(el){ el.textContent=fmtRp(d.total||0); el.style.color=""; el.style.fontSize="20px"; } }
   }catch(e){}
 }
