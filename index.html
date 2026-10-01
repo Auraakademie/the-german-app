@@ -1920,7 +1920,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01g";
+const APP_VERSION = "2026-10-01h";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -4354,15 +4354,17 @@ function renderRooms(){
   const zeigen=seesRooms();
   /* Die Kachel der Leitung zaehlt IMMER beide Bereiche, unabhaengig davon,
      wer gerade angemeldet ist. Deshalb steht sie vor dem Ausstieg. */
-  const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF;
-  /* Die Auswertung sieht nur die Leitung, und im Testlauf niemand. */
-  const rvo=$("#rv-open");
-  if(rvo){
-    rvo.hidden = TESTLAUF || !istLeitung();
-    if(!rvo.hidden) zaehleHaengt();
-  }
+  /* Eigener Urlaub: nur fuer Mitarbeiter. Die Leitung (Nina, Micha) nimmt sich
+     frei wann sie will, braucht den Antrag nicht (Dennis 01.10.). */
+  const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF || istLeitung();
+  /* "What is stuck" stand frueher dreifach da (KPI-Zahl + Liste oben + eigene
+     Kachel). Die Kachel faellt weg; die Zahl-Kachel und die Liste beim Oeffnen
+     reichen (Dennis 01.10.). */
+  const rvo=$("#rv-open"); if(rvo) rvo.hidden = true;
   zaehleAufgaben();
-  const ato=$("#att-open"); if(ato) ato.hidden = TESTLAUF || !istLeitung();
+  /* "Attendance today" als Kachel entfernt: steht oben schon als KPI
+     "Present today", die aufs selbe Bild fuehrt (Dennis 01.10.). */
+  const ato=$("#att-open"); if(ato) ato.hidden = true;
   const blo=$("#beleg-open"); if(blo) blo.hidden = TESTLAUF || !istLeitung();
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
