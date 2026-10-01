@@ -635,9 +635,9 @@
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
-        <button class="glass kpi" data-go="s-umsatz" style="text-align:left">
+        <div class="glass kpi">
           <div class="k" id="kpi-rev-month" style="color:var(--ink-3)">&mdash;</div>
-          <div class="lbl" data-t="ckRevMonth"></div></button>
+          <div class="lbl" data-t="ckRevMonth"></div></div>
       </div>
       <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
       <div id="cockpit-stuck" hidden></div>
@@ -1871,7 +1871,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01c";
+const APP_VERSION = "2026-10-01d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
