@@ -1871,7 +1871,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01d";
+const APP_VERSION = "2026-10-01e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2610,20 +2610,24 @@ async function fuelleCockpit(){
 
   /* Tagesumsatz aus KumoDent (serverseitig summiert, nur die Zahl). Bei Fehler
      bleibt der neutrale Strich statt einer erfundenen Zahl. */
+  let heuteTotal = 0, heuteOk = false;
   try{
     const r=await fetch(SB.url+"/functions/v1/tagesumsatz",
       {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
-    if(r.ok){ const d=await r.json(); const el=$("#kpi-rev");
-      if(el){ el.textContent=fmtRp(d.total||0); el.style.color=""; el.style.fontSize="20px"; } }
+    if(r.ok){ const d=await r.json(); heuteTotal=Number(d.total)||0; heuteOk=true; const el=$("#kpi-rev");
+      if(el){ el.textContent=fmtRp(heuteTotal); el.style.color=""; el.style.fontSize="20px"; } }
   }catch(e){}
 
-  /* Monatsumsatz (laufender Monat, serverseitig summiert, nur die Zahl). Wie
-     beim Tagesumsatz: bei Fehler bleibt der neutrale Strich. */
+  /* Monat bis heute = UNSERE gespeicherten Tage dieses Monats (umsatz_verlauf)
+     + der heutige Live-Wert. Zuverlaessig, unabhaengig von KumoDents kaputter
+     Seiten-Navigation. */
   try{
-    const r=await fetch(SB.url+"/functions/v1/monatsumsatz",
-      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
-    if(r.ok){ const d=await r.json(); const el=$("#kpi-rev-month");
-      if(el){ el.textContent=fmtRp(d.total||0); el.style.color=""; el.style.fontSize="20px"; } }
+    const iso=heuteISO(); const jahr=+iso.slice(0,4), monat=+iso.slice(5,7);
+    const rows=await sbGet("rpc/umsatz_verlauf?p_monate=1");
+    const cur=(rows||[]).find(r=>r.y===jahr && r.m===monat);
+    const monatSumme=(cur?Number(cur.total)||0:0) + heuteTotal;
+    const el=$("#kpi-rev-month");
+    if(el && (heuteOk || cur)){ el.textContent=fmtRp(monatSumme); el.style.color=""; el.style.fontSize="20px"; }
   }catch(e){}
 }
 
@@ -2639,13 +2643,12 @@ function fmtRp(n){
 async function ladeUmsatz(){
   const t=L(), box=$("#um-list"); if(!box) return;
   box.innerHTML=`<p class="lverr">${t.umLoading}</p>`;
-  let d=null;
+  let months=[];
   try{
-    const r=await fetch(SB.url+"/functions/v1/umsatz_monate",
-      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
-    if(!r.ok) throw new Error("http"); d=await r.json();
+    /* Aus UNSEREN Tages-Schnappschuessen (umsatz_verlauf), nicht aus KumoDents
+       unzuverlaessiger Seiten-Navigation. Baut sich ueber die Tage auf. */
+    months = await sbGet("rpc/umsatz_verlauf?p_monate=3");
   }catch(e){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
-  const months=(d&&d.months)||[];
   if(!months.length){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
   const max=Math.max(1, ...months.map(m=>Number(m.total)||0));
   box.innerHTML=months.map(m=>{
@@ -2655,7 +2658,7 @@ async function ladeUmsatz(){
     return `<div class="lvitem" style="flex-direction:column;align-items:stretch;gap:6px">
       <div style="display:flex;justify-content:space-between;gap:10px"><b>${escHtml(name)}</b><b>${fmtRp(m.total||0)}</b></div>
       <div style="height:8px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ok)"></div></div>
-      <small>${m.count||0} ${verk}</small>
+      <small>${m.cnt||0} ${verk}</small>
     </div>`;
   }).join("");
 }
