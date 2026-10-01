@@ -629,7 +629,7 @@
         <button class="glass kpi" data-go="s-review" style="text-align:left">
           <div class="k" id="kpi-stuck">&mdash;</div>
           <div class="lbl" data-t="ckStuck"></div></button>
-        <button class="glass kpi" data-go="s-review" style="text-align:left">
+        <button class="glass kpi" data-go="s-bday" style="text-align:left">
           <div class="k" id="kpi-bday" style="font-size:17px">&mdash;</div>
           <div class="lbl" data-t="ckBday"></div></button>
         <div class="glass kpi">
@@ -711,6 +711,13 @@
         <span class="rm" id="notiz-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="rnBoardTile"></span>
           <span class="mt" data-t="rnBoardTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
+      <!-- Wareneingang erfassen. Nur Dilla (+ Helfer) und Leitung. -->
+      <button class="glass next" id="we-open" data-go="s-weneu" hidden style="margin-top:12px">
+        <span class="rm">&#128230;</span>
+        <span style="flex:1"><span class="tt" data-t="weTile"></span>
+          <span class="mt" data-t="weTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
       <!-- Wer sich vertippt hat oder ein fremdes Handy in der Hand haelt,
@@ -911,18 +918,19 @@
       <p class="eyebrow" data-t="rvWeek"></p>
       <div id="rv-woche"></div>
 
-      <!-- Geburtstage. Nur die Leitung sieht sie (Dennis 08.09.2026), damit Nina
-           weiss, wen sie ansprechen kann. Die Daten kommen ueber eine
-           leitungsgeschuetzte Funktion, nicht aus einer offenen Tabelle. -->
-      <p class="eyebrow" data-t="rvBday"></p>
-      <div id="rv-bday"></div>
-      <button class="glass next" data-go="s-bdayedit" style="margin-top:14px"
-        data-t="rvBdayEdit"></button>
-
       <!-- Aufgaben, die die Leitung verteilt hat, mit Status. -->
       <p class="eyebrow" data-t="tkH" style="margin-top:26px"></p>
       <button class="glass next" data-go="s-tasknew" data-t="tkNew"></button>
       <div id="rv-tasks" style="margin-top:12px"></div>
+    </section>
+
+    <!-- Geburtstage: eigener Bildschirm, ueber die Kachel "Birthday this week".
+         Nur Leitung. -->
+    <section class="screen" id="s-bday">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="rvBday"></h1>
+      <div id="rv-bday" style="margin-top:14px"></div>
+      <button class="glass next" data-go="s-bdayedit" style="margin-top:14px" data-t="rvBdayEdit"></button>
     </section>
 
     <!-- Neue Aufgabe erstellen. Nur Leitung erreicht diesen Bildschirm. -->
@@ -1058,6 +1066,33 @@
 
       <button class="bigcheck" id="rn-save" style="margin-top:20px"><span class="bx"></span><span data-t="rnSave"></span></button>
       <p class="lverr" id="rn-msg"></p>
+    </section>
+
+    <!-- Wareneingang erfassen (Dilla): Produkt waehlen/neu, Lieferant, Foto. -->
+    <section class="screen" id="s-weneu">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="weH"></h1>
+      <p class="sub" data-t="weS"></p>
+
+      <input class="lvin" id="we-search" style="width:100%">
+      <div id="we-list" style="margin-top:8px;max-height:260px;overflow:auto"></div>
+      <button class="pinrst" id="we-neu-btn" style="margin-top:10px">&#10133; <span data-t="weNew"></span></button>
+      <input class="lvin" id="we-neu-name" hidden style="width:100%;margin-top:8px">
+      <p class="sub" id="we-chosen" style="margin-top:10px"></p>
+
+      <label class="lvlab" data-t="weSupplier"></label>
+      <input class="lvin" id="we-lieferant" style="width:100%">
+
+      <div class="lvrow" style="margin-top:12px">
+        <button class="dep" id="we-sammel" data-t="weSammel"></button>
+      </div>
+
+      <button class="pinrst" id="we-photo-btn" style="margin-top:12px">&#128247; <span data-t="wePhoto"></span></button>
+      <input type="file" id="we-photo-input" accept="image/*" style="display:none">
+      <img id="we-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
+
+      <button class="bigcheck" id="we-save" style="margin-top:20px"><span class="bx"></span><span data-t="weSave"></span></button>
+      <p class="lverr" id="we-msg"></p>
     </section>
 
     <!-- Umsatz-Verlauf: letzte Monate. Nur Leitung/Inhaber (ueber die Kachel). -->
@@ -1239,6 +1274,13 @@ const T={
   rnPatient:"Patient (short, optional)", rnTask:"What should reception do?",
   rnSave:"Send to reception", rnDone:"Done", rnNone:"Nothing open.",
   rnErr:"Could not send. Try again.", rnTaskErr:"Write what to do first.",
+  weTile:"Goods received", weTileS:"log a delivery",
+  weH:"Goods received", weS:"Pick the product, then photo the delivery note.",
+  weSearch:"Search product…", weNew:"New product (not in the list)", weNewName:"Type the product name",
+  weChosen:"Chosen:", weSupplier:"Supplier (optional)", weSammel:"Monthly collective invoice",
+  wePhoto:"Photo of delivery note / invoice", weSave:"Save",
+  weErr:"Pick a product or type a new one.",
+  wePhotoFail:"The photo did not upload. Nothing saved. Please try again.",
   chCatNone:"— pick one (optional) —", chDocNone:"— no doctor —",
   chCats:{ask_doctor:"Ask the doctor",waiting_doctor:"Waiting for the doctor",waiting_patient:"Waiting for the patient",other:"Other"},
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
@@ -1373,6 +1415,13 @@ const T={
   rnPatient:"Pasien (singkat, opsional)", rnTask:"Apa yang harus dilakukan resepsionis?",
   rnSave:"Kirim ke resepsionis", rnDone:"Selesai", rnNone:"Tidak ada yang terbuka.",
   rnErr:"Gagal mengirim. Coba lagi.", rnTaskErr:"Tulis dulu apa yang harus dilakukan.",
+  weTile:"Barang masuk", weTileS:"catat pengiriman",
+  weH:"Barang masuk", weS:"Pilih produk, lalu foto surat jalan.",
+  weSearch:"Cari produk…", weNew:"Produk baru (belum di daftar)", weNewName:"Ketik nama produk",
+  weChosen:"Dipilih:", weSupplier:"Pemasok (opsional)", weSammel:"Tagihan bulanan gabungan",
+  wePhoto:"Foto surat jalan / tagihan", weSave:"Simpan",
+  weErr:"Pilih produk atau ketik yang baru.",
+  wePhotoFail:"Foto gagal terunggah. Belum tersimpan. Coba lagi.",
   chCatNone:"— pilih (opsional) —", chDocNone:"— tanpa dokter —",
   chCats:{ask_doctor:"Tanya dokter",waiting_doctor:"Menunggu dokter",waiting_patient:"Menunggu pasien",other:"Lainnya"},
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
@@ -1871,7 +1920,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01e";
+const APP_VERSION = "2026-10-01f";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2218,7 +2267,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
     return null;
   }
   const r = await fetch(SB.url+"/rest/v1/"+pfad, {
@@ -2742,13 +2791,15 @@ async function ladeReview(){
     </div>`}).join("")
     : `<p class="lverr">${t.rvNoWeek}</p>`;
 
-  /* Geburtstage. Ueber die leitungsgeschuetzte Funktion, per GET moeglich,
-     weil sie STABLE ist. Wer nicht Leitung ist, bekommt 0 Zeilen. */
+}
+
+/* Geburtstage auf EIGENEM Bildschirm, ueber die Kachel erreichbar. Bewusst NICHT
+   mehr auf dem Task-/Review-Bildschirm (Dennis 01.10.2026: dort nur Tasks). */
+async function ladeBday(){
+  const t=L(); const wrap=$("#rv-bday"); if(!wrap) return;
   let bdays=[];
   try{ bdays = await sbGet("rpc/geburtstage") }catch(e){ bdays=[] }
-  const wrap=$("#rv-bday"); if(!wrap) return;
   if(!bdays.length){ wrap.innerHTML=`<p class="lverr">${t.rvBdayNone}</p>`; return }
-
   const zeile = r=>{
     const bis = tageBisGeburtstag(r.bday_day, r.bday_month);
     const wann = bis===0 ? t.rvBdayToday
@@ -2759,13 +2810,10 @@ async function ladeReview(){
       <span class="lvst ${bis<=7?"requested":""}">${wann}</span>
     </div>`;
   };
-
-  /* Donnerstags-Idee (Nina): Wer diese Woche Geburtstag hat, oben als Hinweis. */
   const diese = bdays.filter(r=>tageBisGeburtstag(r.bday_day,r.bday_month)<=7);
   const hinweis = diese.map(r=>
     `<div class="glass hak"><div class="t">&#127874; ${r.name}</div>
       <div class="m">${t.rvThuHint}</div></div>`).join("");
-
   wrap.innerHTML = hinweis + bdays.map(zeile).join("");
 }
 
@@ -3409,6 +3457,104 @@ async function notizErledigt(id){
   catch(e){ try{ alert(L().rnErr) }catch(_){}; return; }
   const row=$("#rn-list [data-rnrow='"+id+"']"); if(row) row.remove();
   ladeNotiz().catch(()=>{});
+}
+
+/* ================= Wareneingang (Dilla) =================
+   Produkt aus der Liste ANTIPPEN (kein Tippen), Foto vom Lieferschein, speichern.
+   Nur wenn das Produkt fehlt: "neues Produkt" tippen -> markiert es fuer Nina.
+   KEIN Bestand/keine Menge. Siehe specs/wareneingang.md. */
+let weArtikel=null, weNeu=false, wePhotoBlob=null, weSammel=false, weAlle=[], weSending=false;
+/* Noch nicht scharf: Ninas Pruef-Ansicht + die Produktliste fehlen. Auf true,
+   sobald die Scheibe komplett und Bruno-geprueft ist. */
+const WE_LIVE=false;
+
+async function zeigeWareneingang(){
+  const b=$("#we-open"); if(!b) return;
+  if(!WE_LIVE){ b.hidden=true; return; }
+  let darf=false;
+  try{ darf = await sbGet("rpc/darf_wareneingang"); }catch(e){ darf=false; }
+  b.hidden = TESTLAUF || !(darf===true || istLeitung());
+}
+function zeichneWeNeu(){
+  const t=L();
+  weArtikel=null; weNeu=false; wePhotoBlob=null; weSammel=false;
+  const s=$("#we-search"); if(s){ s.value=""; s.placeholder=t.weSearch; }
+  const nn=$("#we-neu-name"); if(nn){ nn.value=""; nn.hidden=true; nn.placeholder=t.weNewName; }
+  const ch=$("#we-chosen"); if(ch) ch.textContent="";
+  const lf=$("#we-lieferant"); if(lf){ lf.value=""; }
+  const sm=$("#we-sammel"); if(sm) sm.classList.remove("on");
+  const pv=$("#we-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+  const pin=$("#we-photo-input"); if(pin) pin.value="";
+  const msg=$("#we-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  ladeWeArtikel();
+}
+async function ladeWeArtikel(){
+  try{ weAlle = await sbGet("rpc/artikel_liste") || []; }catch(e){ weAlle=[]; }
+  renderWeList("");
+}
+function renderWeList(filter){
+  const box=$("#we-list"); if(!box) return;
+  const f=(filter||"").toLowerCase().trim();
+  const liste = weAlle.filter(a=> !f || (a.name||"").toLowerCase().includes(f) || (a.nummer||"").toLowerCase().includes(f)).slice(0,40);
+  box.innerHTML = liste.map(a=>`<button class="glass next" data-weart="${a.id}" style="margin-top:6px;width:100%;text-align:left">
+    <span style="flex:1">${escHtml(a.name)}${a.nummer?` <small>&middot; ${escHtml(a.nummer)}</small>`:""}</span>
+    <span class="chev">&rsaquo;</span></button>`).join("");
+}
+function weWaehle(id){
+  const a=weAlle.find(x=>x.id===id); if(!a) return;
+  weArtikel=id; weNeu=false;
+  const nn=$("#we-neu-name"); if(nn){ nn.hidden=true; nn.value=""; }
+  const ch=$("#we-chosen"); if(ch) ch.textContent=L().weChosen+" "+a.name;
+}
+function weNeuToggle(){
+  weNeu=true; weArtikel=null;
+  const nn=$("#we-neu-name"); if(nn){ nn.hidden=false; try{ nn.focus(); }catch(e){} }
+  const ch=$("#we-chosen"); if(ch) ch.textContent=L().weNew;
+}
+function weFotoGewaehlt(file){
+  if(!file) return;
+  const t=L(), img=new Image(), rd=new FileReader();
+  const kaputt=()=>{ wePhotoBlob=null; const pv=$("#we-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+    const pi=$("#we-photo-input"); if(pi) pi.value=""; try{ alert(t.tkPhotoBad) }catch(e){} };
+  rd.onerror=kaputt;
+  rd.onload=()=>{ img.onerror=kaputt; img.onload=()=>{
+    const max=1280; let w=img.width, h=img.height;
+    if(!w||!h){ kaputt(); return; }
+    if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+    const c=document.createElement("canvas"); c.width=w; c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=>{ if(!b){ kaputt(); return; } wePhotoBlob=b;
+      const pv=$("#we-photo-prev"); if(pv){ pv.src=c.toDataURL("image/jpeg",0.7); pv.style.display="block"; }
+    }, "image/jpeg", 0.7);
+  }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+async function weSpeichern(){
+  const t=L(), msg=$("#we-msg"), btn=$("#we-save");
+  if(weSending) return;
+  const neuName=($("#we-neu-name")||{}).value||"";
+  if(!weArtikel && !(weNeu && neuName.trim().length>=1)){ msg.className="lverr"; msg.textContent=t.weErr; return; }
+  const lieferant=($("#we-lieferant")||{}).value||"";
+  weSending=true; if(btn) btn.disabled=true;
+  let pfad=null;
+  try{
+    /* Foto hochladen (wie beim Beleg: bei abgelaufener Sitzung einmal erneuern). */
+    if(wePhotoBlob && !demoAktiv()){
+      const p = Math.random().toString(36).slice(2)+".jpg";
+      const ziel = SB.url+"/storage/v1/object/wareneingang/"+p;
+      let up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:wePhotoBlob});
+      if(!up.ok && await erneuereSitzung()){
+        up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:wePhotoBlob});
+      }
+      if(up.ok){ pfad=p; }
+      else{ weSending=false; if(btn) btn.disabled=false; try{ alert(t.wePhotoFail) }catch(e){} return; }
+    }
+    await sbSend("rpc/wareneingang_hinzufuegen", {
+      p_artikel: weArtikel, p_neu_name: weArtikel?null:neuName,
+      p_lieferant: lieferant, p_sammel: weSammel, p_note: null, p_photo: pfad });
+    weSending=false; if(btn) btn.disabled=false;
+    go("s-brief");
+  }catch(e){ weSending=false; if(btn) btn.disabled=false; msg.className="lverr"; msg.textContent=t.weErr; }
 }
 
 
@@ -4395,9 +4541,10 @@ function go(id, push){
     const sm=$("#sk-msg"); if(sm){ sm.textContent=""; sm.className="lverr"; }
   }
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
+  if(id==="s-bday"){ ladeBday().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -4406,6 +4553,7 @@ function go(id, push){
   if(id==="s-raumnotiz"){ ladeNotiz().catch(()=>{}); }
   if(id==="s-notizneu"){ zeichneNotizNeu(); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
+  if(id==="s-weneu"){ zeichneWeNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
@@ -4421,6 +4569,13 @@ document.addEventListener("change",e=>{
   if(e.target && e.target.id==="bl-photo-input"){
     const f=e.target.files && e.target.files[0]; if(f) belegFotoGewaehlt(f);
   }
+  if(e.target && e.target.id==="we-photo-input"){
+    const f=e.target.files && e.target.files[0]; if(f) weFotoGewaehlt(f);
+  }
+});
+/* Live-Suche in der Artikel-Liste beim Wareneingang. */
+document.addEventListener("input",e=>{
+  if(e.target && e.target.id==="we-search"){ renderWeList(e.target.value); }
 });
 
 document.addEventListener("click",e=>{
@@ -4497,6 +4652,12 @@ document.addEventListener("click",e=>{
   const chd=e.target.closest("[data-chdone]"); if(chd){ chatErledigt(chd.dataset.chdone); return; }
   if(e.target.closest("#rn-save")){ notizSpeichern(); return; }
   const rnd=e.target.closest("[data-rndone]"); if(rnd){ notizErledigt(rnd.dataset.rndone); return; }
+  /* Wareneingang */
+  if(e.target.closest("#we-photo-btn")){ const pi=$("#we-photo-input"); if(pi) pi.click(); return; }
+  if(e.target.closest("#we-neu-btn")){ weNeuToggle(); return; }
+  const wea=e.target.closest("[data-weart]"); if(wea){ weWaehle(wea.dataset.weart); return; }
+  if(e.target.closest("#we-sammel")){ weSammel=!weSammel; e.target.closest("#we-sammel").classList.toggle("on", weSammel); return; }
+  if(e.target.closest("#we-save")){ weSpeichern(); return; }
 
   /* Eigenen offenen Antrag zuruecknehmen */
   const weg = e.target.closest("[data-weg]");
