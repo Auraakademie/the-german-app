@@ -1920,7 +1920,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01f";
+const APP_VERSION = "2026-10-01g";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2656,6 +2656,18 @@ async function fuelleCockpit(){
     const soon=(b||[]).filter(x=>tageBisGeburtstag(x.bday_day,x.bday_month)<=7);
     const el=$("#kpi-bday"); if(el) el.textContent = soon.length ? soon[0].name : "—";
   }catch(e){ const el=$("#kpi-bday"); if(el) el.textContent="—"; }
+
+  /* Umsatz NUR fuer Micha + Nina (sees_revenue). Oberstes Gebot: kein anderer,
+     auch keine andere Leitung und kein Manager, sieht Zahlen. Die beiden
+     Kacheln werden ganz ausgeblendet und der Endpunkt gar nicht erst gerufen.
+     Server blockt es ohnehin (darf_umsatz -> 403), das hier ist die zweite
+     Schicht in der Oberflaeche. */
+  const seeRev = !!(me() && me().rev);
+  const revTile  = $("#kpi-rev")       && $("#kpi-rev").closest(".kpi");
+  const revMTile = $("#kpi-rev-month") && $("#kpi-rev-month").closest(".kpi");
+  if(revTile)  revTile.hidden  = !seeRev;
+  if(revMTile) revMTile.hidden = !seeRev;
+  if(!seeRev) return;
 
   /* Tagesumsatz aus KumoDent (serverseitig summiert, nur die Zahl). Bei Fehler
      bleibt der neutrale Strich statt einer erfundenen Zahl. */
