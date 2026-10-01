@@ -635,9 +635,9 @@
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
-        <div class="glass kpi">
+        <button class="glass kpi" data-go="s-umsatz" style="text-align:left">
           <div class="k" id="kpi-rev-month" style="color:var(--ink-3)">&mdash;</div>
-          <div class="lbl" data-t="ckRevMonth"></div></div>
+          <div class="lbl" data-t="ckRevMonth"></div></button>
       </div>
       <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
       <div id="cockpit-stuck" hidden></div>
@@ -1060,6 +1060,14 @@
       <p class="lverr" id="rn-msg"></p>
     </section>
 
+    <!-- Umsatz-Verlauf: letzte Monate. Nur Leitung/Inhaber (ueber die Kachel). -->
+    <section class="screen" id="s-umsatz">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="umH"></h1>
+      <p class="sub" data-t="umS"></p>
+      <div id="um-list" style="margin-top:14px"></div>
+    </section>
+
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
          hier fehlende Geburtstage ein und korrigiert die zwei abgeleiteten. -->
     <section class="screen" id="s-bdayedit">
@@ -1206,6 +1214,7 @@ const T={
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
   ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue", ckRevMonth:"This month's revenue",
+  umH:"Revenue", umS:"The last months, from KumoDent.", umLoading:"Loading…", umErr:"Not available right now. Try again in a moment.",
   blTileT:"Receipts", blTileS:"this month, in and out",
   blH:"Receipts", blNew:"+ Add receipt", blNewH:"New receipt", blNewS:"Snap it now, so you don't hunt at month end.",
   blKind:"In or out?", blOut:"Payment out", blIn:"Money in",
@@ -1339,6 +1348,7 @@ const T={
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
   ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini", ckRevMonth:"Omzet bulan ini",
+  umH:"Omzet", umS:"Beberapa bulan terakhir, dari KumoDent.", umLoading:"Memuat…", umErr:"Belum tersedia. Coba lagi sebentar.",
   blTileT:"Bukti", blTileS:"bulan ini, masuk dan keluar",
   blH:"Bukti pembayaran", blNew:"+ Tambah bukti", blNewH:"Bukti baru", blNewS:"Foto sekarang, biar tidak cari-cari akhir bulan.",
   blKind:"Masuk atau keluar?", blOut:"Pembayaran keluar", blIn:"Uang masuk",
@@ -1861,7 +1871,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01b";
+const APP_VERSION = "2026-10-01c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2622,6 +2632,32 @@ function fmtRp(n){
   n=Number(n)||0;
   if(n>=1e6) return "Rp "+(n/1e6).toLocaleString("en-US",{maximumFractionDigits:1})+" jt";
   return "Rp "+Math.round(n).toLocaleString("en-US");
+}
+
+/* Umsatz-Verlauf (letzte Monate) fuer die Leitung. Serverseitig summiert
+   (umsatz_monate), nur die Zahlen. Bei Drosselung/Fehler eine ruhige Meldung. */
+async function ladeUmsatz(){
+  const t=L(), box=$("#um-list"); if(!box) return;
+  box.innerHTML=`<p class="lverr">${t.umLoading}</p>`;
+  let d=null;
+  try{
+    const r=await fetch(SB.url+"/functions/v1/umsatz_monate",
+      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+    if(!r.ok) throw new Error("http"); d=await r.json();
+  }catch(e){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
+  const months=(d&&d.months)||[];
+  if(!months.length){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
+  const max=Math.max(1, ...months.map(m=>Number(m.total)||0));
+  box.innerHTML=months.map(m=>{
+    const name=new Date(m.y, m.m-1, 1).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric"});
+    const pct=Math.round(100*(Number(m.total)||0)/max);
+    const verk=S.lang==="id"?"penjualan":"sales";
+    return `<div class="lvitem" style="flex-direction:column;align-items:stretch;gap:6px">
+      <div style="display:flex;justify-content:space-between;gap:10px"><b>${escHtml(name)}</b><b>${fmtRp(m.total||0)}</b></div>
+      <div style="height:8px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ok)"></div></div>
+      <small>${m.count||0} ${verk}</small>
+    </div>`;
+  }).join("");
 }
 
 /* Aufgaben-Kachel fuer die Leitung: erledigt/gesamt. Offline aus dem
@@ -4366,6 +4402,7 @@ function go(id, push){
   if(id==="s-chatneu"){ zeichneChatNeu().catch(()=>{}); }
   if(id==="s-raumnotiz"){ ladeNotiz().catch(()=>{}); }
   if(id==="s-notizneu"){ zeichneNotizNeu(); }
+  if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
   $(".seg").style.visibility = id==="s-lead" ? "hidden" : "visible";
