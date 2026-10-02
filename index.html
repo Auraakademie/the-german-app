@@ -1295,6 +1295,7 @@ const T={
   attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
+  lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
   lvHoliday:"Holiday", lvReligion:"Religious",
   lvFrom:"From", lvTo:"Until", lvSend:"Send request",
   lvMine:"Your requests", lvNone:"No requests yet",
@@ -1436,6 +1437,7 @@ const T={
   attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
+  lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
   lvHoliday:"Cuti tahunan", lvReligion:"Cuti keagamaan",
   lvFrom:"Dari", lvTo:"Sampai", lvSend:"Kirim pengajuan",
   lvMine:"Pengajuan Anda", lvNone:"Belum ada pengajuan",
@@ -1920,7 +1922,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-01h";
+const APP_VERSION = "2026-10-02a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -4354,9 +4356,20 @@ function renderRooms(){
   const zeigen=seesRooms();
   /* Die Kachel der Leitung zaehlt IMMER beide Bereiche, unabhaengig davon,
      wer gerade angemeldet ist. Deshalb steht sie vor dem Ausstieg. */
-  /* Eigener Urlaub: nur fuer Mitarbeiter. Die Leitung (Nina, Micha) nimmt sich
-     frei wann sie will, braucht den Antrag nicht (Dennis 01.10.). */
-  const lvo=$("#lv-open"); if(lvo) lvo.hidden = TESTLAUF || istLeitung();
+  /* Der Reiter bleibt fuer alle erreichbar. Fuer die reine Leitung (Nina, Micha)
+     ist der persoenliche Urlaubsteil drinnen ausgeblendet (sie nehmen sich frei
+     wann sie wollen); der Reiter fuehrt sie zur Team-Uebersicht und zum
+     PIN-Reset. Deshalb heisst er fuer sie "Team & PINs" statt "Your leave"
+     (Dennis 01./02.10.). Wichtig: haette man den Reiter ganz versteckt, kaeme
+     die Leitung nicht mehr an den PIN-Reset. */
+  const lvo=$("#lv-open");
+  if(lvo){
+    lvo.hidden = TESTLAUF;
+    const reinLeit = !!(me() && me().lead && !me().mgr);
+    const tt=lvo.querySelector(".tt"), mt=lvo.querySelector(".mt");
+    if(tt) tt.textContent = reinLeit ? L().lvAdminT : L().lvH;
+    if(mt) mt.textContent = reinLeit ? L().lvAdminS : L().lvLeft;
+  }
   /* "What is stuck" stand frueher dreifach da (KPI-Zahl + Liste oben + eigene
      Kachel). Die Kachel faellt weg; die Zahl-Kachel und die Liste beim Oeffnen
      reichen (Dennis 01.10.). */
