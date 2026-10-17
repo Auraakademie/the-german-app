@@ -1922,7 +1922,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-02a";
+const APP_VERSION = "2026-10-17a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2525,18 +2525,31 @@ function setState(w){
    die Regel wichtig: Der PIN darf die Arbeit nie blockieren, Hendra setzt
    ihn in zehn Sekunden zurueck. */
 
-async function erneuereSitzung(){
-  if(!S.refresh) return false;
-  try{
-    const r = await fetch(SB.url+"/auth/v1/token?grant_type=refresh_token",{
-      method:"POST", headers:{apikey:SB.key,"Content-Type":"application/json"},
-      body: JSON.stringify({refresh_token:S.refresh})});
-    if(!r.ok) throw new Error(r.status);
-    const d = await r.json();
-    if(!d.access_token) throw new Error("keine Sitzung");
-    S.token=d.access_token; S.refresh=d.refresh_token; save();
-    return true;
-  }catch(e){ return false }
+/* Nur EINE Erneuerung gleichzeitig. Grund (Dennis 17.10.: "mal rein, mal
+   nicht", vor allem Android): Beim Oeffnen laufen mehrere Abfragen parallel.
+   Laeuft die Sitzung ab, will jede gleichzeitig erneuern. Supabase rotiert den
+   Refresh-Token aber zu einem Einmal-Schluessel: die erste Erneuerung klappt,
+   die anderen nutzen den schon verbrauchten Token und fliegen raus. Mit einem
+   gemeinsamen in-flight-Promise warten alle auf dasselbe Ergebnis, statt sich
+   gegenseitig den Token zu verbrennen. */
+let _erneuerung = null;
+function erneuereSitzung(){
+  if(!S.refresh) return Promise.resolve(false);
+  if(_erneuerung) return _erneuerung;
+  _erneuerung = (async () => {
+    try{
+      const r = await fetch(SB.url+"/auth/v1/token?grant_type=refresh_token",{
+        method:"POST", headers:{apikey:SB.key,"Content-Type":"application/json"},
+        body: JSON.stringify({refresh_token:S.refresh})});
+      if(!r.ok) throw new Error(r.status);
+      const d = await r.json();
+      if(!d.access_token) throw new Error("keine Sitzung");
+      S.token=d.access_token; S.refresh=d.refresh_token; save();
+      return true;
+    }catch(e){ return false; }
+    finally { _erneuerung = null; }
+  })();
+  return _erneuerung;
 }
 
 /* Beim Start: Kennt dieses Geraet schon jemanden? Dann direkt rein.
@@ -2546,7 +2559,13 @@ async function geraetKennt(){
   if(S.geraet==null) return false;
   const i = PEOPLE.findIndex(p=>p.id===S.geraet || p.n===S.geraetName);
   if(i<0) return false;
-  if(S.refresh && !(await erneuereSitzung())) return false;
+  /* Erneuern versuchen, aber einen Fehlschlag NICHT hart bestrafen: Solange
+     ein Token da ist, bleibt die Person angemeldet. Ist es abgelaufen, erneuert
+     der 401-Pfad in sbGet beim ersten Zugriff (jetzt ohne Wettlauf). So wirft
+     ein kurzer Netz-Haenger beim Oeffnen niemanden mehr zur PIN-Maske zurueck
+     (Dennis 17.10.). Nur wenn gar kein Token da ist, zurueck zur Namensliste. */
+  if(S.refresh) await erneuereSitzung();
+  if(!S.token) return false;
   S.me=i; rolleMerken(i); save(); tr(); renderRooms();
   go(startziel(), false);
   /* Der Zurueck-Pfeil muss zur Namensliste fuehren, auch nach dem
