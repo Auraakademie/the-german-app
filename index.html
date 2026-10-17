@@ -544,6 +544,40 @@
   <div class="hair"></div>
 </div></div>
 
+<!-- Notausgang gegen das "ewige Logo" (Dennis 17.10.: Android haengt beim Start).
+     Bricht das Haupt-Skript ab (z. B. zu alte Browser-Version auf einem Android-
+     Handy), bleibt sonst nur das Logo stehen. Dieser kleine Block laeuft als
+     EIGENES Skript VOR dem grossen und faengt genau das ab: statt Logo erscheint
+     eine Meldung mit Neu-laden-Knopf, und der echte Fehler wird sichtbar, damit
+     wir ihn beheben koennen. -->
+<div id="bootfail" style="display:none;position:fixed;inset:0;z-index:60;background:#0e0e0d;color:#eee;place-items:center;text-align:center;font-family:system-ui,sans-serif">
+  <div style="max-width:300px;padding:24px">
+    <div style="font-size:17px;margin-bottom:8px">App konnte nicht starten</div>
+    <div style="font-size:13px;opacity:.7;margin-bottom:18px">Bitte neu laden. Hilft das nicht, Icon vom Startbildschirm loeschen und den Link neu oeffnen.</div>
+    <button onclick="location.replace(location.pathname+'?v='+Date.now())" style="background:#e9e36b;border:0;border-radius:12px;padding:12px 22px;font-size:15px;font-weight:600">Neu laden</button>
+    <div id="bootfail-msg" style="font-size:10px;opacity:.5;margin-top:16px;word-break:break-word"></div>
+  </div>
+</div>
+<script>
+(function(){
+  function fail(msg){
+    if(window.__appReady) return;
+    try{
+      var b=document.getElementById("bootfail");
+      if(b){ b.style.display="grid";
+        var m=document.getElementById("bootfail-msg");
+        if(m&&msg) m.textContent=String(msg).slice(0,300); }
+      var s=document.getElementById("splash"); if(s) s.style.display="none";
+    }catch(e){}
+  }
+  window.addEventListener("error", function(ev){
+    fail(ev && ev.message ? ev.message : "Startfehler");
+  });
+  // Backstop: wenn nach 8s nichts gestartet ist, Hinweis statt ewiges Logo.
+  setTimeout(function(){ fail(""); }, 8000);
+})();
+</script>
+
 <div class="phone">
   <header>
     <!-- Der Zurueckweg gehoert in die Kopfzeile, nicht in den Inhalt. Im Inhalt
@@ -1922,7 +1956,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-17a";
+const APP_VERSION = "2026-10-17b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -4895,6 +4929,10 @@ if(S.geteilt){ S.me=null; S.token=null; S.refresh=null; S.started=null; S.starte
 NAV = S.me!=null ? ((S.lead||S.mgr||!S.started)?["s-login"]:["s-login","s-clock"]) : [];
 go(S.me!=null ? startziel() : "s-login", false);
 showBack();
+/* Start hat funktioniert: der Notausgang (siehe oben, #bootfail) bleibt still.
+   Wird diese Zeile nie erreicht (Skript-Abbruch auf altem Android-Browser),
+   zeigt der Notausgang die Meldung statt des ewigen Logos. */
+window.__appReady = true;
 
 /* Erst verbinden, dann schauen ob dieses Geraet schon jemanden kennt.
    Beides still im Hintergrund: Wer die App aufmacht, sieht sofort etwas,
