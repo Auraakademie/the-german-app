@@ -552,9 +552,9 @@
      wir ihn beheben koennen. -->
 <div id="bootfail" style="display:none;position:fixed;inset:0;z-index:60;background:#0e0e0d;color:#eee;place-items:center;text-align:center;font-family:system-ui,sans-serif">
   <div style="max-width:300px;padding:24px">
-    <div style="font-size:17px;margin-bottom:8px">App konnte nicht starten</div>
-    <div style="font-size:13px;opacity:.7;margin-bottom:18px">Bitte neu laden. Hilft das nicht, Icon vom Startbildschirm loeschen und den Link neu oeffnen.</div>
-    <button onclick="location.replace(location.pathname+'?v='+Date.now())" style="background:#e9e36b;border:0;border-radius:12px;padding:12px 22px;font-size:15px;font-weight:600">Neu laden</button>
+    <div style="font-size:17px;margin-bottom:8px">The app could not start</div>
+    <div style="font-size:13px;opacity:.7;margin-bottom:18px">Please tap Reload. If that does not help, delete the icon from your home screen and open the link again.</div>
+    <button onclick="location.replace(location.pathname+'?v='+Date.now())" style="background:#e9e36b;border:0;border-radius:12px;padding:12px 22px;font-size:15px;font-weight:600">Reload</button>
     <div id="bootfail-msg" style="font-size:10px;opacity:.5;margin-top:16px;word-break:break-word"></div>
   </div>
 </div>
@@ -1956,7 +1956,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-17b";
+const APP_VERSION = "2026-10-18a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -2039,6 +2039,11 @@ const isBlocked=i=>S.blocked[i]!=null;
 
    Hendra sieht alles: er kontrolliert. */
 const mineTask=t=>{
+  /* Waechter (Dennis 18.10., Hendra-Absturz): Ein verwaister Index in
+     S.done/S.blocked aus einer frueheren Ablauf-Liste zeigt ins Leere, dann ist
+     t hier undefined. Ohne diese Zeile stuerzt die ganze App beim Start ab
+     ("Cannot read properties of undefined (reading 'weekday')"). */
+  if(!t) return false;
   const d=myDep();
   /* Woechentlicher Ablauf nur an seinem Wochentag. Nachschlagen (mineGuide)
      bleibt jeden Tag moeglich - der Unterschied zwischen "heute tun" und
@@ -2115,6 +2120,7 @@ const mineTask=t=>{
    Der Unterschied zwischen Aufgabe und Anleitung ist "muss ich abhaken",
    nicht "geht mich ueberhaupt etwas an". */
 const mineGuide=t=>{
+  if(!t) return false;   /* verwaister Index, siehe mineTask */
   const d=myDep();
   if(t.nur) return !!(me() && me().n === t.nur);
   if(t.nurDoc && !(me()&&me().doc)) return false;
