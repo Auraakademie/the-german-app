@@ -1956,7 +1956,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-18a";
+const APP_VERSION = "2026-10-20a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 const me=()=>S.me!=null?PEOPLE[S.me]:null;
@@ -4979,6 +4979,21 @@ async function pruefeAktualitaet(){
     }
   }catch(e){ /* offline: dann eben beim naechsten Start */ }
 }
+/* Nina 20.10.: Der Tagesumsatz aktualisierte sich nur, wenn sie die App schloss
+   und neu oeffnete. Jetzt frischt das Cockpit von selbst nach: sobald die App
+   wieder in den Vordergrund kommt, und alle 5 Minuten, solange die Uebersicht
+   offen ist. fuelleCockpit prueft selbst, dass nur die Leitung Zahlen sieht,
+   und wir fragen nur bei sichtbarer App, damit KumoDent nicht unnoetig oft
+   abgefragt wird. */
+function cockpitAuffrischen(){
+  if(document.visibilityState!=="visible") return;
+  if(here()!=="s-brief") return;
+  if(!me()) return;
+  fuelleCockpit().catch(()=>{});
+}
+document.addEventListener("visibilitychange", cockpitAuffrischen);
+setInterval(cockpitAuffrischen, 300000);
+
 /* Der Vorhang geht nach 1,2 Sekunden auf und wird danach aus dem Weg geraeumt. */
 setTimeout(()=>{const e=document.getElementById("splash"); if(!e)return;
   e.classList.add("gone"); setTimeout(()=>e.remove(),650);},1200);
