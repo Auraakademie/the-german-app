@@ -642,6 +642,10 @@
            Solange der Dienstplan nicht als Daten da ist, steht hier nur
            die Rolle. -->
       <p class="sub"><span id="c-role"></span></p>
+      <!-- Dienstplan aus Hendras Excel (Drive "11. ROSTER", naechtlich
+           eingelesen). Steht nur, wenn es fuer diese Person heute einen
+           Eintrag gibt. Kein Eintrag = Zeile weg, nichts Erfundenes. -->
+      <p class="sub" id="c-shift" hidden style="color:var(--gold-ink);font-weight:600"></p>
       <div class="glass note" data-t="clockNote"></div>
       <button class="cta" id="btn-clock" data-t="clockIn"></button>
       <!-- Klein, unten, ohne Warnfarbe. Wer hier landet, ist meistens richtig.
@@ -654,6 +658,7 @@
       <p class="datum" id="d-today2"></p>
       <h1 data-t="briefH"></h1>
       <p class="sub"><span id="c-name2"></span> &middot; <span data-t="briefT"></span></p>
+      <p class="sub" id="b-shift" hidden style="color:var(--gold-ink);font-weight:600"></p>
       <!-- Vorfuehr-Umschalter, nur fuer Dennis. Leer fuer alle anderen. -->
       <div id="demoswitch"></div>
 
@@ -670,6 +675,9 @@
         <button class="glass kpi" data-go="s-bday" style="text-align:left">
           <div class="k" id="kpi-bday" style="font-size:17px">&mdash;</div>
           <div class="lbl" data-t="ckBday"></div></button>
+        <button class="glass kpi" data-go="s-roster" style="text-align:left">
+          <div class="k" id="kpi-roster">&mdash;</div>
+          <div class="lbl" data-t="ckRoster"></div></button>
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
@@ -786,6 +794,14 @@
         <span class="rm" id="tk-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="tkTileT"></span>
           <span class="mt" data-t="tkTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
+      <!-- Dienstplan-Woche fuer Hendra (Manager, kein Cockpit). Nina und
+           Micha kommen ueber die Kachel oben hin. -->
+      <button class="glass next" id="roster-open" data-go="s-roster" hidden style="margin-top:12px">
+        <span class="rm">&#128197;</span>
+        <span style="flex:1"><span class="tt" data-t="rsH"></span>
+          <span class="mt" data-t="rsTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
       <!-- Belegkasten. Nur Leitung. -->
@@ -990,6 +1006,24 @@
 
     <!-- Geburtstage: eigener Bildschirm, ueber die Kachel "Birthday this week".
          Nur Leitung. -->
+    <!-- ================= Dienstplan (Woche) =================
+         Fuer Nina, Micha und Hendra. Quelle ist Hendras Excel im Drive,
+         jede Nacht eingelesen (Edge Function roster_import). Die App zeigt
+         nur, sie aendert nichts: Hendra pflegt weiter seine Excel, wie er es
+         gewohnt ist. Dennis, 22.10.2026: "Dienstplan in der App, auch Micha". -->
+    <section class="screen" id="s-roster">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="rsH"></h1>
+      <div class="rvfix" style="align-items:center;gap:8px;margin-top:6px">
+        <button class="pinrst" id="rs-prev" style="min-width:44px">&#8249;</button>
+        <b id="rs-range" style="flex:1;text-align:center"></b>
+        <button class="pinrst" id="rs-next" style="min-width:44px">&#8250;</button>
+      </div>
+      <button class="ghost" id="rs-today" data-t="rsToday" style="margin-top:4px;font-size:13px"></button>
+      <div id="rs-list" style="margin-top:10px"></div>
+      <p class="lverr" id="rs-foot" style="margin-top:14px;opacity:.75"></p>
+    </section>
+
     <section class="screen" id="s-bday">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="rvBday"></h1>
@@ -1315,6 +1349,12 @@ const T={
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
   ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue", ckRevMonth:"This month's revenue",
+  ckRoster:"On duty today",
+  shToday:"Your shift today", shMor:"Morning", shEve:"Evening", shLeave:"Leave", shSick:"Sick", shSwitch:"Switch", shOff:"Day off",
+  rsH:"Roster", rsTileS:"Who works when, this week and next", rsToday:"This week", rsOff:"off", rsNone:"No roster for this week yet. Hendra fills the Excel in Drive, the app reads it every night.",
+  rsSource:"From Hendra's roster file, last read", rsOffline:"No connection. Try again when you are online.",
+  rsErr:"The server did not answer (code {code}). This is not your WiFi, please tell Dennis.",
+  rsFail:"Last import on {wann} FAILED ({grund}). This plan may be old.", rsUnknown:"Names in the Excel the app does not know:", rsNote:"Note:",
   umH:"Revenue", umS:"The last months, from KumoDent.", umLoading:"Loading…", umErr:"Not available right now. Try again in a moment.",
   blTileT:"Receipts", blTileS:"this month, in and out",
   blH:"Receipts", blNew:"+ Add receipt", blNewH:"New receipt", blNewS:"Snap it now, so you don't hunt at month end.",
@@ -1480,6 +1520,12 @@ const T={
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
   ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini", ckRevMonth:"Omzet bulan ini",
+  ckRoster:"Bertugas hari ini",
+  shToday:"Shift kamu hari ini", shMor:"Pagi", shEve:"Sore", shLeave:"Cuti", shSick:"Sakit", shSwitch:"Tukar", shOff:"Libur",
+  rsH:"Jadwal kerja", rsTileS:"Siapa bertugas kapan, minggu ini dan depan", rsToday:"Minggu ini", rsOff:"libur", rsNone:"Belum ada jadwal untuk minggu ini. Hendra mengisi Excel di Drive, aplikasi membacanya setiap malam.",
+  rsSource:"Dari file jadwal Hendra, terakhir dibaca", rsOffline:"Tidak ada koneksi. Coba lagi saat online.",
+  rsErr:"Server tidak menjawab (kode {code}). Bukan WiFi kamu, tolong beri tahu Dennis.",
+  rsFail:"Impor terakhir {wann} GAGAL ({grund}). Jadwal ini mungkin sudah lama.", rsUnknown:"Nama di Excel yang tidak dikenal aplikasi:", rsNote:"Catatan:",
   umH:"Omzet", umS:"Beberapa bulan terakhir, dari KumoDent.", umLoading:"Memuat…", umErr:"Belum tersedia. Coba lagi sebentar.",
   blTileT:"Bukti", blTileS:"bulan ini, masuk dan keluar",
   blH:"Bukti pembayaran", blNew:"+ Tambah bukti", blNewH:"Bukti baru", blNewS:"Foto sekarang, biar tidak cari-cari akhir bulan.",
@@ -1746,7 +1792,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22e";
+const APP_VERSION = "2026-10-22g";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -1786,6 +1832,10 @@ setMode(S.mode || "dark");
 
 function tr(){
   $$("[data-t]").forEach(e=>{const v=L()[e.dataset.t]; if(v!=null)e.innerHTML=v});
+  /* Schichtzeile haengt nicht an data-t, sie wird aus dem Zwischenspeicher neu
+     gesetzt (Bruno 22f, Fund 8). Vor dem ersten Laden still ueberspringen. */
+  try{ const c=JSON.parse(localStorage.getItem("tg-shift")||"null"); const m=me();
+    if(c && m && c.id===m.id && c.day===heuteISO()) zeigeSchicht(c.row); }catch(e){}
   /* Das Datum kam bis 14.08.2026 aus der Uebersetzungstabelle und stand fest
      auf "Thursday, 30 July", dem Tag des ersten Entwurfs. In einem Werkzeug,
      das jeden Morgen aufgemacht wird, ist ein falsches Datum kein Schoenheits-
@@ -2041,6 +2091,95 @@ async function ladeAnwesenheit(){
       </div>
     </div>`).join("")
     : `<p class="lverr">${t.attNone}</p>`;
+}
+
+/* ================= Dienstplan =================
+   Quelle: Hendras Excel im Drive, naechtlich in die Tabelle dienstplan
+   gelesen. Eigene Schicht: rpc/meine_schicht (jeder nur sich selbst).
+   Woche: rpc/schicht_woche (nur Leitung + Hendra). Beides nur lesen. */
+function schichtText(r){
+  const t=L(); if(!r) return null;
+  const lbl={Mor:t.shMor,Eve:t.shEve,Leave:t.shLeave,Sick:t.shSick,Switch:t.shSwitch,off:t.shOff}[r.code]||r.code;
+  const z=(r.starts_at&&r.ends_at)?" "+r.starts_at.slice(0,5)+"\u2013"+r.ends_at.slice(0,5):"";
+  return lbl+z;
+}
+function zeigeSchicht(r){
+  const t=L(); const txt=schichtText(r);
+  ["#c-shift","#b-shift"].forEach(sel=>{ const el=$(sel); if(!el) return;
+    el.hidden=!txt; el.textContent = txt ? t.shToday+": "+txt : ""; });
+}
+async function ladeSchicht(){
+  /* Zuerst aus dem Zwischenspeicher (gleiche Person, gleicher Tag), dann
+     frisch. Kein Eintrag fuer heute = Zeile bleibt weg. */
+  const m=me(); if(!m){ zeigeSchicht(null); return; }
+  const heute=heuteISO();
+  try{ const c=JSON.parse(localStorage.getItem("tg-shift")||"null");
+    if(c && c.id===m.id && c.day===heute) zeigeSchicht(c.row); else zeigeSchicht(null);
+  }catch(e){ zeigeSchicht(null); }
+  if(!tokenGueltig() || S.tokenFuer!==m.id) return;
+  let rows; try{ rows=await sbGet("rpc/meine_schicht?p_tag="+heute); }catch(e){ return; }
+  if(!me() || me().id!==m.id) return;          // Person hat inzwischen gewechselt
+  const row=(rows&&rows[0])||null;
+  try{ localStorage.setItem("tg-shift", JSON.stringify({id:m.id, day:heute, row})); }catch(e){}
+  zeigeSchicht(row);
+}
+let rsVon=null;   // Montag der angezeigten Woche (ISO)
+function montagVon(iso){
+  const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));
+  return d.toISOString().slice(0,10);
+}
+function tagPlus(iso,n){ const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function tagText(iso,opt){ return new Date(iso+"T00:00:00Z").toLocaleDateString(S.lang==="id"?"id-ID":"en-GB", Object.assign({timeZone:"UTC"},opt)); }
+async function ladeRoster(){
+  const t=L(); const box=$("#rs-list"), rg=$("#rs-range"), ft=$("#rs-foot"); if(!box) return;
+  if(!rsVon) rsVon=montagVon(heuteISO());
+  const von=rsVon;   // Bruno 22f, Fund 3: nach dem await pruefen, ob noch diese Woche gemeint ist
+  if(rg) rg.textContent = tagText(von,{day:"numeric",month:"short"})+" \u2013 "+tagText(tagPlus(von,6),{day:"numeric",month:"short"});
+  box.innerHTML=""; if(ft){ ft.textContent=""; ft.style.color=""; }
+  let rows; try{ rows=await sbGet("rpc/schicht_woche?p_von="+von); }
+  catch(e){
+    if(rsVon!==von) return;
+    /* Netz weg und "Server antwortet nicht" sind zwei verschiedene Dinge. Nach
+       dem Umzug fehlt eher die Funktion (404) als das WLAN (Bruno 22f, Fund 4). */
+    const code=parseInt(e&&e.message,10);
+    box.innerHTML=`<p class="lverr">${code>=400 ? t.rsErr.replace("{code}",code) : t.rsOffline}</p>`; return;
+  }
+  if(rsVon!==von) return;
+  if(!rows||!rows.length){ box.innerHTML=`<p class="lverr">${t.rsNone}</p>`; }
+  else{
+    const heute=heuteISO(); const proTag={};
+    rows.forEach(r=>{ (proTag[r.on_day]=proTag[r.on_day]||[]).push(r); });
+    const ord={Mor:0,Eve:1,Switch:2,Leave:3,Sick:4,off:9};
+    box.innerHTML = Object.keys(proTag).sort().map(tag=>{
+      const list=proTag[tag].slice().sort((a,b)=>((a.code in ord)?ord[a.code]:5)-((b.code in ord)?ord[b.code]:5)||String(a.name).localeCompare(b.name));
+      const dienst=list.filter(r=>r.code!=="off"), frei=list.filter(r=>r.code==="off");
+      return `<p class="eyebrow" style="margin-top:14px${tag===heute?";color:var(--gold-ink)":""}">${tagText(tag,{weekday:"short",day:"numeric",month:"short"})}</p>`
+        + dienst.map(r=>`<div class="lvitem"><div class="d"><b>${escHtml(r.name)}</b><small>${escHtml(r.role_en||"")}</small></div>
+            <span class="lvst ${r.code==="Mor"||r.code==="Eve"?"requested":""}">${escHtml(schichtText(r))}</span></div>`).join("")
+        + (frei.length?`<p class="lverr" style="margin:6px 0 0">${t.rsOff}: ${frei.map(r=>escHtml(r.name)).join(", ")}</p>`:"");
+    }).join("");
+  }
+  /* Fussnote: der LETZTE Lauf zaehlt, auch wenn er gescheitert ist. Ein
+     gescheiterter Nachtlauf heisst: der Plan hier ist alt. Das muss Hendra
+     sehen, er ist der Einzige, der die Excel reparieren kann (Bruno 22f, Fund 2). */
+  try{ const st=await sbGet("rpc/roster_import_stand"); if(rsVon!==von || !ft) return;
+    const letzter=st&&st[0], gut=st&&st.find(x=>x.zeilen>0);
+    const wann=x=>new Date(x.gemacht_am).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    const teile=[];
+    if(letzter && !(letzter.zeilen>0)){ teile.push(t.rsFail.replace("{wann}",wann(letzter)).replace("{grund}", letzter.fehler||"?")); ft.style.color="#c98a2e"; }
+    if(gut) teile.push(t.rsSource+" "+wann(gut));
+    if(letzter && letzter.unbekannt){ teile.push(t.rsUnknown+" "+letzter.unbekannt); ft.style.color="#c98a2e"; }
+    if(letzter && letzter.zeilen>0 && letzter.fehler) teile.push(t.rsNote+" "+letzter.fehler);
+    ft.textContent=teile.join(" \u00b7 ");
+  }catch(e){}
+}
+async function zaehleSchichtHeute(){
+  /* Kachel im Cockpit: wie viele sind laut Plan heute im Dienst. */
+  const el=$("#kpi-roster"); if(!el) return; el.textContent="\u2014";
+  try{ const heute=heuteISO(); const rows=await sbGet("rpc/schicht_woche?p_von="+heute);
+    const n=(rows||[]).filter(r=>r.on_day===heute&&(r.code==="Mor"||r.code==="Eve")).length;
+    el.textContent = rows&&rows.length ? n : "\u2014";
+  }catch(e){}
 }
 
 /* ================= Anbindung an Singapur =================
@@ -2658,7 +2797,10 @@ async function fuelleCockpit(){
   if(!lead) umsatzWeg();
   if(hero) hero.style.display = lead ? "none" : "";
   if(grp)  grp.style.display  = lead ? "none" : "";
+  /* Dienstplan-Woche: Hendra (Manager) ueber den Knopf, Nina/Micha ueber die Kachel. */
+  const ro=$("#roster-open"); if(ro) ro.hidden = !(me() && me().mgr);
   if(!lead) return;
+  zaehleSchichtHeute().catch(()=>{});
 
   /* Anwesend heute */
   try{ const a=await sbGet("rpc/anwesend_heute"); const r=a&&a[0];
@@ -4732,7 +4874,7 @@ function sitzungZuruecksetzen(){
   }catch(e){}
 }
 function vergissGeraet(){
-  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); }catch(e){}
+  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); localStorage.removeItem("tg-shift"); zeigeSchicht(null); }catch(e){}
   neueAnmeldung();   /* alles, was noch unterwegs ist, gilt ab jetzt nicht mehr */
   pinMaskeAngeboten = false; S.tokenFuer = null;
   /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
@@ -5138,9 +5280,11 @@ function go(id, push){
   }
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bday"){ ladeBday().catch(()=>{}); }
+  if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); }
+  if(id==="s-clock"){ ladeSchicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -5332,6 +5476,9 @@ document.addEventListener("click",e=>{
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
      damit beide Wege dasselbe tun. */
   const bk=e.target.closest(".back"); if(bk){back();return}
+  if(e.target.closest("#rs-prev")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),-7); ladeRoster().catch(()=>{}); return; }
+  if(e.target.closest("#rs-next")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),7); ladeRoster().catch(()=>{}); return; }
+  if(e.target.closest("#rs-today")){ rsVon=montagVon(heuteISO()); ladeRoster().catch(()=>{}); return; }
   if(e.target.closest("#btn-endday")){
     /* Feierabend = Auschecken. Landet ueber den Postausgang in der Datenbank
        (offline-sicher). Danach S.started leeren, damit morgen frisch
