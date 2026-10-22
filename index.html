@@ -375,6 +375,10 @@
      Fuer Micha und Nina. Deutsch, dicht, am Rechner gelesen.
      Bewusst anders als die Team-Ansicht: hier ist Dichte richtig. */
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:8px}
+  /* NOTFALL 22.10.2026: display:grid ueberschrieb das Attribut hidden - der
+     Leitungsblock mit den Umsatzkacheln war bei ALLEN sichtbar (mit Strichen,
+     weil der Server die Zahl verweigert). hidden muss immer gewinnen. */
+  .kpis[hidden],[hidden]{display:none !important}
   .kpi{padding:14px 15px}
   .kpi .k{font-family:var(--sans);font-size:29px;line-height:1;font-weight:700;
           letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -1118,11 +1122,8 @@
       <h1 data-t="rnNewH"></h1>
       <p class="sub" data-t="rnNewS"></p>
 
-      <label class="lvlab" data-t="rnPatient"></label>
-      <input class="lvin" id="rn-patient" style="width:100%" placeholder="z.B. Mr. M.">
-
       <label class="lvlab" data-t="rnTask"></label>
-      <textarea class="lvin" id="rn-task" rows="3" style="resize:none"></textarea>
+      <textarea class="lvin" id="rn-task" rows="4" style="resize:none"></textarea>
 
       <button class="bigcheck" id="rn-save" style="margin-top:20px"><span class="bx"></span><span data-t="rnSave"></span></button>
       <p class="lverr" id="rn-msg"></p>
@@ -1304,6 +1305,8 @@ const T={
   tkH:"Tasks", tkNew:"+ New task",
   tkNewH:"New task", tkNewS:"Write or speak it, choose who does it.",
   tkText:"What needs to be done?", tkWho:"Who does it?", tkHow:"How long?",
+  tkGroups:"Groups (first one to finish closes it for all)", tkPeople:"People",
+  tkGroup:{reception:"All reception", dental_assistants:"All dental assistants", derma_assistants:"All derma assistants", dentists:"All dentists", security:"All security", everyone:"Everyone"},
   tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day",
   tkSend:"Send task", tkSent:"Sent", tkErr:"Could not send. Fill text and pick a person.",
   tkMicHint:"Voice is not available here. Use the microphone on your keyboard.",
@@ -1329,14 +1332,14 @@ const T={
   chName:"Patient name", chCat:"Waiting for...", chDoc:"Which doctor? (optional)", chNote:"Note (what is it about?)",
   chSave:"Add to list", chDone:"Resolved", chNone:"Nothing open. All answered.",
   chNameErr:"Enter a patient name.", chErr:"Could not save. Try again.",
-  rnSendTile:"Send to reception", rnSendTileS:"a note from the treatment room",
-  rnBoardTile:"From treatment rooms", rnBoardTileS:"to handle at the desk",
-  rnBoardH:"From the treatment rooms",
-  rnBoardS:"What the rooms sent down. You see who it is from. Tick when done.",
-  rnNewH:"Send to reception", rnNewS:"A quick note for the front desk. It shows your name.",
-  rnPatient:"Patient (short, optional)", rnTask:"What should reception do?",
-  rnSave:"Send to reception", rnDone:"Done", rnNone:"Nothing open.",
-  rnErr:"Could not send. Try again.", rnTaskErr:"Write what to do first.",
+  rnSendTile:"Message to Nina, Michael & Hendra", rnSendTileS:"anything they should know",
+  rnBoardTile:"Messages from the team", rnBoardTileS:"open, with sender",
+  rnBoardH:"Messages from the team",
+  rnBoardS:"What the team sent you. You see who wrote it. Tick when handled.",
+  rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name.",
+  rnPatient:"Patient (short, optional)", rnTask:"Your message",
+  rnSave:"Send", rnDone:"Done", rnNone:"Nothing open.",
+  rnErr:"Could not send. Try again.", rnTaskErr:"Write your message first.",
   weTile:"Goods received", weTileS:"log a delivery",
   weH:"Goods received", weS:"Pick the product, then photo the delivery note.",
   weSearch:"Search product…", weNew:"New product (not in the list)", weNewName:"Type the product name",
@@ -1467,6 +1470,8 @@ const T={
   tkH:"Tugas", tkNew:"+ Tugas baru",
   tkNewH:"Tugas baru", tkNewS:"Tulis atau ucapkan, pilih siapa yang mengerjakan.",
   tkText:"Apa yang harus dikerjakan?", tkWho:"Siapa yang mengerjakan?", tkHow:"Berapa lama?",
+  tkGroups:"Grup (yang pertama selesai menutupnya untuk semua)", tkPeople:"Orang",
+  tkGroup:{reception:"Semua resepsionis", dental_assistants:"Semua asisten gigi", derma_assistants:"Semua asisten derma", dentists:"Semua dokter gigi", security:"Semua security", everyone:"Semua orang"},
   tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari",
   tkSend:"Kirim tugas", tkSent:"Terkirim", tkErr:"Gagal mengirim. Isi teks dan pilih orang.",
   tkMicHint:"Suara tidak tersedia di sini. Pakai mikrofon pada keyboard.",
@@ -1492,14 +1497,14 @@ const T={
   chName:"Nama pasien", chCat:"Menunggu...", chDoc:"Dokter mana? (opsional)", chNote:"Catatan (tentang apa?)",
   chSave:"Tambah ke daftar", chDone:"Selesai", chNone:"Tidak ada yang terbuka. Semua terjawab.",
   chNameErr:"Masukkan nama pasien.", chErr:"Gagal menyimpan. Coba lagi.",
-  rnSendTile:"Kirim ke resepsionis", rnSendTileS:"catatan dari ruang perawatan",
-  rnBoardTile:"Dari ruang perawatan", rnBoardTileS:"untuk ditangani di meja depan",
-  rnBoardH:"Dari ruang perawatan",
-  rnBoardS:"Yang dikirim dari ruang. Anda lihat dari siapa. Centang bila selesai.",
-  rnNewH:"Kirim ke resepsionis", rnNewS:"Catatan singkat untuk meja depan. Nama Anda ikut tampil.",
-  rnPatient:"Pasien (singkat, opsional)", rnTask:"Apa yang harus dilakukan resepsionis?",
-  rnSave:"Kirim ke resepsionis", rnDone:"Selesai", rnNone:"Tidak ada yang terbuka.",
-  rnErr:"Gagal mengirim. Coba lagi.", rnTaskErr:"Tulis dulu apa yang harus dilakukan.",
+  rnSendTile:"Pesan ke Nina, Michael & Hendra", rnSendTileS:"apa pun yang perlu mereka tahu",
+  rnBoardTile:"Pesan dari tim", rnBoardTileS:"terbuka, dengan pengirim",
+  rnBoardH:"Pesan dari tim",
+  rnBoardS:"Yang dikirim tim ke Anda. Anda lihat siapa yang menulis. Centang bila sudah ditangani.",
+  rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil.",
+  rnPatient:"Pasien (singkat, opsional)", rnTask:"Pesan Anda",
+  rnSave:"Kirim", rnDone:"Selesai", rnNone:"Tidak ada yang terbuka.",
+  rnErr:"Gagal mengirim. Coba lagi.", rnTaskErr:"Tulis pesan Anda dulu.",
   weTile:"Barang masuk", weTileS:"catat pengiriman",
   weH:"Barang masuk", weS:"Pilih produk, lalu foto surat jalan.",
   weSearch:"Cari produk…", weNew:"Produk baru (belum di daftar)", weNewName:"Ketik nama produk",
@@ -1741,7 +1746,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-21o";
+const APP_VERSION = "2026-10-22b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2123,16 +2128,16 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
     return null;
   }
-  const r = await fetch(SB.url+"/rest/v1/"+pfad, {
+  const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
     method: methode||"POST",
     headers: Object.assign({
       apikey: SB.key, "Content-Type":"application/json"
     }, extra||{}, S.token ? {Authorization:"Bearer "+S.token} : {}),
     body: koerper===undefined ? undefined : JSON.stringify(koerper)
-  });
+  }), 30000);   /* Bruno 15: kein Knopf bleibt ewig grau */
   /* Bruno 4: Der Zugangsschluessel laeuft nach einer Stunde ab. Erneuert
      wurde er nur beim Start der App. Eine App auf dem Startbildschirm wird
      aber nicht neu geladen. Wer morgens einsteigt und um zehn etwas
@@ -2643,9 +2648,10 @@ async function fuelleCockpit(){
   const t=L(), lead=!!(me() && me().lead && !me().mgr);
   const kp=$("#lead-kpis"), csT=$("#cockpit-stuck-t"), cs=$("#cockpit-stuck");
   const hero=document.querySelector("#s-brief .hero"), grp=$("#groups");
-  if(kp) kp.hidden=!lead;
+  if(kp){ kp.hidden=!lead; kp.style.display = lead ? "" : "none"; }
   if(csT) csT.hidden=!lead;
   if(cs) cs.hidden=!lead;
+  if(!lead) umsatzWeg();
   if(hero) hero.style.display = lead ? "none" : "";
   if(grp)  grp.style.display  = lead ? "none" : "";
   if(!lead) return;
@@ -2686,12 +2692,27 @@ async function fuelleCockpit(){
      Kacheln werden ganz ausgeblendet und der Endpunkt gar nicht erst gerufen.
      Server blockt es ohnehin (darf_umsatz -> 403), das hier ist die zweite
      Schicht in der Oberflaeche. */
-  const seeRev = !!(me() && me().rev);
+  /* NOTFALL 22.10.2026 (Nina: "alle Mitarbeiter koennen den Umsatz sehen").
+     Server war dicht (darf_umsatz = sees_revenue, nur Nina + Michael). Die
+     Anzeige konnte nur ueber eine fremde Sitzung oder eine vertauschte Person
+     Zahlen zeigen (Bruno Runde 3/7, behoben in 21o). Ab jetzt fuenf Riegel
+     in der Oberflaeche, jeder einzeln ausreichend:
+       1. die Person traegt die Freigabe (rev)
+       2. die Sitzung gehoert GENAU dieser Person (tokenFuer)
+       3. kein Testlauf, keine Vorfuehrung
+       4. die Kacheln werden vor jeder Entscheidung geleert ("-")
+       5. der Endpunkt wird ohne 1-3 gar nicht erst gerufen (Server sagt sonst 403)
+     Und beim Personenwechsel/Abmelden werden die Kacheln geleert (umsatzWeg). */
+  umsatzWeg();
+  const seeRev = darfUmsatzSehen();
   const revTile  = $("#kpi-rev")       && $("#kpi-rev").closest(".kpi");
   const revMTile = $("#kpi-rev-month") && $("#kpi-rev-month").closest(".kpi");
   if(revTile)  revTile.hidden  = !seeRev;
   if(revMTile) revMTile.hidden = !seeRev;
   if(!seeRev) return;
+  /* Nach jedem await nochmal: hat inzwischen jemand anderes angemeldet? */
+  const umsatzFuer = me().id;
+  const nochErlaubt = () => darfUmsatzSehen() && me() && me().id === umsatzFuer;
 
   /* Tagesumsatz aus KumoDent (serverseitig summiert, nur die Zahl). Bei Fehler
      bleibt der neutrale Strich statt einer erfundenen Zahl. */
@@ -2700,6 +2721,7 @@ async function fuelleCockpit(){
     const r=await fetch(SB.url+"/functions/v1/tagesumsatz",
       {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
     if(r.ok){ const d=await r.json(); heuteTotal=Number(d.total)||0; heuteOk=true; const el=$("#kpi-rev");
+      if(!nochErlaubt()){ umsatzWeg(); return; }
       if(el){ el.textContent=fmtRp(heuteTotal); el.style.color=""; el.style.fontSize="20px"; } }
   }catch(e){}
 
@@ -2712,10 +2734,30 @@ async function fuelleCockpit(){
     const cur=(rows||[]).find(r=>r.y===jahr && r.m===monat);
     const monatSumme=(cur?Number(cur.total)||0:0) + heuteTotal;
     const el=$("#kpi-rev-month");
+    if(!nochErlaubt()){ umsatzWeg(); return; }
     if(el && (heuteOk || cur)){ el.textContent=fmtRp(monatSumme); el.style.color=""; el.style.fontSize="20px"; }
   }catch(e){}
 }
 
+/* Wer darf Umsatz SEHEN: nur mit eigener Freigabe UND eigener Sitzung. */
+function darfUmsatzSehen(){
+  const m = me();
+  if(!m || !m.rev) return false;
+  if(TESTLAUF || (typeof demoAktiv==="function" && demoAktiv())) return false;
+  if(!tokenGueltig() || S.tokenFuer !== m.id) return false;
+  return true;
+}
+/* Umsatz-Kacheln leeren und verstecken. Laeuft vor jeder Entscheidung, beim
+   Personenwechsel und beim Abmelden - damit NIE eine alte Zahl im Bild steht. */
+function umsatzWeg(){
+  const m=me(); const lead=!!(m && m.lead && !m.mgr);
+  const kp=$("#lead-kpis"); if(kp && !lead){ kp.hidden=true; kp.style.display="none"; }
+  ["#kpi-rev","#kpi-rev-month"].forEach(sel=>{
+    const el=$(sel); if(!el) return;
+    el.textContent="\u2014"; el.style.color="var(--ink-3)"; el.style.fontSize="";
+    const k=el.closest(".kpi"); if(k) k.hidden=true;
+  });
+}
 /* Betrag in Rupiah, kompakt fuer die Kachel: ab einer Million als "jt" (juta). */
 function fmtRp(n){
   n=Number(n)||0;
@@ -3152,8 +3194,18 @@ async function aufgabeZiele(){
   const who=$("#tk-who"); if(!who) return;
   let ziele=[];
   try{ ziele = await sbGet("rpc/aufgabe_ziele") }catch(e){ ziele=[]; }
-  who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>` +
-    ziele.map(p=>`<option value="${p.id}">${escHtml(p.name)}</option>`).join("");
+  /* Gruppen (Nina 21.10.): "Alle am Empfang", "Alle Assistenten" ... Eine
+     Aufgabe, viele sehen sie, der Erste hakt ab, fuer alle weg. Welche
+     Gruppen ich ansprechen darf, sagt der Server. Wert mit "g:" vorne. */
+  let gruppen=[];
+  try{ gruppen = await sbGet("rpc/aufgabe_gruppen") }catch(e){ gruppen=[]; }
+  const t=L();
+  const gOpts = gruppen.length ? `<optgroup label="${escHtml(t.tkGroups)}">` +
+      gruppen.map(g=>`<option value="g:${g.key}">${escHtml((t.tkGroup&&t.tkGroup[g.key])||g.key)}</option>`).join("") +
+      `</optgroup>` : "";
+  who.innerHTML = `<option value="">${escHtml(t.tkWhoPick)}</option>` + gOpts +
+    (ziele.length ? `<optgroup label="${escHtml(t.tkPeople)}">` +
+      ziele.map(p=>`<option value="${p.id}">${escHtml(p.name)}</option>`).join("") + `</optgroup>` : "");
   who.value="";
 }
 
@@ -3173,9 +3225,11 @@ async function aufgabeSenden(){
   }
   tkSending=true; if(btn) btn.disabled=true;
   try{
-    const koerper={p_assigned:wer, p_text:text, p_mode:tkMode};
+    const anGruppe = wer.startsWith("g:");
+    const koerper = anGruppe ? {p_group:wer.slice(2), p_text:text, p_mode:tkMode}
+                             : {p_assigned:wer, p_text:text, p_mode:tkMode};
     if(tag) koerper.p_day=tag;
-    const neu = await sbSend("rpc/aufgabe_erstellen", koerper);
+    const neu = await sbSend(anGruppe ? "rpc/aufgabe_erstellen_gruppe" : "rpc/aufgabe_erstellen", koerper);
     /* neu = die neue Aufgaben-ID (die Funktion gibt sie zurueck). Damit das
        Foto ihr zugeordnet wird. Im Demo-Modus ist neu null -> kein Upload. */
     const id = (typeof neu==="string") ? neu : (neu && neu.id);
@@ -3473,6 +3527,10 @@ function chCatText(c){ const t=L(); return c ? ((t.chCats&&t.chCats[c])||c) : ""
 /* Knopf + Zahl offener Chats auf s-brief, nur fuer Empfang/Leitung. */
 async function zeigeChats(){
   const b=$("#chat-open"); if(!b) return;
+  /* Nina, 21.10.2026: "Open chats handeln wir jetzt in Wassenger ab."
+     Dennis: go, loeschen. Kachel bleibt versteckt, Tabelle und Funktionen
+     bleiben in der Datenbank (nichts geloescht, nur nicht mehr gezeigt). */
+  b.hidden = true; return;
   let darf=false;
   try{ darf = await sbGet("rpc/darf_chats") }catch(e){ darf=false; }
   b.hidden = (darf!==true);
@@ -3544,33 +3602,38 @@ async function chatErledigt(id){
 /* ================= Behandlungszimmer -> Empfang (raum_notiz) =================
    Arzt/Helfer oben sendet Patient + Aufgabe, Empfang unten sieht VON WEM und
    hakt ab. Struktur wie die offenen Chats, nur andere Richtung. */
+/* Seit 21.10.2026 (Nina): nicht mehr Zimmer -> Empfang, sondern JEDER ->
+   Leitung (Nina, Micha, Hendra). Die Raumnotiz hatte in 14 Tagen null
+   Eintraege. Gleiche Bildschirme, anderer Empfaenger, andere Endpunkte. */
 async function zeigeNotiz(){
-  /* Senden darf jede Person (der Server prueft). Nicht im Testlauf. */
-  const s=$("#notiz-send"); if(s) s.hidden = TESTLAUF;
-  /* Das Board sehen nur Empfang + Leitung, mit Zahl der offenen Notizen. */
-  const b=$("#notiz-open"); if(!b) return;
-  let darf=false;
-  try{ darf = await sbGet("rpc/darf_chats") }catch(e){ darf=false; }
-  b.hidden = (darf!==true) || TESTLAUF;
-  if(darf===true){ try{ const l=await sbGet("rpc/raum_notiz_liste"); const el=$("#notiz-badge"); if(el) el.textContent=(l&&l.length)||0; }catch(e){} }
+  /* Senden darf jede Person. Die Leitung selbst braucht den Knopf nicht. */
+  const s=$("#notiz-send"), b=$("#notiz-open");
+  /* Gibt es die Funktion auf dem Server schon (Migration 104)? Wenn nicht,
+     beide Kacheln verstecken, statt ins Leere zu greifen (Bruno Runde 15). */
+  let n=null;
+  try{ n = await sbGet("rpc/leitung_nachricht_anzahl"); }catch(e){ n=null; }
+  if(n===null){ if(s) s.hidden=true; if(b) b.hidden=true; return; }
+  if(s) s.hidden = TESTLAUF || istLeitung();
+  if(!b) return;
+  if(!istLeitung()){ b.hidden=true; return; }
+  b.hidden = TESTLAUF;
+  const el=$("#notiz-badge"); if(el) el.textContent = n;
 }
 async function ladeNotiz(){
   const t=L(), box=$("#rn-list"); if(!box) return;
   let liste=[];
-  try{ liste = await sbGet("rpc/raum_notiz_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
+  try{ liste = await sbGet("rpc/leitung_nachricht_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
   if(!liste.length){ box.innerHTML=`<p class="lverr">${t.rnNone}</p>`; return }
   box.innerHTML = liste.map(n=>{
-    const wann = new Date(n.created_at).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short"});
-    const pat = n.patient ? "<b>"+escHtml(n.patient)+"</b><br>" : "";
+    const wann = new Date(n.created_at).toLocaleString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
     return `<div class="lvitem" data-rnrow="${n.id}">
-      <div class="d">${pat}<span>${escHtml(n.task)}</span>
-        <small><br>${escHtml(n.wer||"")} &middot; ${wann}</small></div>
+      <div class="d"><b>${escHtml(n.wer||"")}</b><br><span>${escHtml(n.text)}</span>
+        <small><br>${wann}</small></div>
       <button class="pinrst" data-rndone="${n.id}">${t.rnDone}</button>
     </div>`;
   }).join("");
 }
 function zeichneNotizNeu(){
-  const p=$("#rn-patient"); if(p) p.value="";
   const tk=$("#rn-task"); if(tk) tk.value="";
   const msg=$("#rn-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
 }
@@ -3578,20 +3641,19 @@ let notizSending=false;
 async function notizSpeichern(){
   const t=L(), msg=$("#rn-msg"), btn=$("#rn-save");
   if(notizSending) return;
-  const patient=($("#rn-patient")||{}).value||"";
   const task=($("#rn-task")||{}).value||"";
   msg.className="lverr"; msg.textContent="";
-  if(task.trim().length<1){ msg.textContent=t.rnTaskErr; return; }
+  if(task.trim().length<2){ msg.textContent=t.rnTaskErr; return; }
   notizSending=true; if(btn) btn.disabled=true;
   try{
-    await sbSend("rpc/raum_notiz_hinzufuegen", {p_patient:patient, p_task:task});
+    await sbSend("rpc/leitung_nachricht_senden", {p_text:task});
     notizSending=false; if(btn) btn.disabled=false;
     go("s-brief");
   }catch(e){ notizSending=false; if(btn) btn.disabled=false; msg.textContent=t.rnErr; }
 }
 /* Erledigt: erst senden, dann wegnehmen (wie bei den Chats, Bruno-Fund). */
 async function notizErledigt(id){
-  try{ await sbSend("rpc/raum_notiz_erledigt", {p_id:id}); }
+  try{ await sbSend("rpc/leitung_nachricht_erledigt", {p_id:id}); }
   catch(e){ try{ alert(L().rnErr) }catch(_){}; return; }
   const row=$("#rn-list [data-rnrow='"+id+"']"); if(row) row.remove();
   ladeNotiz().catch(()=>{});
@@ -4636,6 +4698,7 @@ function geteiltUmschalten(){
    SOP-Lauf (Bruno-Fund 1, schwer). Leert die lokalen Zustaende und den
    Lauf-Cache. */
 function sitzungZuruecksetzen(){
+  try{ umsatzWeg(); }catch(e){}
   S.done=[]; S.blocked={}; S.steps={};
   for(const k in LAUF) delete LAUF[k];
   /* Die Urlaubsliste der ganzen Klinik lag nach dem Abmelden weiter im
@@ -4650,6 +4713,7 @@ function sitzungZuruecksetzen(){
   }catch(e){}
 }
 function vergissGeraet(){
+  try{ umsatzWeg(); }catch(e){}
   neueAnmeldung();   /* alles, was noch unterwegs ist, gilt ab jetzt nicht mehr */
   pinMaskeAngeboten = false; S.tokenFuer = null;
   /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
