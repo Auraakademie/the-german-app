@@ -666,9 +666,13 @@
            Zahlen + was heute hakt. Der Mitarbeiter-Teil darunter (Ring, SOPs,
            naechster Patient) wird fuer die Leitung ausgeblendet. -->
       <div id="lead-kpis" class="kpis" hidden style="margin-bottom:14px">
-        <button class="glass kpi" data-go="s-attend" style="text-align:left">
-          <div class="k" id="kpi-present">&mdash;</div>
-          <div class="lbl" data-t="ckPresent"></div></button>
+        <!-- Nina, 22.10.2026 19:38: "present today kann weg, dafuer ein Feld
+             mit leave / sick leave, dann sehe ich schnell wer im Urlaub oder
+             krank ist und kann denjenigen schreiben." Quelle: Dienstplan
+             (Hendras Excel) plus Krank- und Urlaubsmeldungen aus der App. -->
+        <button class="glass kpi" data-go="s-away" style="text-align:left">
+          <div class="k" id="kpi-away" style="font-size:17px">&mdash;</div>
+          <div class="lbl" data-t="ckAway"></div></button>
         <button class="glass kpi" data-go="s-review" style="text-align:left">
           <div class="k" id="kpi-stuck">&mdash;</div>
           <div class="lbl" data-t="ckStuck"></div></button>
@@ -1011,6 +1015,13 @@
          jede Nacht eingelesen (Edge Function roster_import). Die App zeigt
          nur, sie aendert nichts: Hendra pflegt weiter seine Excel, wie er es
          gewohnt ist. Dennis, 22.10.2026: "Dienstplan in der App, auch Micha". -->
+    <section class="screen" id="s-away">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="awH"></h1>
+      <p class="sub" id="aw-datum"></p>
+      <div id="aw-list" style="margin-top:10px"></div>
+    </section>
+
     <section class="screen" id="s-roster">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="rsH"></h1>
@@ -1349,7 +1360,8 @@ const T={
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
   ckPresent:"Present today", ckStuck:"Not done", ckBday:"Birthday this week", ckRev:"Today's revenue", ckRevMonth:"This month's revenue",
-  ckRoster:"On duty today",
+  ckRoster:"On duty today", ckAway:"Leave / sick today",
+  awH:"Leave and sick today", awNone:"Nobody is on leave or sick today.", awRoster:"roster", awApp:"reported in the app", awSick:"Sick", awLeave:"Leave", awReq:"requested, not yet approved", awOffline:"No connection. Try again when you are online.",
   shToday:"Your shift today", shMor:"Morning", shEve:"Evening", shLeave:"Leave", shSick:"Sick", shSwitch:"Switch", shOff:"Day off",
   rsH:"Roster", rsTileS:"Who works when, this week and next", rsToday:"This week", rsOff:"off", rsNone:"No roster for this week yet. Hendra fills the Excel in Drive, the app reads it every night.",
   rsSource:"From Hendra's roster file, last read", rsOffline:"No connection. Try again when you are online.",
@@ -1455,9 +1467,14 @@ const T={
   st_requested:"waiting", st_approved:"approved",
   st_rejected:"not approved", st_cancelled:"withdrawn",
   stateOk:"All saved", stateWaiting:"Saved on this phone", stateLocal:"Saved on this phone",
-  pinCheck:"Checking\u2026",pinObvious:"Please choose a different PIN, not 1234.",
+  pinCheck:"Checking\u2026",pinObvious:"Please choose a different PIN. Not 123456, not six times the same digit.",
+  pinSix:"Your PIN needs exactly 6 digits.",
+  pinSame:"That is the number you were given. Please choose a different one.",
+  pinNetz:"No connection, your new PIN was not saved yet. Choose it again when you are online.",
+  pinUpgrade:"New rule: 6 digits, same as in KumoDent. Choose your new PIN now.",
+  shOffDay:"According to the roster you are off today. No tasks for you. Enjoy your day!",
   pinFirst:"First time \u2013 use the PIN Hendra gave you",
-  pinEnter:"Enter your PIN",pinNew:"Choose your own PIN",
+  pinEnter:"Enter your PIN",pinNew:"Choose your own 6-digit PIN",
   pinAgain:"Enter it once more",pinWrong:"Not correct. Try again.",
   pinMismatch:"The two did not match. Start again.",
   pinHelp:"Locked? Nina, Michael or Hendra can reset it in 20 seconds: Your leave, team list, Reset PIN next to your name. After 5 wrong tries wait 10 minutes.",
@@ -1520,7 +1537,8 @@ const T={
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
   ckPresent:"Hadir hari ini", ckStuck:"Belum selesai", ckBday:"Ulang tahun minggu ini", ckRev:"Omzet hari ini", ckRevMonth:"Omzet bulan ini",
-  ckRoster:"Bertugas hari ini",
+  ckRoster:"Bertugas hari ini", ckAway:"Cuti / sakit hari ini",
+  awH:"Cuti dan sakit hari ini", awNone:"Tidak ada yang cuti atau sakit hari ini.", awRoster:"jadwal", awApp:"dilaporkan di aplikasi", awSick:"Sakit", awLeave:"Cuti", awReq:"diajukan, belum disetujui", awOffline:"Tidak ada koneksi. Coba lagi saat online.",
   shToday:"Shift kamu hari ini", shMor:"Pagi", shEve:"Sore", shLeave:"Cuti", shSick:"Sakit", shSwitch:"Tukar", shOff:"Libur",
   rsH:"Jadwal kerja", rsTileS:"Siapa bertugas kapan, minggu ini dan depan", rsToday:"Minggu ini", rsOff:"libur", rsNone:"Belum ada jadwal untuk minggu ini. Hendra mengisi Excel di Drive, aplikasi membacanya setiap malam.",
   rsSource:"Dari file jadwal Hendra, terakhir dibaca", rsOffline:"Tidak ada koneksi. Coba lagi saat online.",
@@ -1626,9 +1644,14 @@ const T={
   st_requested:"menunggu", st_approved:"disetujui",
   st_rejected:"tidak disetujui", st_cancelled:"dibatalkan",
   stateOk:"Semua tersimpan", stateWaiting:"Tersimpan di HP ini", stateLocal:"Tersimpan di HP ini",
-  pinCheck:"Memeriksa\u2026",pinObvious:"Pilih PIN lain, jangan 1234.",
+  pinCheck:"Memeriksa\u2026",pinObvious:"Pilih PIN lain. Jangan 123456, jangan enam angka yang sama.",
+  pinSix:"PIN harus tepat 6 angka.",
+  pinSame:"Itu nomor yang kamu terima. Pilih nomor lain.",
+  pinNetz:"Tidak ada koneksi, PIN baru belum tersimpan. Pilih lagi saat online.",
+  pinUpgrade:"Aturan baru: 6 angka, sama seperti di KumoDent. Pilih PIN baru kamu sekarang.",
+  shOffDay:"Menurut jadwal, hari ini kamu libur. Tidak ada tugas untukmu. Selamat beristirahat!",
   pinFirst:"Pertama kali \u2013 pakai PIN dari Hendra",
-  pinEnter:"Masukkan PIN Anda",pinNew:"Pilih PIN Anda sendiri",
+  pinEnter:"Masukkan PIN Anda",pinNew:"Pilih PIN 6 angka kamu sendiri",
   pinAgain:"Masukkan sekali lagi",pinWrong:"Belum benar. Coba lagi.",
   pinMismatch:"Keduanya tidak sama. Mulai lagi.",
   pinHelp:"Terkunci? Nina, Michael atau Hendra bisa reset dalam 20 detik: Cuti Anda, daftar tim, Reset PIN di samping nama Anda. Setelah 5 kali salah, tunggu 10 menit.",
@@ -1792,7 +1815,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22g";
+const APP_VERSION = "2026-10-22j";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -1963,8 +1986,32 @@ const mineTask=t=>{
      wissen, wie es geht". Vorher war beides dasselbe, und deshalb sah Ninas
      Tag aus wie der von Deo. */
   if(istLeitung()) return false;
-  return t.dep===d;
+  if(t.dep!==d) return false;
+  /* SCHICHTREGEL (Dennis/Nina 22.10.2026): Oeffnen gehoert der Fruehschicht,
+     Schliessen der Spaetschicht. Wer um 10 anfaengt, kann "Open reception"
+     um 08:00 nicht machen und darf dafuer nicht als "nicht erledigt"
+     dastehen. Wer laut Dienstplan frei, im Urlaub oder krank ist, hat heute
+     keine Liste. Am Wochenende gibt es nur eine Schicht, da bleibt alles wie
+     bisher. Ohne Eintrag im Dienstplan: wie bisher (alle sehen alles). */
+  const sh=schichtHeute();
+  if(sh){
+    if(sh.code==="off"||sh.code==="Leave"||sh.code==="Sick") return false;
+    if(!wochenende(heuteISO())){
+      if(t.g===1 && sh.code==="Eve") return false;
+      if(t.g===3 && sh.code==="Mor") return false;
+    }
+  }
+  return true;
 };
+/* Die eigene Schicht von heute aus dem Zwischenspeicher (ladeSchicht fuellt
+   ihn). Nur fuer dieselbe Person und denselben Tag, sonst nichts. */
+function schichtHeute(){
+  try{ const m=me(); if(!m) return null;
+    const c=JSON.parse(localStorage.getItem("tg-shift")||"null");
+    return (c && c.id===m.id && c.day===heuteISO()) ? (c.row||null) : null;
+  }catch(e){ return null; }
+}
+function wochenende(iso){ const wd=new Date(iso+"T00:00:00Z").getUTCDay(); return wd===0||wd===6; }
 
 /* Gefunden von Dennis am 19.08.2026: "er hat bei sich noch dental fuellungen
    und co drin."
@@ -1999,6 +2046,11 @@ function renderGroups(){
   if(istLeitung() && !meine.length){
     out += `<p class="eyebrow">${L().leadHere}</p>
       <div class="glass ho"><div class="txt">${L().leadTxt}</div></div>`;
+  }
+  /* Frei, Urlaub oder krank laut Dienstplan: sagen, warum die Liste leer ist. */
+  const shh=schichtHeute();
+  if(!istLeitung() && shh && (shh.code==="off"||shh.code==="Leave"||shh.code==="Sick")){
+    out += `<div class="glass ho"><div class="txt">${L().shOffDay}</div></div>`;
   }
   /* Ueberschriften nur, wenn sie etwas ordnen. Bei Kaz hatte jede der drei
      Aufgaben ihre eigene Ueberschrift: "Oeffnen" - eine Aufgabe - "Waehrend des
@@ -2036,7 +2088,8 @@ function renderGroups(){
      ABER: Bei der Leitung ist der leere Bildschirm kein Mangel, sondern die
      Regel. Diese Zeile hat meinen Leitungstext ueberschrieben und daraus
      wieder einen Fehler gemacht, den es nicht gibt. */
-  if(!istLeitung() && !meine.length && !GUIDES.filter(mineGuide).length)
+  if(!istLeitung() && !meine.length && !GUIDES.filter(mineGuide).length
+     && !(shh && (shh.code==="off"||shh.code==="Leave"||shh.code==="Sick")))
     out=`<p class="quelle">${L().noSops}</p>`;
   $("#groups").innerHTML=out;
   zeichneDemoUmschalter();
@@ -2122,6 +2175,8 @@ async function ladeSchicht(){
   const row=(rows&&rows[0])||null;
   try{ localStorage.setItem("tg-shift", JSON.stringify({id:m.id, day:heute, row})); }catch(e){}
   zeigeSchicht(row);
+  /* Die Tagesliste haengt an der Schicht (Schichtregel in mineTask). */
+  try{ if(here()==="s-brief") renderGroups(); }catch(e){}
 }
 let rsVon=null;   // Montag der angezeigten Woche (ISO)
 function montagVon(iso){
@@ -2173,6 +2228,46 @@ async function ladeRoster(){
     ft.textContent=teile.join(" \u00b7 ");
   }catch(e){}
 }
+/* Wer ist heute im Urlaub oder krank. Zwei Quellen, zusammengelegt:
+   1. Dienstplan (Hendras Excel): code Leave / Sick fuer heute.
+   2. Die App selbst: Krankmeldungen und genehmigter Urlaub (leave_request),
+      weil eine Krankmeldung von heute frueh noch nicht in der Excel steht.
+   Nina will die Namen sehen, um den Leuten zu schreiben. */
+async function ladeAbwesend(bildschirm){
+  const t=L(); const heute=heuteISO();
+  const kachel=$("#kpi-away"), box=$("#aw-list"), dat=$("#aw-datum");
+  if(dat) dat.textContent = tagText(heute,{weekday:"long",day:"numeric",month:"long"});
+  const leute={};   // person_id -> {name, art:'Sick'|'Leave', quelle, offen}
+  const [rA, rB] = await Promise.allSettled([
+    sbGet("rpc/schicht_woche?p_von="+heute),
+    sbGet("leave_request?select=person_id,kind,from_day,to_day,status&from_day=lte."+heute+"&to_day=gte."+heute)
+  ]);
+  if(rA.status==="fulfilled") (rA.value||[]).filter(r=>r.on_day===heute && (r.code==="Leave"||r.code==="Sick"))
+    .forEach(r=>{ leute[r.person_id]={name:r.name, art:r.code, quelle:t.awRoster}; });
+  if(rB.status==="fulfilled") (rB.value||[]).forEach(r=>{
+    if(r.status==="rejected"||r.status==="withdrawn"||r.status==="cancelled") return;
+    const pp=PEOPLE.find(x=>x.id===r.person_id); if(!pp) return;
+    const art = r.kind==="sick" ? "Sick" : "Leave";
+    const offen = r.kind!=="sick" && r.status!=="approved";
+    if(offen && leute[r.person_id]) return;           // Plan sagt schon frei, Antrag ist nur Beiwerk
+    leute[r.person_id]={name:pp.n, art, quelle:t.awApp, offen};
+  });
+  const liste=Object.values(leute).sort((a,b)=>a.name.localeCompare(b.name));
+  const beide=rA.status!=="fulfilled" && rB.status!=="fulfilled";
+  if(kachel){
+    kachel.textContent = beide ? "\u2014" : !liste.length ? "0" : liste.length<=2 ? liste.map(x=>x.name).join(", ") : String(liste.length);
+    kachel.style.fontSize = (liste.length && liste.length<=2) ? "15px" : "";
+  }
+  if(bildschirm && box){
+    if(beide){
+      const code=parseInt((rA.reason&&rA.reason.message)||(rB.reason&&rB.reason.message),10);
+      box.innerHTML=`<p class="lverr">${code>=400 ? t.rsErr.replace("{code}",code) : t.awOffline}</p>`; return; }
+    box.innerHTML = liste.length ? liste.map(x=>`<div class="lvitem"><div class="d"><b>${escHtml(x.name)}</b>
+        <small>${escHtml(x.quelle)}${x.offen?" \u00b7 "+t.awReq:""}</small></div>
+        <span class="lvst ${x.offen?"requested":""}">${x.art==="Sick"?t.awSick:t.awLeave}</span></div>`).join("")
+      : `<p class="lverr">${t.awNone}</p>`;
+  }
+}
 async function zaehleSchichtHeute(){
   /* Kachel im Cockpit: wie viele sind laut Plan heute im Dienst. */
   const el=$("#kpi-roster"); if(!el) return; el.textContent="\u2014";
@@ -2214,13 +2309,16 @@ async function ladePersonen(){
   try{
     /* Feste Reihenfolge. Ohne order= verschob eine einzige Aenderung an einer
        Person (z.B. PIN-Reset) die ganze Liste (Bruno 3. Runde, Fund 1). */
-    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,sees_revenue,pin_set,is_demo&order=name.asc,id.asc");
+    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,sees_revenue,pin_set,is_demo,needs_pin&order=name.asc,id.asc");
     if(!rows.length) throw new Error("leer");
     const bilder = {}; PEOPLE.forEach(p=>{ if(p.img) bilder[p.n]=p.img; });
     PEOPLE = rows.map(r=>({
       id:r.id, n:r.name, dep:r.department||"management",
       r:{en:r.role_en, id:r.role_id}, pinSet:r.pin_set!==false,
       lead:r.is_lead?1:0, mgr:r.is_manager?1:0, rev:r.sees_revenue?1:0,
+      /* needs_pin entscheidet der Server (Migration 109: Schalter pin_fuer_alle).
+         Fehlt die Spalte (alte DB), faellt brauchtPin() auf lead/mgr/rev zurueck. */
+      pin:(r.needs_pin===true)?1:(r.needs_pin===false?0:undefined),
       demo:r.is_demo?1:0,
       doc:/^Dr\./.test(r.name)&&r.department==="dental"?1:0,
       img:bilder[r.name]||null
@@ -2731,7 +2829,10 @@ async function pinHash(p, pin){
   return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");
 }
 async function merkePin(p, pin){
-  if(S.geteilt) return;
+  /* Vorher: "if(S.geteilt) return". Mit PIN fuer alle haette das am geteilten
+     Tresen-Handy ohne Netz den ganzen Empfang ausgesperrt (Bruno 22h, Fund 1).
+     Gespeichert wird nur ein Hash je Person, kein PIN, und der Vergleich
+     bleibt an die Kennung gebunden. Das darf auch ein geteiltes Geraet. */
   const h = await pinHash(p, pin); if(!h) return;
   (S.pins=S.pins||{})[p.n]=h; save();
 }
@@ -2802,10 +2903,8 @@ async function fuelleCockpit(){
   if(!lead) return;
   zaehleSchichtHeute().catch(()=>{});
 
-  /* Anwesend heute */
-  try{ const a=await sbGet("rpc/anwesend_heute"); const r=a&&a[0];
-    const el=$("#kpi-present"); if(el) el.innerHTML = r ? (r.da+'<small> / '+r.gesamt+'</small>') : "—";
-  }catch(e){ const el=$("#kpi-present"); if(el) el.textContent="—"; }
+  /* Urlaub / krank heute (Nina 22.10.2026), statt "anwesend heute" */
+  ladeAbwesend(false).catch(()=>{});
 
   /* Nicht erledigt + die Liste darunter. Offline aus dem Zwischenspeicher. */
   let tag=[], offline=false;
@@ -4474,7 +4573,9 @@ function tagesgrenze(){
     for(const k in LAUF) delete LAUF[k];
     save();
   }
-  if(S.hakenTag !== heute){ S.hakenTag = heute; save(); }
+  if(S.hakenTag !== heute){ S.hakenTag = heute; save();
+    /* Neuer Tag, neue Schicht: Zwischenspeicher von gestern zaehlt nicht mehr. */
+    try{ zeigeSchicht(null); if(here()==="s-brief") renderGroups(); ladeSchicht().catch(()=>{}); }catch(e){} }
   /* Wer gestern eingecheckt und nicht ausgecheckt hat, soll heute frisch
      einchecken. Ohne das bliebe S.started ueber Nacht stehen und es gaebe
      keinen Check-in fuer den neuen Tag. */
@@ -4600,7 +4701,7 @@ async function sitzungNachholen(){
   const nr = LOGIN_NR;
   try{
     const k = PEOPLE.indexOf(p);
-    if(p.lead || p.mgr || p.rev){
+    if(brauchtPin(p)){
       /* PIN-Person: nicht still, sondern einmal fragen - aber nicht mitten
          in einer Eingabe. Nur von der Uebersicht aus. */
       /* Einmal pro Sitzung anbieten, nicht alle 30 Sekunden ins Gesicht
@@ -4644,6 +4745,7 @@ async function wiederVerbinden(){
       try{ await mitZeitlimit(ladeSops(), 20000); }catch(e){}   /* zeichnet selbst neu */
     }
     if(me() && !tokenGueltig() && online) await sitzungNachholen();
+    if(me() && online) ladeSchicht().catch(()=>{});   /* Liste folgt der Schicht (Bruno 22h, Fund 5) */
     if(online && tokenGueltig()) leerePostausgang();
   }catch(e){}
   finally{ wiederverbindeLaeuft = false; }
@@ -4716,9 +4818,14 @@ function pinStart(k){
      Aerzte, Assistenten, Security) kommen mit einem Tipp auf den Namen rein,
      ganz ohne PIN. Die Sicherheit bleibt genau dort, wo die sensiblen Daten
      sind, und faellt dort weg, wo sie nur blockiert hat. */
-  if(!(p.lead || p.mgr || p.rev)){ nameLogin(k); return; }
+  if(!brauchtPin(p)){ nameLogin(k); return; }
   zeigePinBildschirm(k);
 }
+/* Wer zum PIN-Bildschirm muss. Seit 22.10.2026 sagt es der Server
+   (login_people.needs_pin): Leitung, Manager, Umsatz - und bei umgelegtem
+   Schalter alle ausser Security. Ohne Serverangabe wie bisher. */
+function brauchtPin(p){ return p && p.pin!==undefined ? !!p.pin : !!(p && (p.lead || p.mgr || p.rev)); }
+const PIN_LANG=6;   /* neue PINs: sechs Stellen (= KumoDent). Alte Vierer gehen einmal, dann Wechsel. */
 function zeigePinBildschirm(k){
   const p=PEOPLE[k]; pinFor=k; pinBuf=""; pinTries=0; pinFirst=null; pinAlt=null;
   /* Der Server entscheidet ueber must_set_pin, nicht das Handy. Deshalb "check".
@@ -4735,11 +4842,14 @@ function drawPin(){
   $("#p-title").textContent =
     pinMode==="set"  ? t.pinNew :
     pinMode==="again"? t.pinAgain : t.pinEnter;
-  $("#p-dots").innerHTML="....".split("").map((_,i)=>
+  $("#p-dots").innerHTML="......".split("").map((_,i)=>
     `<i class="${i<pinBuf.length?"on":""}"></i>`).join("");
+  /* Wer noch einen alten Vierer hat, tippt vier Ziffern und dann OK. Die
+     Taste erscheint nur dann, sonst bleibt der Platz leer wie bisher. */
+  const okTaste = (pinMode==="check" && pinBuf.length===4);
   $("#p-pad").innerHTML =
     [1,2,3,4,5,6,7,8,9].map(n=>`<button data-k="${n}">${n}</button>`).join("")
-    + `<button class="ghostkey" disabled></button>`
+    + (okTaste ? `<button data-k="ok" style="font-size:15px">OK</button>` : `<button class="ghostkey" disabled></button>`)
     + `<button data-k="0">0</button>`
     + `<button class="wide" data-k="del">&#9003;</button>`;
 }
@@ -4747,9 +4857,12 @@ let pinFor=null;
 function pinKey(k){
   const t=L();
   if(k==="del"){ pinBuf=pinBuf.slice(0,-1); $("#p-err").textContent=""; drawPin(); return }
-  if(pinBuf.length>=4) return;
-  pinBuf+=k; drawPin();
-  if(pinBuf.length<4) return;
+  if(k==="ok"){ if(!(pinMode==="check" && pinBuf.length===4)) return; }
+  else{
+    if(pinBuf.length>=PIN_LANG) return;
+    pinBuf+=k; drawPin();
+    if(pinBuf.length<PIN_LANG) return;
+  }
 
   setTimeout(()=>{
     if(pinMode==="set"){ pinFirst=pinBuf; pinBuf=""; pinMode="again";
@@ -4793,9 +4906,18 @@ async function setzeServer(alt, neu){
     /* Der Server lehnt 1234 als eigenen PIN ab. Das ist Absicht und muss
        verstaendlich ankommen, nicht als Fehlermeldung. */
     pinMode="set"; pinFirst=null; pinBuf="";
-    $("#p-err").textContent = d.error==="pin_too_obvious" ? L().pinObvious : L().pinWrong;
+    $("#p-err").textContent = d.error==="pin_too_obvious" ? L().pinObvious : d.error==="bad_pin" ? L().pinSix : d.error==="set_failed" ? L().pinSame : L().pinWrong;
     shake(); drawPin();
-  }catch(e){ online=false; setState("lokal"); pinOk(); }
+  }catch(e){
+    /* Netz weg, waehrend der neue PIN zum Server unterwegs war. Der Server
+       kennt dann noch den alten. Nicht so tun, als waere alles gut (Bruno 22h,
+       Fund 2): zurueck auf "waehlen", mit klarem Satz, und der alte PIN bleibt
+       als Nachweis gemerkt. */
+    online=false; setState("lokal");
+    if(!anmeldungGilt(nr)) return;
+    pinMode="set"; pinFirst=null; pinBuf="";
+    $("#p-err").textContent=L().pinNetz; shake(); drawPin();
+  }
 }
 
 async function pruefeServer(eingabe){
@@ -4810,7 +4932,8 @@ async function pruefeServer(eingabe){
     if(!anmeldungGilt(nr)) return;
 
     if(d.must_set_pin){ pinMode="set"; pinBuf=""; pinAlt=eingabe; pinFirst=null;
-      $("#p-err").textContent=""; drawPin(); return }
+      /* Umstieg von vier auf sechs Stellen: einmal erklaeren, warum. */
+      $("#p-err").textContent = d.upgrade ? t.pinUpgrade : ""; drawPin(); return }
     if(d.access_token){
       S.token=d.access_token; S.refresh=d.refresh_token; S.tokenFuer=(typeof p!=="undefined"&&p&&p.id)?p.id:S.tokenFuer;
       /* Richtiger PIN online: Hash merken, damit es spaeter auch ohne Netz
@@ -5281,6 +5404,7 @@ function go(id, push){
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bday"){ ladeBday().catch(()=>{}); }
   if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); }
+  if(id==="s-away"){ ladeAbwesend(true).catch(()=>{}); }
   if(id==="s-clock"){ ladeSchicht().catch(()=>{}); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
