@@ -1746,7 +1746,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22d";
+const APP_VERSION = "2026-10-22e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2742,6 +2742,21 @@ async function fuelleCockpit(){
     if(el && (heuteOk || cur)){ el.textContent=fmtRp(monatSumme); el.style.color=""; el.style.fontSize="20px"; }
   }catch(e){}
 }
+
+/* Automatische Sperre (Bruno 22.10., "was fehlt noch"): Laesst Nina das
+   Cockpit offen liegen, sah jeder, der das Handy aufhebt, die Zahlen - so
+   lange die App vorn blieb. Jetzt: fuenf Minuten ohne Beruehrung, und
+   Umsatz-Personen sind abgemeldet. Alle anderen bleiben, wie sie sind. */
+let letzteBeruehrung = Date.now();
+["pointerdown","touchstart","keydown"].forEach(ev=>
+  document.addEventListener(ev, ()=>{ letzteBeruehrung = Date.now(); }, {passive:true}));
+setInterval(()=>{
+  try{
+    if(me() && me().rev && S.token && Date.now() - letzteBeruehrung > 5*60000){
+      vergissGeraet(); NAV=[]; go("s-login", false); showBack();
+    }
+  }catch(e){}
+}, 15000);
 
 /* Wer darf Umsatz SEHEN: nur mit eigener Freigabe UND eigener Sitzung. */
 function darfUmsatzSehen(){
@@ -4717,7 +4732,7 @@ function sitzungZuruecksetzen(){
   }catch(e){}
 }
 function vergissGeraet(){
-  try{ umsatzWeg(); }catch(e){}
+  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); }catch(e){}
   neueAnmeldung();   /* alles, was noch unterwegs ist, gilt ab jetzt nicht mehr */
   pinMaskeAngeboten = false; S.tokenFuer = null;
   /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
@@ -5072,7 +5087,12 @@ function back(){
      Personen mit Umsatz-Freigabe heisst "Zurueck zur Namensliste" ab jetzt:
      abgemeldet. Beim naechsten Mal fragt die App ihren PIN. 20 Sekunden
      Mehraufwand fuer zwei Menschen, dafuer kein Cockpit auf fremden Haenden. */
-  if(ziel === "s-login" && me() && me().rev){ vergissGeraet(); }
+  if(me() && me().rev && (ziel === "s-login" || ziel === "s-pin")){
+    /* Bruno 22.10., Fund 1: das erste Zurueck landete auf dem eingefrorenen
+       PIN-Bildschirm, die Sitzung lebte weiter. Jetzt: ein Druck, abgemeldet,
+       Namensliste. */
+    vergissGeraet(); NAV=[]; go("s-login", false); showBack(); return;
+  }
   go(ziel, false);
 }
 function showBack(){
