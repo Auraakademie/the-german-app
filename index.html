@@ -1815,7 +1815,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22j";
+const APP_VERSION = "2026-10-22k";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -4870,8 +4870,11 @@ function pinKey(k){
     if(pinMode==="again"){
       if(pinBuf===pinFirst){
         if(online){ setzeServer(pinAlt, pinBuf); return }   /* merkt erst nach Server-Ja */
-        merkePin(PEOPLE[pinFor], pinBuf).catch(()=>{});
-        pinOk(); return }
+        /* Ohne Netz wird kein neuer PIN gesetzt. Vorher kam man hier lokal
+           rein und das Handy kannte einen PIN, den der Server nie bekommen
+           hat (Bruno 22j, Rest aus Fund 2). Klarer Satz, zurueck auf waehlen. */
+        pinMode="set"; pinFirst=null; pinBuf="";
+        $("#p-err").textContent=t.pinNetz; shake(); drawPin(); return }
       /* Nicht "falsch", sondern "noch einmal von vorn". Beim Setzen gibt es
          keinen Fehler, den man bestrafen muesste. */
       pinMode="set"; pinFirst=null; pinBuf="";
