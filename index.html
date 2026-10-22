@@ -1387,7 +1387,7 @@ const T={
   lvNews:"Decided by Hendra", lvNewsNone:"Nothing in the last two weeks.",
   st_sick:"Sick",
   lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
-  pinReset:"PIN", pinDone:"reset",
+  pinReset:"Reset PIN", pinDone:"reset",
   pinAsk:"Reset the PIN for %s? She chooses a new one next time she signs in.",
   pinResetNew:"New start PIN for %s:  %p\n\nTell her this number now. She will be asked to choose her own PIN when she signs in.\n\nThis number is shown only once.",
   lvSheet:"Your sheet",
@@ -1420,7 +1420,7 @@ const T={
   pinEnter:"Enter your PIN",pinNew:"Choose your own PIN",
   pinAgain:"Enter it once more",pinWrong:"Not correct. Try again.",
   pinMismatch:"The two did not match. Start again.",
-  pinHelp:"Ask Hendra for a new PIN. You can keep working.",
+  pinHelp:"Locked? Nina, Michael or Hendra can reset it in 20 seconds: Your leave, team list, Reset PIN next to your name. After 5 wrong tries wait 10 minutes.",
   depDental:"Dental",depDerma:"Derma",
   roomsH:"Rooms",roomsS:"Tap a patient to see how the room must look.",
   roomsQ:"The list comes from the appointment book. Nobody types it in here.",
@@ -1552,7 +1552,7 @@ const T={
   lvNews:"Keputusan Hendra", lvNewsNone:"Tidak ada dalam dua minggu terakhir.",
   st_sick:"Sakit",
   lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
-  pinReset:"PIN", pinDone:"direset",
+  pinReset:"Reset PIN", pinDone:"direset",
   pinAsk:"Reset PIN untuk %s? Dia akan memilih PIN baru saat masuk berikutnya.",
   pinResetNew:"PIN awal baru untuk %s:  %p\n\nBeri tahu dia sekarang. Saat masuk, dia akan diminta memilih PIN sendiri.\n\nNomor ini hanya ditampilkan sekali.",
   lvSheet:"Daftar Anda",
@@ -1585,7 +1585,7 @@ const T={
   pinEnter:"Masukkan PIN Anda",pinNew:"Pilih PIN Anda sendiri",
   pinAgain:"Masukkan sekali lagi",pinWrong:"Belum benar. Coba lagi.",
   pinMismatch:"Keduanya tidak sama. Mulai lagi.",
-  pinHelp:"Minta PIN baru ke Hendra. Anda tetap bisa bekerja.",
+  pinHelp:"Terkunci? Nina, Michael atau Hendra bisa reset dalam 20 detik: Cuti Anda, daftar tim, Reset PIN di samping nama Anda. Setelah 5 kali salah, tunggu 10 menit.",
   depDental:"Gigi",depDerma:"Derma",
   roomsH:"Ruang",roomsS:"Ketuk nama pasien untuk melihat kondisi ruang yang benar.",
   roomsQ:"Daftar ini berasal dari buku janji temu. Tidak ada yang mengetiknya di sini.",
@@ -1746,7 +1746,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22b";
+const APP_VERSION = "2026-10-22d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2535,6 +2535,10 @@ async function geraetKennt(){
      der 401-Pfad in sbGet beim ersten Zugriff (jetzt ohne Wettlauf). So wirft
      ein kurzer Netz-Haenger beim Oeffnen niemanden mehr zur PIN-Maske zurueck
      (Dennis 17.10.). Nur wenn gar kein Token da ist, zurueck zur Namensliste. */
+  /* Personen mit Umsatz-Freigabe (Nina, Michael) kommen NIE automatisch
+     hinein. Wer ihr Handy aufhebt, sieht die Namensliste und dann die
+     PIN-Maske, nicht das Cockpit (Bruno Notfall 22.10., Fund d1). */
+  if(PEOPLE[i].rev){ vergissGeraet(); return false; }
   if(S.refresh) await erneuereSitzung();
   if(!S.token) return false;
   /* Steht die Person schon irgendwo in der App (hat vor dem Ende des Ladens
@@ -5062,7 +5066,14 @@ let NAV=[];
 function here(){const s=$(".screen.on"); return s?s.id:null}
 function back(){
   if(!NAV.length) return;
-  go(NAV.pop(), false);
+  const ziel = NAV.pop();
+  /* NOTFALL 22.10.2026 (Bruno): Nina drueckte am Tresen "Zurueck" statt
+     "Nicht ich", die Naechste tippte ihren Namen und sah Ninas Umsatz. Fuer
+     Personen mit Umsatz-Freigabe heisst "Zurueck zur Namensliste" ab jetzt:
+     abgemeldet. Beim naechsten Mal fragt die App ihren PIN. 20 Sekunden
+     Mehraufwand fuer zwei Menschen, dafuer kein Cockpit auf fremden Haenden. */
+  if(ziel === "s-login" && me() && me().rev){ vergissGeraet(); }
+  go(ziel, false);
 }
 function showBack(){
   const b=$("#navback");
@@ -5426,6 +5437,10 @@ tagesgrenze();
    (sonst rastet der PC auf die erste Person ein). */
 if(S.geteilt){ S.me=null; S.meId=null; S.token=null; S.refresh=null; S.tokenFuer=null; S.started=null; S.startedAt=null; sitzungZuruecksetzen(); }
 NAV = S.me!=null ? ((S.lead||S.mgr||!S.started)?["s-login"]:["s-login","s-clock"]) : [];
+/* Umsatz-Personen (Nina, Michael) starten NIE direkt im Cockpit, auch nicht
+   fuer die Sekunden, bis geraetKennt laeuft: erst Namensliste, dann PIN
+   (Bruno Notfall 22.10.). Alle anderen wie bisher. */
+if(me() && me().rev){ vergissGeraet(); }
 go(S.me!=null ? startziel() : "s-login", false);
 showBack();
 /* Start hat funktioniert: der Notausgang (siehe oben, #bootfail) bleibt still.
