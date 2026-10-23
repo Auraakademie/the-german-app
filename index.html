@@ -1,6 +1,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="THE GERMAN">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="THE GERMAN">
@@ -682,6 +685,9 @@
         <button class="glass kpi" data-go="s-roster" style="text-align:left">
           <div class="k" id="kpi-roster">&mdash;</div>
           <div class="lbl" data-t="ckRoster"></div></button>
+        <button class="glass kpi" data-go="s-reports" style="text-align:left">
+          <div class="k" id="kpi-report" style="font-size:17px">&mdash;</div>
+          <div class="lbl" data-t="ckReport"></div></button>
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
@@ -808,6 +814,19 @@
           <span class="mt" data-t="rsTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
+      <!-- Mitteilungen aufs Handy (23.10.2026): nur Leitung/Manager, nur auf
+           Tipp (iPhone verlangt eine Nutzerhandlung). Versteckt, wenn das Handy
+           es nicht kann oder es schon an ist. -->
+      <button class="pinrst" id="push-on" hidden style="margin-top:12px">&#128276; <span data-t="pushOn"></span></button>
+      <p class="lverr" id="push-hint" hidden style="margin:6px 0 0"></p>
+
+      <!-- Tagesbericht: Hendras Bericht an Nina/Micha, statt WhatsApp (23.10.2026). -->
+      <button class="glass next" id="tb-open" data-go="s-report" hidden style="margin-top:12px">
+        <span class="rm">&#128221;</span>
+        <span style="flex:1"><span class="tt" data-t="tbH"></span>
+          <span class="mt" id="tb-tile-s" data-t="tbTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+
       <!-- Belegkasten. Nur Leitung. -->
       <button class="glass next" id="beleg-open" data-go="s-belege" hidden style="margin-top:12px">
         <span class="rm">&#128179;</span>
@@ -830,7 +849,13 @@
     <section class="screen" id="s-attend">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="attTitle"></h1>
-      <p class="sub" data-t="attSub"></p>
+      <div class="rvfix" style="align-items:center;gap:8px;margin-top:6px">
+        <button class="pinrst" id="att-prev" style="min-width:44px">&#8249;</button>
+        <b id="att-datum" style="flex:1;text-align:center"></b>
+        <button class="pinrst" id="att-next" style="min-width:44px">&#8250;</button>
+      </div>
+      <button class="ghost" id="att-today" data-t="attToday" style="margin-top:4px;font-size:13px"></button>
+      <p class="sub" data-t="attHint"></p>
       <div id="att-list"></div>
     </section>
 
@@ -897,7 +922,16 @@
              anzuhaengen, findet keinen Knopf, glaubt sie hat etwas falsch
              gemacht - und fragt nicht nach, weil hier niemand nachfragt.
              Der Satz nennt die Alternative gleich mit. -->
-        <p class="lverr" data-t="lvSickNote" style="margin:14px 0 0"></p>
+        <!-- Krankschein in der App (Nina/Hendra 23.10.2026, Elkes Bedingungen):
+             freiwillig, Foto oder PDF, nur die Person selbst und Hendra/Nina/
+             Micha sehen ihn, automatisch geloescht 60 Tage nach dem letzten
+             Kranktag. Der Satz darunter sagt genau das. -->
+        <label class="lvlab" data-t="lvCertH" style="margin-top:14px"></label>
+        <button class="pinrst" id="sk-cert-btn">&#128206; <span data-t="lvCertAdd"></span></button>
+        <input type="file" id="sk-cert-input" accept="image/*,application/pdf" style="display:none">
+        <p class="lverr" id="sk-cert-name" hidden style="margin:6px 0 0"></p>
+        <p class="lverr" id="sk-cert-pending" hidden style="margin:6px 0 0;color:#c98a2e"></p>
+        <p class="lverr" data-t="lvCertHint" style="margin:8px 0 0;opacity:.8"></p>
 
         <button class="bigcheck" id="sk-send"><span class="bx"></span><span data-t="lvSickSend"></span></button>
         <p class="lverr" id="sk-msg"></p>
@@ -959,6 +993,10 @@
         <div class="glass" style="padding:16px">
           <p class="lverr" data-t="lvSheetTxt" style="margin:0 0 14px"></p>
           <button class="bigcheck" id="lv-csv"><span class="bx"></span><span data-t="lvGet"></span></button>
+          <!-- Hendra 23.10.: Download laesst sich auf seinem Handy nicht
+               speichern. Als Seite oeffnen geht immer: lesen, drucken, als
+               PDF sichern, teilen. -->
+          <button class="pinrst" id="lv-page" style="margin-top:10px">&#128196; <span data-t="lvPage"></span></button>
           <!-- Rueckmeldung zum Abzug. Vorher war hier nichts: scheiterte das
                Laden, passierte gar nichts und Hendra dachte, er habe sich
                verklickt. Ein Fallnetz, das stumm reisst, ist kein Fallnetz. -->
@@ -1015,11 +1053,47 @@
          jede Nacht eingelesen (Edge Function roster_import). Die App zeigt
          nur, sie aendert nichts: Hendra pflegt weiter seine Excel, wie er es
          gewohnt ist. Dennis, 22.10.2026: "Dienstplan in der App, auch Micha". -->
+    <!-- Bild-Fenster fuer den Krankschein: in der App, kein Link, kein Tab,
+         kein Teilen. Schliessen mit X oder Tipp daneben. -->
+    <div id="viewer" hidden style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99;display:flex;align-items:center;justify-content:center;padding:14px">
+      <button id="viewer-close" class="pinrst" style="position:absolute;top:14px;right:14px;z-index:2">&#10005;</button>
+      <img id="viewer-img" alt="" style="max-width:100%;max-height:92vh;border-radius:12px;display:none">
+      <iframe id="viewer-frame" title="document" style="width:100%;height:92vh;border:0;border-radius:12px;background:#fff;display:none"></iframe>
+    </div>
+
     <section class="screen" id="s-away">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="awH"></h1>
       <p class="sub" id="aw-datum"></p>
       <div id="aw-list" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Tagesbericht schreiben (Hendra, auch Nina/Micha) -->
+    <section class="screen" id="s-report">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="tbH"></h1>
+      <p class="sub" id="tb-datum"></p>
+      <div class="glass" style="padding:16px">
+        <p class="lverr" id="tb-auto" style="margin:0 0 12px"></p>
+        <label class="lvlab" data-t="tbText"></label>
+        <textarea class="lvin" id="tb-text" rows="5" style="resize:none"></textarea>
+        <label class="lvlab" data-t="tbProb"></label>
+        <textarea class="lvin" id="tb-prob" rows="3" style="resize:none"></textarea>
+        <label class="lvlab" data-t="tbMorgen"></label>
+        <textarea class="lvin" id="tb-morgen" rows="2" style="resize:none"></textarea>
+        <button class="bigcheck" id="tb-save" style="margin-top:16px"><span class="bx"></span><span data-t="tbSave"></span></button>
+        <p class="lverr" id="tb-msg"></p>
+      </div>
+      <p class="eyebrow" data-t="tbPrev" style="margin-top:20px"></p>
+      <div id="tb-list"></div>
+    </section>
+
+    <!-- Tagesberichte lesen (Nina/Micha) -->
+    <section class="screen" id="s-reports">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="tbListH"></h1>
+      <p class="sub" data-t="tbListS"></p>
+      <div id="tb-list2" style="margin-top:12px"></div>
     </section>
 
     <section class="screen" id="s-roster">
@@ -1115,7 +1189,8 @@
       <textarea class="lvin" id="bl-note" rows="2" style="resize:none"></textarea>
 
       <button class="pinrst" id="bl-photo-btn" style="margin-top:12px">&#128247; <span data-t="blPhoto"></span></button>
-      <input type="file" id="bl-photo-input" accept="image/*" style="display:none">
+      <input type="file" id="bl-photo-input" accept="image/*,application/pdf" style="display:none">
+      <p class="lverr" id="bl-pdf-name" hidden style="margin:6px 0 0"></p>
       <img id="bl-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
       <button class="pinrst" id="bl-scan" hidden style="margin-top:10px">&#128269; <span data-t="blScan"></span></button>
 
@@ -1368,11 +1443,12 @@ const T={
   rsErr:"The server did not answer (code {code}). This is not your WiFi, please tell Dennis.",
   rsFail:"Last import on {wann} FAILED ({grund}). This plan may be old.", rsUnknown:"Names in the Excel the app does not know:", rsNote:"Note:",
   umH:"Revenue", umS:"The last months, from KumoDent.", umLoading:"Loading…", umErr:"Not available right now. Try again in a moment.",
-  blTileT:"Receipts", blTileS:"this month, in and out",
-  blH:"Receipts", blNew:"+ Add receipt", blNewH:"New receipt", blNewS:"Snap it now, so you don't hunt at month end.",
+  blTileT:"Invoices", blTileS:"this month, in and out",
+  blH:"Invoices", blNew:"+ Add invoice", blNewH:"New invoice", blNewS:"Snap it or attach the PDF now, so you don't hunt at month end.",
+  blPdf:"PDF attached:", blOpenPdf:"Open PDF", blNoPdf:"Could not open the file. Try again when you are online.",
   blKind:"In or out?", blOut:"Payment out", blIn:"Money in",
   blCat:"Category", blAmount:"Amount (IDR)", blDate:"Date", blNote:"Note (what was it for?)",
-  blPhoto:"Add photo of receipt", blSave:"Save receipt", blNone:"No receipts this month yet.",
+  blPhoto:"Add photo or PDF", blSave:"Save invoice", blNone:"No invoices this month yet.",
   blErr:"Add a photo or a note first.",
   blPhotoFail:"The photo did not upload. Nothing was saved. Please try again.",
   blScan:"Read amount from photo", blScanning:"Reading photo…",
@@ -1410,7 +1486,7 @@ const T={
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
-  attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
+  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
@@ -1423,7 +1499,23 @@ const T={
   lvBadRange:"The end is before the start.",
   lvOffline:"No connection. Try again when you are online.",
   lvUsed:"used", lvPlanned:"requested",
-  lvNoted:"Noted", lvUndo:"Cancel",
+  lvNoted:"Approved", lvUndo:"Cancel",
+  lvCertH:"Doctor's letter (optional)", lvCertAdd:"Add photo or PDF", lvCertOk:"Attached:", lvCertBig:"The file is too big (max 10 MB).",
+  lvCertHint:"Only you, Hendra, Nina and Michael can see this letter. It is deleted automatically 60 days after your last sick day. Hendra only needs the doctor's name, the date and the number of days, you may cover the rest.",
+  lvCertSent:"Doctor's letter attached.", lvCertFail:"The letter could not be uploaded. Your sick report is saved. Show the letter to Hendra, or try again later.",
+  lvCertView:"View doctor's letter", lvCertNone:"no doctor's letter yet", lvCertMissing:"No doctor's letter yet. Ask for it, or tick 'seen' if you saw the paper.",
+  tkNotePh:"Status or note for Nina and Michael", tkNoteSave:"Save note",
+  tbH:"Daily report", tbTileS:"Write today's report for Nina and Michael", tbText:"What happened today", tbProb:"Problems, decisions needed", tbMorgen:"Tomorrow",
+  tbSave:"Send report", tbSaved:"Report sent. Nina and Michael can read it now.", tbEmpty:"Please write at least one line.", tbPrev:"Last days", tbNone:"No report yet.",
+  tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
+  attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
+  attToday:"Today", attCorrected:"corrected by", attWas:"was", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
+  lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
+  pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.",
+  pushNo:"Notifications were not allowed. You can change that in the phone settings.", pushFail:"Could not turn on notifications. Try again later.",
+  pushIos:"To get notifications on iPhone: Share \u2192 Add to Home Screen, then open the app from there.",
+  lvSickDel:"Remove (entered by mistake)", lvSickDelAsk:"Remove this sick report? Use this only if it was entered by mistake, for example instead of leave.",
+  lvChange:"Change dates", lvChangeSave:"Save dates", lvChangeBad:"Please choose a valid from and to date.",
   lvSickH:"Report sick",
   lvSickFrom:"First day away", lvSickDays:"How many days?",
   lvSickSend:"Tell Hendra",
@@ -1545,8 +1637,9 @@ const T={
   rsErr:"Server tidak menjawab (kode {code}). Bukan WiFi kamu, tolong beri tahu Dennis.",
   rsFail:"Impor terakhir {wann} GAGAL ({grund}). Jadwal ini mungkin sudah lama.", rsUnknown:"Nama di Excel yang tidak dikenal aplikasi:", rsNote:"Catatan:",
   umH:"Omzet", umS:"Beberapa bulan terakhir, dari KumoDent.", umLoading:"Memuat…", umErr:"Belum tersedia. Coba lagi sebentar.",
-  blTileT:"Bukti", blTileS:"bulan ini, masuk dan keluar",
-  blH:"Bukti pembayaran", blNew:"+ Tambah bukti", blNewH:"Bukti baru", blNewS:"Foto sekarang, biar tidak cari-cari akhir bulan.",
+  blTileT:"Faktur", blTileS:"bulan ini, masuk dan keluar",
+  blH:"Faktur", blNew:"+ Tambah faktur", blNewH:"Faktur baru", blNewS:"Foto atau lampirkan PDF sekarang, biar tidak cari-cari akhir bulan.",
+  blPdf:"PDF terlampir:", blOpenPdf:"Buka PDF", blNoPdf:"File tidak bisa dibuka. Coba lagi saat online.",
   blKind:"Masuk atau keluar?", blOut:"Pembayaran keluar", blIn:"Uang masuk",
   blCat:"Kategori", blAmount:"Jumlah (IDR)", blDate:"Tanggal", blNote:"Catatan (untuk apa?)",
   blPhoto:"Tambah foto bukti", blSave:"Simpan bukti", blNone:"Belum ada bukti bulan ini.",
@@ -1587,7 +1680,7 @@ const T={
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
-  attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
+  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
@@ -1600,7 +1693,23 @@ const T={
   lvBadRange:"Tanggal selesai sebelum tanggal mulai.",
   lvOffline:"Tidak ada koneksi. Coba lagi saat online.",
   lvUsed:"terpakai", lvPlanned:"diajukan",
-  lvNoted:"Dicatat", lvUndo:"Batalkan",
+  lvNoted:"Disetujui", lvUndo:"Batalkan",
+  lvCertH:"Surat dokter (opsional)", lvCertAdd:"Tambah foto atau PDF", lvCertOk:"Terlampir:", lvCertBig:"File terlalu besar (maks 10 MB).",
+  lvCertHint:"Surat ini hanya bisa dilihat oleh kamu, Hendra, Nina dan Michael. Surat dihapus otomatis 60 hari setelah hari sakit terakhir. Hendra hanya perlu nama dokter, tanggal dan jumlah hari, bagian lain boleh ditutup.",
+  lvCertSent:"Surat dokter terlampir.", lvCertFail:"Surat tidak bisa diunggah. Laporan sakitmu tersimpan. Tunjukkan suratnya ke Hendra, atau coba lagi nanti.",
+  lvCertView:"Lihat surat dokter", lvCertNone:"belum ada surat dokter", lvCertMissing:"Belum ada surat dokter. Minta suratnya, atau centang 'sudah dilihat' kalau kamu sudah lihat kertasnya.",
+  tkNotePh:"Status atau catatan untuk Nina dan Michael", tkNoteSave:"Simpan catatan",
+  tbH:"Laporan harian", tbTileS:"Tulis laporan hari ini untuk Nina dan Michael", tbText:"Apa yang terjadi hari ini", tbProb:"Masalah, perlu keputusan", tbMorgen:"Besok",
+  tbSave:"Kirim laporan", tbSaved:"Laporan terkirim. Nina dan Michael bisa membacanya sekarang.", tbEmpty:"Tulis minimal satu baris.", tbPrev:"Hari-hari terakhir", tbNone:"Belum ada laporan.",
+  tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
+  attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
+  attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
+  lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
+  pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.",
+  pushNo:"Notifikasi tidak diizinkan. Bisa diubah di pengaturan HP.", pushFail:"Notifikasi belum bisa dinyalakan. Coba lagi nanti.",
+  pushIos:"Untuk notifikasi di iPhone: Bagikan \u2192 Tambah ke Layar Utama, lalu buka aplikasi dari sana.",
+  lvSickDel:"Hapus (salah input)", lvSickDelAsk:"Hapus laporan sakit ini? Hanya jika salah input, misalnya seharusnya cuti.",
+  lvChange:"Ubah tanggal", lvChangeSave:"Simpan tanggal", lvChangeBad:"Pilih tanggal dari dan sampai yang benar.",
   lvSickH:"Lapor sakit",
   lvSickFrom:"Mulai tanggal", lvSickDays:"Berapa hari?",
   lvSickSend:"Beri tahu Hendra",
@@ -1815,7 +1924,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-22k";
+const APP_VERSION = "2026-10-23d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2129,21 +2238,62 @@ function zeichneDemoUmschalter(){
 
 /* Anwesenheit heute, aus der eigenen Stempeluhr. Nur die Leitung sieht es
    (security_invoker auf app_attendance sorgt dafuer). Ersetzt den Handzettel. */
+/* Standort einmal abfragen, hoechstens 8 Sekunden warten, dann weiter.
+   Ergebnis {lat,lng} auf 5 Stellen (etwa 1 m) oder {} ohne Ort. */
+function mitStandort(cb){
+  let fertig=false; const weiter=p=>{ if(fertig) return; fertig=true; cb(p||{}); };
+  try{
+    if(!navigator.geolocation){ weiter({}); return; }
+    setTimeout(()=>weiter({}), 8000);
+    navigator.geolocation.getCurrentPosition(
+      g=>weiter({lat:Number(g.coords.latitude.toFixed(5)), lng:Number(g.coords.longitude.toFixed(5))}),
+      ()=>weiter({}), {enableHighAccuracy:false, timeout:7000, maximumAge:120000});
+  }catch(e){ weiter({}); }
+}
+function ortText(m, lat, lng){
+  const t=L(); if(m==null) return "";
+  const nah = m<=400;
+  const link = (lat!=null&&lng!=null) ? ` <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" rel="noopener" style="color:inherit">${t.attMap}</a>` : "";
+  return nah ? " \u00b7 \ud83d\udccd "+t.attAtClinic : " \u00b7 \ud83d\udccd "+(m>=1000?(m/1000).toFixed(1)+" km":m+" m")+" "+t.attAway+link;
+}
+let attTag=null;
 async function ladeAnwesenheit(){
   const box=$("#att-list"); if(!box) return;
-  const t=L();
+  const t=L(); if(!attTag) attTag=heuteISO();
+  const dat=$("#att-datum"); if(dat) dat.textContent=tagText(attTag,{weekday:"short",day:"numeric",month:"short"});
+  const tag=attTag;
   let rows=[];
-  try{
-    const heute=heuteISO();
-    rows=await sbGet("app_attendance?select=*&on_day=eq."+heute+"&order=kam.asc");
-  }catch(e){ return }
+  try{ rows=await sbGet("rpc/anwesenheit_tag?p_tag="+tag); }
+  catch(e){ if(attTag===tag) box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; return }
+  if(attTag!==tag) return;
+  const darf=istLeitung();
   box.innerHTML = rows.length ? rows.map(r=>`
-    <div class="lvitem">
-      <div class="d"><b>${r.name}</b>
-        <small>${t.attKam} ${r.kam||"\u2014"}${r.ging?" \u00b7 "+t.attGing+" "+r.ging:""}${r.stunden!=null?" \u00b7 "+r.stunden+" "+t.attStd:""}</small>
+    <div class="lvitem" style="flex-wrap:wrap">
+      <div class="d"><b>${escHtml(r.name)}</b>
+        <small>${r.kam ? t.attKam+" "+r.kam+ortText(r.in_m,r.in_lat,r.in_lng)+(r.ging?" \u00b7 "+t.attGing+" "+r.ging+ortText(r.out_m,r.out_lat,r.out_lng):"")+(r.stunden!=null?" \u00b7 "+r.stunden+" "+t.attStd:"") : t.attNoStamp}${r.korrigiert_von?`<br><span class="warn">${t.attCorrected} ${escHtml(r.korrigiert_von)}${r.orig_kam?" ("+t.attWas+" "+r.orig_kam+(r.orig_ging?"\u2013"+r.orig_ging:"")+")":""}</span>`:""}</small>
       </div>
+      ${darf?`<button class="pinrst" data-attedit="${r.person_id}">${t.attEdit}</button>
+      <div class="rvfix" id="attedit-${r.person_id}" hidden style="width:100%;margin-top:6px;gap:6px;flex-wrap:wrap">
+        <input class="lvin" type="time" data-akam="${r.person_id}" value="${r.kam||""}" style="flex:1;min-width:110px">
+        <input class="lvin" type="time" data-aging="${r.person_id}" value="${r.ging||""}" style="flex:1;min-width:110px">
+        <button class="lvyes" data-attsave="${r.person_id}">${t.attSave}</button>
+      </div>`:""}
     </div>`).join("")
     : `<p class="lverr">${t.attNone}</p>`;
+}
+async function anwesenheitSpeichern(pid){
+  const t=L(); const kam=document.querySelector(`[data-akam="${pid}"]`), ging=document.querySelector(`[data-aging="${pid}"]`);
+  if(!kam||!kam.value){ try{ alert(t.attNeedIn) }catch(_){} return; }
+  if(ging&&ging.value&&ging.value<=kam.value){ try{ alert(t.attOrder) }catch(_){} return; }
+  if(chefSendet) return; chefSendet=true;
+  const btn=document.querySelector(`[data-attsave="${pid}"]`); if(btn) btn.disabled=true;
+  try{ await sbSend("rpc/anwesenheit_korrigieren", {p_person:pid, p_tag:attTag||heuteISO(), p_kam:kam.value, p_ging:(ging&&ging.value)||null}); }
+  catch(e){
+    /* Bruno 23a, Fund 1: Vorher stand hier "nichts ist verloren" und die Zeit
+       war weg. Jetzt: ehrlicher Satz, die getippte Zeit bleibt im Feld. */
+    chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
+  chefSendet=false;
+  await ladeAnwesenheit().catch(()=>{});
 }
 
 /* ================= Dienstplan =================
@@ -2268,6 +2418,96 @@ async function ladeAbwesend(bildschirm){
       : `<p class="lverr">${t.awNone}</p>`;
   }
 }
+/* ================= Mitteilungen (Web Push) ================= */
+function pushMoeglich(){ return !!(navigator.serviceWorker && window.PushManager && window.Notification); }
+function pushStandalone(){ return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone===true; }
+async function pushKnopf(){
+  const t=L(); const b=$("#push-on"), h=$("#push-hint"); if(!b) return;
+  b.hidden=true; if(h) h.hidden=true;
+  if(!istLeitung() || !pushMoeglich()) return;
+  if(S.geteilt) return;   /* Tresen-Handy: keine Mitteilungen auf dem Sperrbildschirm (Bruno 23c, Fund 1) */
+  if(Notification.permission==="denied") return;
+  try{
+    const reg = await navigator.serviceWorker.getRegistration("sw.js");
+    const sub = reg && await reg.pushManager.getSubscription();
+    if(sub && Notification.permission==="granted"){ return; }   /* laeuft schon */
+  }catch(e){}
+  /* iPhone: nur als App auf dem Startbildschirm. Sonst den Weg erklaeren. */
+  const ios = /iPhone|iPad/.test(navigator.userAgent);
+  if(ios && !pushStandalone()){ if(h){ h.hidden=false; h.textContent=t.pushIos; } return; }
+  b.hidden=false;
+}
+async function pushEinschalten(){
+  const t=L(); const b=$("#push-on"), h=$("#push-hint");
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=="granted"){ if(h){ h.hidden=false; h.textContent=t.pushNo; } return; }
+    const reg = await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    const key = await sbGet("rpc/push_schluessel");
+    const raw = Uint8Array.from(atob(String(key).replace(/-/g,"+").replace(/_/g,"/").padEnd(Math.ceil(String(key).length/4)*4,"=")), c=>c.charCodeAt(0));
+    const sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: raw});
+    const j = sub.toJSON();
+    await sbSend("rpc/push_abonnieren", {p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth});
+    if(b) b.hidden=true; if(h){ h.hidden=false; h.textContent=t.pushOk; }
+  }catch(e){ if(h){ h.hidden=false; h.textContent=t.pushFail; } }
+}
+
+/* ================= Tagesbericht ================= */
+function tbZeile(b, t){
+  const d=tagText(b.on_day,{weekday:"short",day:"numeric",month:"short"});
+  const wann=new Date(b.updated_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit"});
+  return `<div class="lvitem" style="flex-wrap:wrap"><div class="d"><b>${d} \u00b7 ${escHtml(b.wer)} <small>${wann}</small></b>
+    ${b.auto?`<small style="opacity:.8">${escHtml(b.auto)}</small><br>`:""}
+    <small style="white-space:pre-wrap">${escHtml(b.text||"")}</small>
+    ${b.probleme?`<small style="white-space:pre-wrap"><b>${t.tbProb}:</b> ${escHtml(b.probleme)}</small>`:""}
+    ${b.morgen?`<small style="white-space:pre-wrap"><b>${t.tbMorgen}:</b> ${escHtml(b.morgen)}</small>`:""}
+  </div></div>`;
+}
+async function ladeTagesberichte(sel, tage){
+  const t=L(); const box=$(sel); if(!box) return;
+  let rows=[]; try{ rows=await sbGet("rpc/tagesbericht_liste?p_tage="+tage); }catch(e){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; return }
+  box.innerHTML = rows.length ? rows.map(b=>tbZeile(b,t)).join("") : `<p class="lverr">${t.tbNone}</p>`;
+  return rows;
+}
+async function zeichneTagesbericht(){
+  const t=L(); const heute=heuteISO();
+  const dat=$("#tb-datum"); if(dat) dat.textContent=tagText(heute,{weekday:"long",day:"numeric",month:"long"});
+  const msg=$("#tb-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  /* Zahlen des Tages vorab (Dienstplan, Stempel, Abwesende), damit Hendra
+     nur noch schreibt, was zaehlt. */
+  let auto=[];
+  try{ const rows=await sbGet("rpc/schicht_woche?p_von="+heute); const h=(rows||[]).filter(r=>r.on_day===heute);
+    const dienst=h.filter(r=>r.code==="Mor"||r.code==="Eve").length, weg=h.filter(r=>r.code==="Leave"||r.code==="Sick").map(r=>r.name);
+    if(h.length) auto.push(t.tbAutoDuty.replace("{n}",dienst)+(weg.length?" \u00b7 "+t.tbAutoAway+" "+weg.join(", "):""));
+  }catch(e){}
+  try{ const a=await sbGet("rpc/anwesenheit_tag?p_tag="+heute); const da=(a||[]).filter(r=>r.kam).length; auto.push(t.tbAutoIn.replace("{n}",da)); }catch(e){}
+  const au=$("#tb-auto"); if(au) au.textContent=auto.join(" \u00b7 ");
+  const rows=await ladeTagesberichte("#tb-list", 7).catch(()=>[]);
+  const mein=(rows||[]).find(b=>b.on_day===heute && b.von_mir);
+  const tx=$("#tb-text"), pr=$("#tb-prob"), mo=$("#tb-morgen");
+  if(tx) tx.value=mein?(mein.text||""):""; if(pr) pr.value=mein?(mein.probleme||""):""; if(mo) mo.value=mein?(mein.morgen||""):"";
+}
+let tbSending=false;
+async function tagesberichtSpeichern(){
+  const t=L(); const msg=$("#tb-msg"), btn=$("#tb-save"); if(tbSending) return;
+  const tx=($("#tb-text")||{}).value||"", pr=($("#tb-prob")||{}).value||"", mo=($("#tb-morgen")||{}).value||"";
+  if(!tx.trim() && !pr.trim()){ if(msg){ msg.className="lverr bad"; msg.textContent=t.tbEmpty; } return; }
+  tbSending=true; if(btn) btn.disabled=true;
+  try{
+    await sbSend("rpc/tagesbericht_speichern", {p_tag:heuteISO(), p_text:tx.trim(), p_probleme:pr.trim()||null, p_morgen:mo.trim()||null, p_auto:(($("#tb-auto")||{}).textContent||null)});
+    if(msg){ msg.className="lverr good"; msg.textContent=t.tbSaved; }
+    ladeTagesberichte("#tb-list", 7).catch(()=>{});
+  }catch(e){ if(msg){ msg.className="lverr bad"; msg.textContent=t.rsOffline; } }
+  tbSending=false; if(btn) btn.disabled=false;
+}
+async function zaehleTagesbericht(){
+  const t=L(); const el=$("#kpi-report"); if(!el) return; el.textContent="\u2014";
+  try{ const rows=await sbGet("rpc/tagesbericht_liste?p_tage=1"); const heute=heuteISO(); const b=(rows||[]).find(x=>x.on_day===heute);
+    el.textContent = b ? new Date(b.updated_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit"}) : t.tbNotYet;
+  }catch(e){}
+}
+
 async function zaehleSchichtHeute(){
   /* Kachel im Cockpit: wie viele sind laut Plan heute im Dienst. */
   const el=$("#kpi-roster"); if(!el) return; el.textContent="\u2014";
@@ -2511,13 +2751,25 @@ async function sendeEinen(e){
     return;
   }
   if(e.art==="krank"){
-    await sbSend("rpc/krank_melden", {p_von:d.von, p_tage:d.tage});
+    const id = await sbSend("rpc/krank_melden", {p_von:d.von, p_tage:d.tage});
+    /* Krankschein nachreichen: die Datei wartet in IndexedDB an ihrer
+       Laufnummer. Die Meldung bekommt ihre Nummer gemerkt; hochgeladen wird
+       nur unter der Sitzung der Person, der die Datei gehoert. */
+    if(d.cert && typeof id==="string"){
+      const w = await certHolen(d.cert);
+      if(w){ w.antrag=id; await certMerken(w); }
+      if(w && me() && me().id===w.person){
+        try{ await krankscheinHochladen(id, w); await certWeg(d.cert); }
+        catch(err){ const msg=$("#sk-msg"); if(msg && here()==="s-leave"){ msg.className="lverr bad"; msg.textContent=L().lvCertFail; } }
+      }
+    }
     return;
   }
   if(e.art==="erledigt"){ await sbSend("rpc/haengt_erledigt",{p_run:d.run, p_note:d.note}); return; }
   if(e.art==="aufgabe"){ await sbSend("rpc/aufgabe_erledigen",{p_task:d.task, p_on_day:d.tag||null}); return; }
-  if(e.art==="einchecken"){ await sbSend("rpc/einchecken"); return; }
-  if(e.art==="auschecken"){ await sbSend("rpc/auschecken"); return; }
+  if(e.art==="einchecken"){ await sbSend("rpc/einchecken", {p_lat:null, p_lng:null}); return; }
+  if(e.art==="auschecken"){ await sbSend("rpc/auschecken", {p_lat:null, p_lng:null}); return; }
+  if(e.art==="standort"){ await sbSend("rpc/stempel_ort", {p_art:d.art, p_lat:d.lat, p_lng:d.lng}); return; }
   if(e.art==="zimmer"){
     await sbSend("rpc/zimmer_melden", {p_appt:d.termin, p_was:d.was});
     return;
@@ -2900,8 +3152,11 @@ async function fuelleCockpit(){
   if(grp)  grp.style.display  = lead ? "none" : "";
   /* Dienstplan-Woche: Hendra (Manager) ueber den Knopf, Nina/Micha ueber die Kachel. */
   const ro=$("#roster-open"); if(ro) ro.hidden = !(me() && me().mgr);
+  const tbo=$("#tb-open"); if(tbo) tbo.hidden = !(me() && me().mgr);
+  pushKnopf().catch(()=>{});
   if(!lead) return;
   zaehleSchichtHeute().catch(()=>{});
+  zaehleTagesbericht().catch(()=>{});
 
   /* Urlaub / krank heute (Nina 22.10.2026), statt "anwesend heute" */
   ladeAbwesend(false).catch(()=>{});
@@ -3318,8 +3573,13 @@ async function ladeMeineAufgaben(){
   }
   const zeilen = liste.map(a=>`
     <div class="lvitem" data-tkrow="${a.id}" style="flex-wrap:wrap">
-      <div class="d"><b>${escHtml(a.text)}</b><small>${escHtml(a.von)}</small></div>
+      <div class="d"><b>${escHtml(a.text)}</b><small>${escHtml(a.von)}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small></div>
+      <button class="pinrst" data-tknote="${a.id}" title="note">&#128172;</button>
       <button class="pinrst" data-tkdone="${a.id}">${t.tkTick}</button>
+      <div class="rvfix" id="tknote-${a.id}" hidden style="width:100%;margin-top:6px;gap:6px">
+        <input class="lvin" data-tknotetext="${a.id}" value="" placeholder="${t.tkNotePh}" style="flex:1">
+        <button class="lvyes" data-tknotesave="${a.id}">${t.tkNoteSave}</button>
+      </div>
       ${a.photo_path?`<img class="tkfoto" data-foto="${escHtml(a.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
     </div>`).join("");
   if(tit) tit.hidden = (liste.length===0 && !offline);
@@ -3331,6 +3591,16 @@ async function ladeMeineAufgaben(){
 
 /* Mitarbeiter hakt ab -> Postausgang (offline-sicher, person-gebunden),
    optimistisch entfernen. */
+/* Status-Satz zu einer Aufgabe (Hendra 23.10.: "kommentieren, so dass Nina
+   und Micha es sehen"). Direkt zum Server, nicht ueber den Postausgang:
+   ein Kommentar ohne Netz ist eine Frage, keine Tat. */
+async function aufgabeKommentieren(id){
+  const t=L(); const inp=document.querySelector(`[data-tknotetext="${id}"]`); if(!inp) return;
+  if(!inp.value.trim()) return;
+  try{ await sbSend("rpc/aufgabe_kommentieren", {p_task:id, p_text:inp.value}); }
+  catch(e){ try{ alert(t.lvSaveFail) }catch(_){} return; }
+  ladeMeineAufgaben().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{});
+}
 function aufgabeAbhaken(id){
   /* Bruno-Fund 3: den echten Tag mitschicken, sonst bucht der Server bei
      spaeterem Senden das falsche Datum (wichtig bei taeglich wiederkehrend). */
@@ -3388,8 +3658,13 @@ async function ladeAufgabenUebersicht(){
                  : spaet ? t.tkExpired : t.tkOpenLbl;
     return `<div class="lvitem" style="flex-wrap:wrap">
       <div class="d"><b>${escHtml(a.text)}</b>
-        <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)} &middot; ${status}</small>
-        <div class="rvfix"><button class="lvno" data-tkdel="${a.id}">${t.tkDelete}</button></div>
+        <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)} &middot; ${status}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small>
+        <div class="rvfix"><button class="lvno" data-tkdel="${a.id}">${t.tkDelete}</button>
+          <button class="pinrst" data-tknote="${a.id}">&#128172;</button></div>
+        <div class="rvfix" id="tknote-${a.id}" hidden style="width:100%;margin-top:6px;gap:6px">
+          <input class="lvin" data-tknotetext="${a.id}" value="" placeholder="${t.tkNotePh}" style="flex:1">
+          <button class="lvyes" data-tknotesave="${a.id}">${t.tkNoteSave}</button>
+        </div>
       </div>
       <span class="lvst ${fertig?"":"requested"}">${fertig?"&#10003;":spaet?"!":"&bull;"}</span>
       ${a.photo_path?`<img class="tkfoto" data-foto="${escHtml(a.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
@@ -3543,14 +3818,48 @@ function tkFotoGewaehlt(file){
 }
 
 /* Ein Aufgaben-Foto sicher laden (RLS-geschuetzt) und ins img-Element setzen. */
+/* Datei aus einem privaten Bucket holen; bei 401 einmal die Sitzung
+   erneuern, wie sbGet es tut (Bruno 23a, Fund 5). */
+async function holeDatei(bucket, pfad){
+  let r=await fetch(SB.url+"/storage/v1/object/authenticated/"+bucket+"/"+pfad, {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+  if(r.status===401 && await erneuereSitzung()) r=await fetch(SB.url+"/storage/v1/object/authenticated/"+bucket+"/"+pfad, {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+  return r;
+}
 async function ladeFoto(pfad, img, bucket){
   if(!pfad || !img) return;
   try{
-    const r=await fetch(SB.url+"/storage/v1/object/authenticated/"+(bucket||"task-photos")+"/"+pfad,
-      {headers:{apikey:SB.key, Authorization:"Bearer "+S.token}});
+    const r=await holeDatei(bucket||"task-photos", pfad);
     if(!r.ok) return;
     img.src=URL.createObjectURL(await r.blob()); img.style.display="block";
   }catch(e){}
+}
+
+/* Krankschein nur im eigenen Fenster der App zeigen (Elke: kein neuer Tab,
+   kein Link). Die Datei kommt ueber den angemeldeten Abruf als Blob. */
+async function zeigeKrankschein(pfad, typ){
+  const t=L(); const v=$("#viewer"), im=$("#viewer-img"), fr=$("#viewer-frame"); if(!v) return;
+  try{
+    const r=await holeDatei("krankschein", pfad);
+    if(!r.ok) throw new Error(r.status);
+    const blob=await r.blob(); const url=URL.createObjectURL(blob);
+    const pdf = /pdf/i.test(typ||"") || /\.pdf$/i.test(pfad);
+    if(im) im.style.display = pdf ? "none" : "block";
+    if(fr) fr.style.display = pdf ? "block" : "none";
+    if(pdf && fr) fr.src=url; else if(im) im.src=url;
+    v.hidden=false;
+  }catch(e){ const code=parseInt(e&&e.message,10); try{ alert(code>=400 ? t.rsErr.replace("{code}",code) : t.blNoPdf) }catch(_){} }
+}
+
+/* PDF aus dem privaten Bucket holen und im Browser oeffnen. Das Fenster wird
+   VOR dem Laden geoeffnet, sonst blockt Safari das spaetere window.open. */
+async function oeffneDatei(pfad, bucket){
+  const t=L(); const w=window.open("", "_blank");
+  try{
+    const r=await holeDatei(bucket||"belege", pfad);
+    if(!r.ok) throw new Error(r.status);
+    const url=URL.createObjectURL(await r.blob());
+    if(w) w.location=url; else window.open(url, "_blank");
+  }catch(e){ if(w) w.close(); const code=parseInt(e&&e.message,10); try{ alert(code>=400 ? t.rsErr.replace("{code}",code) : t.blNoPdf) }catch(_){} }
 }
 
 /* ================= Belegkasten (Nina) ================= */
@@ -3572,7 +3881,9 @@ async function ladeBelege(){
         <small>${b.on_day} &middot; ${escHtml(b.wer||"")}${b.note?" &middot; "+escHtml(b.note):""}</small>
         <div class="rvfix"><button class="lvno" data-bldel="${b.id}">${t.tkDelete}</button></div>
       </div>
-      ${b.photo_path?`<img class="blfoto" data-foto="${escHtml(b.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
+      ${b.photo_path && /\.pdf$/i.test(b.photo_path)
+          ? `<button class="pinrst" data-blpdf="${escHtml(b.photo_path)}" style="margin-top:8px">&#128196; ${t.blOpenPdf}</button>`
+          : b.photo_path ? `<img class="blfoto" data-foto="${escHtml(b.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">` : ""}
     </div>`;
   }).join("");
   $$("#bl-list img.blfoto").forEach(img=>ladeFoto(img.dataset.foto, img, "belege"));
@@ -3597,14 +3908,30 @@ function zeichneBelegNeu(){
   const sc=$("#bl-scan"); if(sc) sc.hidden=true;
 }
 
+let belegDateiTyp="jpg";   /* "jpg" oder "pdf" */
+let belegWahlSeq=0;        /* jede Dateiwahl zaehlt hoch; spaete Bild-Callbacks pruefen (Bruno 23a, Fund 2) */
 function belegFotoGewaehlt(file){
   if(!file) return;
   const t=L(), img=new Image(), rd=new FileReader();
+  const wahl=++belegWahlSeq;
+  const pdfName=$("#bl-pdf-name"); if(pdfName){ pdfName.hidden=true; pdfName.textContent=""; }
+  belegDateiTyp="jpg";
+  /* Nina 23.10.2026: "Beim Hochladen geht nur jpeg, wir brauchen auch files."
+     PDF wird unveraendert hochgeladen (kein Bild, kein Scan), 10 MB Grenze. */
+  if(file.type==="application/pdf" || /\.pdf$/i.test(file.name||"")){
+    if(file.size > 10*1024*1024){ try{ alert(t.blTooBig) }catch(e){} return; }
+    belegPhotoBlob=file; belegDateiTyp="pdf";
+    const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
+    const sc=$("#bl-scan"); if(sc) sc.hidden=true;
+    if(pdfName){ pdfName.hidden=false; pdfName.textContent=t.blPdf+" "+(file.name||"PDF"); }
+    return;
+  }
   const kaputt=()=>{ belegPhotoBlob=null; const pv=$("#bl-photo-prev"); if(pv){ pv.style.display="none"; pv.removeAttribute("src"); }
     const sc=$("#bl-scan"); if(sc) sc.hidden=true;
     const pi=$("#bl-photo-input"); if(pi) pi.value=""; try{ alert(t.tkPhotoBad) }catch(e){} };
   rd.onerror=kaputt;
   rd.onload=()=>{ img.onerror=kaputt; img.onload=()=>{
+    if(wahl!==belegWahlSeq) return;   /* inzwischen eine andere Datei gewaehlt */
     const max=1280; let w=img.width, h=img.height;
     if(!w||!h){ kaputt(); return; }
     if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
@@ -3647,11 +3974,13 @@ async function belegSpeichern(){
        wiederholen; klappt es dann immer noch nicht, laut warnen und NICHT
        speichern, damit kein bildloser Beleg entsteht. */
     if(belegPhotoBlob && !demoAktiv()){
-      const p = Math.random().toString(36).slice(2)+".jpg";
+      const pdf = belegDateiTyp==="pdf";
+      const p = Math.random().toString(36).slice(2)+(pdf?".pdf":".jpg");
+      const typ = pdf ? "application/pdf" : "image/jpeg";
       const ziel = SB.url+"/storage/v1/object/belege/"+p;
-      let up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:belegPhotoBlob});
+      let up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":typ}, body:belegPhotoBlob});
       if(!up.ok && await erneuereSitzung()){
-        up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg"}, body:belegPhotoBlob});
+        up = await fetch(ziel, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":typ}, body:belegPhotoBlob});
       }
       if(up.ok){ pfad=p; }
       else{ belegSending=false; if(btn) btn.disabled=false; try{ alert(t.blPhotoFail) }catch(e){} return; }
@@ -4080,11 +4409,21 @@ async function ladeOffene(){
         ${r.kurzfristig&&r.kind!=="sick"?`<small class="warn">${t.lvShort}</small>`:""}
         ${r.kind==="sick"?`<label class="lvcert">
             <input type="checkbox" data-cert="${r.id}" ${r.cert_seen?"checked":""}>
-            <span>${t.lvCert}</span></label>`:""}
+            <span>${t.lvCert}</span></label>
+          ${r.krankschein_pfad?`<button class="pinrst" data-cert-view="${escHtml(r.krankschein_pfad)}" data-cert-typ="${escHtml(r.krankschein_typ||"")}" style="margin-top:6px">&#128196; ${t.lvCertView}</button>`
+                             :`<small class="warn">${t.lvCertNone}</small>`}`:""}
       </div>
       <div class="lvbtns">
-        ${r.kind==="sick"?"":`<button class="lvno" data-nein="${r.id}">${t.lvNo}</button>`}
+        ${r.kind==="sick"?`<button class="lvno" data-sickweg="${r.id}">${t.lvSickDel}</button>`:`<button class="lvno" data-nein="${r.id}">${t.lvNo}</button>`}
         <button class="lvyes" data-ja="${r.id}">${r.kind==="sick"?t.lvNoted:t.lvYes}</button>
+      </div>
+      <div class="rvfix" style="width:100%;margin-top:6px">
+        <button class="pinrst" data-datum="${r.id}" data-von="${r.from_day}" data-bis="${r.to_day}">${t.lvChange}</button>
+      </div>
+      <div class="rvfix" id="lvedit-${r.id}" hidden style="width:100%;margin-top:6px;gap:6px;flex-wrap:wrap">
+        <input class="lvin" type="date" data-evon="${r.id}" value="${r.from_day}" style="flex:1;min-width:130px">
+        <input class="lvin" type="date" data-ebis="${r.id}" value="${r.to_day}" style="flex:1;min-width:130px">
+        <button class="lvyes" data-esave="${r.id}">${t.lvChangeSave}</button>
       </div>
     </div>`).join("")
     : `<p class="lverr">${t.lvNoneOpen}</p>`;
@@ -4254,6 +4593,26 @@ function lvAbzugZuruecksetzen(){
    aufreissen, das niemand angetippt hat (Bruno 3. Runde, Fund 4). */
 let lvLauf = 0;
 
+/* Die Urlaubsliste als eigene Seite (Hendra 23.10.). Fenster VOR dem Laden
+   oeffnen (Safari), dann fuellen. Ohne Krankschein-Spalte, nie (Elke). */
+async function urlaubAlsSeite(){
+  const t=L(); if(!istLeitung()) return;
+  const w=window.open("", "_blank");
+  try{
+    if(!LVBLATT) await mitZeitlimit(ladeTeamUrlaub().then(()=>true), 30000);
+    const d=LVBLATT; if(!d) throw new Error("keine daten");
+    const esc=x=>escHtml(x==null?"":x);
+    const alle=(d.alle||[]).map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.department||"")}</td><td>${esc(r.days_total)}</td><td>${esc(r.genommen)}</td><td>${esc(r.frei)}</td></tr>`).join("");
+    const ant=(d.antraege||[]).map(r=>{ const p=PEOPLE.find(x=>x.id===r.person_id); return `<tr><td>${esc(p?p.n:r.person_id)}</td><td>${esc(r.kind)}</td><td>${esc(r.from_day)}</td><td>${esc(r.to_day)}</td><td>${esc(r.days)}</td><td>${esc(r.status)}</td></tr>`; }).join("");
+    const html=`<!doctype html><html><head><meta charset="utf-8"><title>Leave ${heuteISO()}</title>
+      <style>body{font:14px/1.4 -apple-system,Helvetica,Arial;padding:16px;color:#222}h2{margin:18px 0 8px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:5px 7px;text-align:left;font-size:13px}th{background:#f2f2f2}@media print{button{display:none}}</style></head>
+      <body><button onclick="print()">Print / Save as PDF</button><h2>${t.lvTeam} \u00b7 ${heuteISO()}</h2>
+      <table><tr><th>Name</th><th>Dept</th><th>Days</th><th>Taken</th><th>Left</th></tr>${alle}</table>
+      <h2>Requests</h2><table><tr><th>Name</th><th>Kind</th><th>From</th><th>To</th><th>Days</th><th>Status</th></tr>${ant}</table></body></html>`;
+    const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+    if(w) w.location=url; else window.open(url,"_blank");
+  }catch(e){ if(w) w.close(); try{ alert(t.lvGetFail) }catch(_){} }
+}
 async function blattHolen(){
   const t   = L();
   const msg = $("#lv-csv-msg");
@@ -4360,6 +4719,31 @@ async function blattHolen(){
   }
 }
 
+/* Krank aus Versehen statt Urlaub (Hendra 23.10.): zuruecknehmen, nicht
+   ablehnen. Der Server erlaubt Ablehnen bei Krank weiterhin nicht. */
+let chefSendet=false;   /* Doppeltipp-Sperre fuer Hendras Knoepfe (Bruno 23a, Fund 7) */
+async function krankZuruecknehmen(id){
+  const t=L(); if(chefSendet) return; if(!confirm(t.lvSickDelAsk)) return;
+  chefSendet=true;
+  const zeile=document.querySelector(`[data-antrag="${id}"]`); if(zeile) zeile.style.opacity=".4";
+  try{ await sbSend("rpc/urlaub_zuruecknehmen", {p_antrag:id, p_grund:"entered by mistake (removed by manager)"}); }
+  catch(e){ chefSendet=false; if(zeile) zeile.style.opacity="1"; try{ alert(t.lvSaveFail) }catch(_){} return; }   /* Bruno 23a, Fund 1: nicht "nichts verloren" sagen */
+  chefSendet=false;
+  await ladeOffene().catch(()=>{}); await ladeTeamUrlaub().catch(()=>{});
+}
+/* Falsches Datum im Antrag (Hendra 23.10.): von/bis aendern. */
+async function datumAendern(id){
+  const t=L(); const von=document.querySelector(`[data-evon="${id}"]`), bis=document.querySelector(`[data-ebis="${id}"]`);
+  if(!von||!bis||!von.value||!bis.value||bis.value<von.value){ try{ alert(t.lvChangeBad) }catch(_){} return; }
+  if(chefSendet) return; chefSendet=true;
+  const zeile=document.querySelector(`[data-antrag="${id}"]`); if(zeile) zeile.style.opacity=".4";
+  try{ await sbSend("rpc/urlaub_aendern", {p_antrag:id, p_von:von.value, p_bis:bis.value}); }
+  catch(e){ chefSendet=false; if(zeile) zeile.style.opacity="1";
+    try{ alert(/overlap/.test(String(e&&e.message||e)) ? t.lvChangeOverlap : t.lvSaveFail) }catch(_){} return; }   /* Eingabe bleibt stehen */
+  chefSendet=false;
+  await ladeOffene().catch(()=>{}); await ladeTeamUrlaub().catch(()=>{});
+}
+
 async function entscheide(id, ja){
   const zeile=document.querySelector(`[data-antrag="${id}"]`);
   if(zeile) zeile.style.opacity=".4";
@@ -4368,6 +4752,9 @@ async function entscheide(id, ja){
     await ladeOffene();
     await ladeUrlaub();
   }catch(e){
+    /* Nina 23.10.: "Ohne letter kein noted." Der Server sagt letter_missing,
+       der Bildschirm sagt es in Worten. */
+    if(/letter_missing/.test(String(e&&e.message||e))){ if(zeile) zeile.style.opacity="1"; try{ alert(L().lvCertMissing) }catch(_){} return; }
     /* Fehlgeschlagen heisst hier fast immer: jemand anders war schneller.
        Also nicht meckern, sondern neu laden und den echten Stand zeigen. */
     if(zeile) zeile.style.opacity="1";
@@ -4540,7 +4927,12 @@ async function krankSenden(){
      tippt vielleicht nochmal, und dann nicht mehr. Und sie sagt nichts.
      Ein Haken bei den Ablaeufen ist seit Wochen abgesichert. Die
      Krankmeldung war es nicht, obwohl sie wichtiger ist. */
-  melde("krank", {von:von, tage:skTage});
+  /* Krankschein: die Datei wartet im Speicher, bis die Meldung eine Nummer
+     vom Server hat (Postausgang, offline-sicher). Dann wird sie hochgeladen. */
+  const certLauf = skCertBlob ? Date.now() : null;
+  if(skCertBlob){ skCertWartet = {seq:certLauf, blob:skCertBlob, typ:skCertTyp, name:skCertName, person:me()&&me().id, antrag:null};
+    await certMerken(skCertWartet); }
+  melde("krank", {von:von, tage:skTage, cert:certLauf});
 
   msg.className="lverr good"; msg.textContent=t.lvSickOk;
   const knopf=$("#sk-send"); if(knopf) knopf.disabled=true;
@@ -4550,6 +4942,57 @@ async function krankSenden(){
   await ladeUrlaub();
 }
 let skWaText = "";
+let skCertBlob=null, skCertTyp="jpg", skCertName="", skCertSeq=0, skCertWartet=null;
+/* Krankschein-Dateien warten in IndexedDB, nicht nur im Arbeitsspeicher
+   (Bruno 23b, Fund 3): App zu, Netz weg, Personenwechsel - die Datei bleibt
+   an ihre Meldung (Laufnummer + Person) gebunden, bis sie hochgeladen ist. */
+function certDb(){ return new Promise((ok,nein)=>{ try{ const q=indexedDB.open("tg-cert",1); q.onupgradeneeded=()=>{ q.result.createObjectStore("w",{keyPath:"seq"}); }; q.onsuccess=()=>ok(q.result); q.onerror=()=>nein(q.error); }catch(e){ nein(e); } }); }
+async function certMerken(w){ try{ const db=await certDb(); await new Promise((ok,nein)=>{ const tx=db.transaction("w","readwrite"); tx.objectStore("w").put(w); tx.oncomplete=ok; tx.onerror=()=>nein(tx.error); }); }catch(e){} }
+async function certHolen(seq){ try{ const db=await certDb(); return await new Promise((ok,nein)=>{ const r=db.transaction("w").objectStore("w").get(seq); r.onsuccess=()=>ok(r.result||null); r.onerror=()=>nein(r.error); }); }catch(e){ return null; } }
+async function certWeg(seq){ try{ const db=await certDb(); await new Promise((ok)=>{ const tx=db.transaction("w","readwrite"); tx.objectStore("w").delete(seq); tx.oncomplete=ok; tx.onerror=ok; }); }catch(e){} }
+async function certAlle(){ try{ const db=await certDb(); return await new Promise((ok)=>{ const r=db.transaction("w").objectStore("w").getAll(); r.onsuccess=()=>ok(r.result||[]); r.onerror=()=>ok([]); }); }catch(e){ return []; } }
+function krankscheinGewaehlt(file){
+  const t=L(); const nm=$("#sk-cert-name");
+  skCertBlob=null; if(nm){ nm.hidden=true; nm.textContent=""; }
+  if(!file) return;
+  if(file.size > 10*1024*1024){ try{ alert(t.lvCertBig) }catch(e){} return; }
+  const pdf = file.type==="application/pdf" || /\.pdf$/i.test(file.name||"");
+  if(pdf){ skCertBlob=file; skCertTyp="pdf"; skCertName=file.name||"PDF"; if(nm){ nm.hidden=false; nm.textContent=t.lvCertOk+" "+skCertName; } return; }
+  /* Foto: verkleinern wie beim Beleg, damit es im schlechten Netz durchgeht. */
+  const img=new Image(), rd=new FileReader();
+  rd.onload=()=>{ img.onload=()=>{
+    const max=1600; let w=img.width, h=img.height; if(!w||!h) return;
+    if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+    const c=document.createElement("canvas"); c.width=w; c.height=h; c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=>{ skCertBlob=b; skCertTyp="jpg"; skCertName=file.name||"photo"; if(nm){ nm.hidden=false; nm.textContent=t.lvCertOk+" "+skCertName; } }, "image/jpeg", 0.8);
+  }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+/* Wartende Krankscheine der angemeldeten Person nachreichen: beim Oeffnen
+   des Urlaubsbildschirms und wenn das Netz zurueckkommt. */
+async function krankscheineNachreichen(){
+  const m=me(); if(!m || !tokenGueltig() || S.tokenFuer!==m.id) return;
+  const alle=await certAlle(); const t=L(); let offen=0;
+  for(const w of alle){
+    if(w.person!==m.id) continue;
+    if(!w.antrag){ offen++; continue; }   /* Meldung noch nicht beim Server (Postausgang) */
+    try{ await krankscheinHochladen(w.antrag, w); await certWeg(w.seq); }catch(e){ offen++; }
+  }
+  const h=$("#sk-cert-pending"); if(h){ h.hidden = !offen; h.textContent = offen ? t.lvCertPending : ""; }
+}
+/* Nach krank_melden: Datei an die Meldung haengen. Pfad = <meldung>/<zufall>.<ext>,
+   kein Name, kein Datum. Scheitert es, bleibt die Meldung trotzdem gueltig,
+   und die Person sieht einen Satz dazu. */
+async function krankscheinHochladen(antragId, w){
+  const t=L(); if(!w || !w.blob) return;
+  const ext = w.typ==="pdf" ? "pdf" : "jpg", typ = w.typ==="pdf" ? "application/pdf" : "image/jpeg";
+  const pfad = antragId+"/"+Math.random().toString(36).slice(2)+"."+ext;
+  let up = await fetch(SB.url+"/storage/v1/object/krankschein/"+pfad, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":typ}, body:w.blob});
+  if(!up.ok && await erneuereSitzung()) up = await fetch(SB.url+"/storage/v1/object/krankschein/"+pfad, {method:"POST", headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":typ}, body:w.blob});
+  if(!up.ok) throw new Error("upload_"+up.status);
+  await sbSend("rpc/krankschein_setzen", {p_antrag:antragId, p_pfad:pfad, p_typ:typ, p_groesse:w.blob.size||null});
+  const msg=$("#sk-msg"); if(msg && here()==="s-leave"){ msg.className="lverr good"; msg.textContent=t.lvSickOk+" "+t.lvCertSent; }
+}
 function krankWhatsApp(){
   if(!skWaText) return;
   window.open("https://wa.me/?text=" + encodeURIComponent(skWaText), "_blank");
@@ -4746,6 +5189,7 @@ async function wiederVerbinden(){
     }
     if(me() && !tokenGueltig() && online) await sitzungNachholen();
     if(me() && online) ladeSchicht().catch(()=>{});   /* Liste folgt der Schicht (Bruno 22h, Fund 5) */
+    if(me() && online) krankscheineNachreichen().catch(()=>{});
     if(online && tokenGueltig()) leerePostausgang();
   }catch(e){}
   finally{ wiederverbindeLaeuft = false; }
@@ -5000,7 +5444,8 @@ function sitzungZuruecksetzen(){
   }catch(e){}
 }
 function vergissGeraet(){
-  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); localStorage.removeItem("tg-shift"); zeigeSchicht(null); }catch(e){}
+  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); localStorage.removeItem("tg-shift"); zeigeSchicht(null);
+    ["lv-offen","lv-news","lv-tabelle","att-list","tb-list","tb-list2","aw-list","rs-list"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; }); }catch(e){}
   neueAnmeldung();   /* alles, was noch unterwegs ist, gilt ab jetzt nicht mehr */
   pinMaskeAngeboten = false; S.tokenFuer = null;
   /* Aufgaben-Zwischenspeicher mit abmelden, damit am geteilten Tresen-Handy
@@ -5162,13 +5607,19 @@ function renderRooms(){
   zaehleAufgaben();
   /* "Attendance today" als Kachel entfernt: steht oben schon als KPI
      "Present today", die aufs selbe Bild fuehrt (Dennis 01.10.). */
-  const ato=$("#att-open"); if(ato) ato.hidden = true;
-  const blo=$("#beleg-open"); if(blo) blo.hidden = TESTLAUF || !istLeitung();
+  /* Hendra 23.10.2026: "Wo kann Hendra die Clock-in/out-Zeiten sehen und
+     manuell aendern?" Hier. Fuer Leitung und Manager. */
+  const ato=$("#att-open"); if(ato) ato.hidden = !istLeitung();
+  /* Bruno 23a, Fund 3: der Belegkasten ist serverseitig nur fuer die Leitung
+     (090). Hendra bekaeme eine leere Liste und 403 beim Hochladen. */
+  const blo=$("#beleg-open"); if(blo) blo.hidden = TESTLAUF || !(me() && me().lead && !me().mgr);
   /* Die Uebergabe-Notiz ist ebenfalls erfunden - und sie enthaelt sogar einen
      Patientennamen ("Mrs. L. is coming back at 14:00"). Genau das darf einer
      echten Assistentin nicht angezeigt werden, aus demselben Grund wie die
      erfundenen Termine. Sie kommt zurueck, wenn es echte Uebergaben gibt. */
-  ["ho-titel","ho-box"].forEach(id=>{ const el=$("#"+id); if(el) el.hidden = TESTLAUF });
+  /* Nina/Hendra 23.10.2026: "kann weg, wir haben so viele andere Kanaele in
+     der App." Der Kasten war ohnehin leer. Bleibt im HTML, aber immer aus. */
+  ["ho-titel","ho-box"].forEach(id=>{ const el=$("#"+id); if(el) el.hidden = true });
   const lb=$("#lv-badge");
   if(lb && lvStand) lb.textContent=Number(lvStand.frei);
   $("#lk-rooms").innerHTML=(S.rooms||[]).length+"<small> / "+APPTS.length+"</small>";
@@ -5389,13 +5840,14 @@ function go(id, push){
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){
-    ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{});
+    ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); krankscheineNachreichen().catch(()=>{});
     /* Reine Leitung (Nina, Micha) sieht nur die Team-Uebersicht, nicht den
        eigenen Antrag/Krank (Dennis, 10.09.2026). Bildschirm + lv-chef bleiben. */
     const lp=$("#lv-personal"); if(lp) lp.hidden = !!(me() && me().lead && !me().mgr);
     /* Bruno-Hinweis: Krank-Auswahl frisch. Sonst bleibt am geteilten
        Tresen-Handy die Tage-Auswahl der letzten Person stehen. */
-    skTage=1;
+    skTage=1; skCertBlob=null; const scn=$("#sk-cert-name"); if(scn){ scn.hidden=true; scn.textContent=""; }
+    const sci=$("#sk-cert-input"); if(sci) sci.value="";
     const so=$("#sk-other"); if(so){ so.value=""; so.style.display="none"; }
     $$("#sk-days .dep").forEach(b=>b.classList.toggle("on", b.dataset.sd==="1"));
     const sm=$("#sk-msg"); if(sm){ sm.textContent=""; sm.className="lverr"; }
@@ -5408,9 +5860,14 @@ function go(id, push){
   if(id==="s-bday"){ ladeBday().catch(()=>{}); }
   if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); }
   if(id==="s-away"){ ladeAbwesend(true).catch(()=>{}); }
-  if(id==="s-clock"){ ladeSchicht().catch(()=>{}); }
+  if(id==="s-report"){ zeichneTagesbericht().catch(()=>{}); }
+  if(id==="s-reports"){ ladeTagesberichte("#tb-list2", 14).catch(()=>{}); }
+  if(id==="s-clock"){ ladeSchicht().catch(()=>{});
+    /* Hendra 23.10.2026: "Not me" weg, der PIN verhindert falsches Anmelden.
+       Bleibt nur fuer Personen ohne PIN (Security). */
+    const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
-  if(id==="s-attend"){ ladeAnwesenheit().catch(()=>{}); }
+  if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
   if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
@@ -5433,6 +5890,7 @@ document.addEventListener("change",e=>{
   if(e.target && e.target.id==="tk-photo-input"){
     const f=e.target.files && e.target.files[0]; if(f) tkFotoGewaehlt(f);
   }
+  if(e.target && e.target.id==="sk-cert-input"){ krankscheinGewaehlt(e.target.files && e.target.files[0]); return; }
   if(e.target && e.target.id==="bl-photo-input"){
     const f=e.target.files && e.target.files[0]; if(f) belegFotoGewaehlt(f);
   }
@@ -5592,6 +6050,15 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#lv-csv")){ blattHolen().catch(()=>{}); return }
   if(e.target.closest("#lv-text-btn")){ lvTextZeigen(); return }
   const ja=e.target.closest("[data-ja]");   if(ja){  entscheide(ja.dataset.ja, true);   return }
+  const sw=e.target.closest("[data-sickweg]"); if(sw){ krankZuruecknehmen(sw.dataset.sickweg); return }
+  const dt=e.target.closest("[data-datum]"); if(dt){ const ed=$("#lvedit-"+dt.dataset.datum); if(ed) ed.hidden=!ed.hidden; return }
+  const es=e.target.closest("[data-esave]"); if(es){ datumAendern(es.dataset.esave); return }
+  const ak=e.target.closest("[data-attedit]"); if(ak){ const ed=$("#attedit-"+ak.dataset.attedit); if(ed) ed.hidden=!ed.hidden; return }
+  const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave); return }
+  if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
+  if(e.target.closest("#att-next")){ attTag=tagPlus(attTag||heuteISO(),1); ladeAnwesenheit().catch(()=>{}); return }
+  if(e.target.closest("#att-today")){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); return }
+  const bp=e.target.closest("[data-blpdf]"); if(bp){ oeffneDatei(bp.dataset.blpdf, "belege"); return }
   const nn=e.target.closest("[data-nein]"); if(nn){ entscheide(nn.dataset.nein, false); return }
   if(e.target.closest("#nichtich") || e.target.closest("#nichtich2")){
     /* Erst versuchen, die eigenen offenen Haken noch unter der richtigen
@@ -5603,6 +6070,14 @@ document.addEventListener("click",e=>{
   /* Die alten Zurueck-Knoepfe im Inhalt gehen jetzt auch ueber den Verlauf,
      damit beide Wege dasselbe tun. */
   const bk=e.target.closest(".back"); if(bk){back();return}
+  if(e.target.closest("#sk-cert-btn")){ const i=$("#sk-cert-input"); if(i) i.click(); return }
+  if(e.target.closest("[data-cert-view]")){ const b=e.target.closest("[data-cert-view]"); zeigeKrankschein(b.dataset.certView, b.dataset.certTyp); return }
+  if(e.target.closest("#viewer-close") || (e.target.id==="viewer")){ const v=$("#viewer"); if(v){ v.hidden=true; const im=$("#viewer-img"), fr=$("#viewer-frame"); if(im){ im.removeAttribute("src"); } if(fr){ fr.removeAttribute("src"); } } return }
+  if(e.target.closest("[data-tknote]")){ const b=e.target.closest("[data-tknote]"); const ed=$("#tknote-"+b.dataset.tknote); if(ed) ed.hidden=!ed.hidden; return }
+  if(e.target.closest("[data-tknotesave]")){ aufgabeKommentieren(e.target.closest("[data-tknotesave]").dataset.tknotesave); return }
+  if(e.target.closest("#lv-page")){ urlaubAlsSeite(); return }
+  if(e.target.closest("#tb-save")){ tagesberichtSpeichern(); return }
+  if(e.target.closest("#push-on")){ pushEinschalten(); return }
   if(e.target.closest("#rs-prev")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),-7); ladeRoster().catch(()=>{}); return; }
   if(e.target.closest("#rs-next")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),7); ladeRoster().catch(()=>{}); return; }
   if(e.target.closest("#rs-today")){ rsVon=montagVon(heuteISO()); ladeRoster().catch(()=>{}); return; }
@@ -5611,6 +6086,8 @@ document.addEventListener("click",e=>{
        (offline-sicher). Danach S.started leeren, damit morgen frisch
        eingecheckt wird. */
     melde("auschecken", {});
+    { const wer = me() && me().id;
+      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"out", lat:pos.lat, lng:pos.lng}); }); }
     S.started=null; S.startedAt=null; save();
     go("s-clock"); return;
   }
@@ -5627,7 +6104,15 @@ document.addEventListener("click",e=>{
       /* NEU 08.09.2026: Das Einstempeln landet jetzt WIRKLICH in der
          Datenbank, nicht nur lokal. Ueber den Postausgang, also
          offline-sicher. Das ersetzt Hendras Handzettel. */
+      /* Hendra 23.10.2026: "sehen, wo sie sind". Ein Schnappschuss im Moment
+         des Stempelns, wenn das Handy es erlaubt. Keine Dauerortung. Ohne
+         Erlaubnis oder ohne Antwort in 8 s geht der Stempel ohne Ort raus. */
+      /* Bruno 23b, Fund 2: Der Stempel geht SOFORT in den Postausgang wie
+         frueher. Der Ort kommt als zweite Meldung hinterher, wenn er da ist,
+         und nur, wenn noch dieselbe Person angemeldet ist. */
       melde("einchecken", {});
+      const wer = me() && me().id;
+      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"in", lat:pos.lat, lng:pos.lng}); });
     }
     save(); renderGroups(); go("s-brief"); return}
   const dp=e.target.closest("[data-dep]");
