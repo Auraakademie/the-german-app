@@ -1924,7 +1924,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-23d";
+const APP_VERSION = "2026-10-23h";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3151,8 +3151,13 @@ async function fuelleCockpit(){
   if(hero) hero.style.display = lead ? "none" : "";
   if(grp)  grp.style.display  = lead ? "none" : "";
   /* Dienstplan-Woche: Hendra (Manager) ueber den Knopf, Nina/Micha ueber die Kachel. */
-  const ro=$("#roster-open"); if(ro) ro.hidden = !(me() && me().mgr);
+  /* Hendra 23.10. 16:16: "need the Roster feature for the staff". Jeder sieht
+     die Woche; Krank/Urlaub erscheint fuer Nicht-Leitung nur als "off" (Server). */
+  const ro=$("#roster-open"); if(ro) ro.hidden = !(me() && !(me().lead && !me().mgr));
   const tbo=$("#tb-open"); if(tbo) tbo.hidden = !(me() && me().mgr);
+  /* Nina 23.10. 15:44: "Not me" weg, jeder hat einen PIN. Bleibt nur fuer
+     Personen ohne PIN (Security). */
+  const ni2=$("#nichtich2"); if(ni2) ni2.hidden = brauchtPin(me());
   pushKnopf().catch(()=>{});
   if(!lead) return;
   zaehleSchichtHeute().catch(()=>{});
@@ -5191,6 +5196,18 @@ async function wiederVerbinden(){
     if(me() && online) ladeSchicht().catch(()=>{});   /* Liste folgt der Schicht (Bruno 22h, Fund 5) */
     if(me() && online) krankscheineNachreichen().catch(()=>{});
     if(online && tokenGueltig()) leerePostausgang();
+    /* Listen frischen sich alle 30 s selbst auf, solange der Bildschirm
+       offen ist (Hendra 23.10.: Krankmeldungen kamen, sein Bildschirm blieb
+       leer). Nur Lese-Listen, nie ein Formular mit halb getippter Eingabe:
+       auf s-leave bleiben lv-offen-Zeilen mit aufgeklapptem Datumsfeld stehen. */
+    if(me() && online && tokenGueltig() && !document.hidden){
+      const h=here();
+      if(h==="s-leave" && istLeitung() && !document.querySelector("#lv-offen [id^='lvedit-']:not([hidden])")){ ladeOffene().catch(()=>{}); }
+      if(h==="s-brief"){ ladeMeineAufgaben().catch(()=>{}); if(istLeitung()) ladeAbwesend(false).catch(()=>{}); }
+      if(h==="s-review"){ ladeAufgabenUebersicht().catch(()=>{}); }
+      if(h==="s-attend" && !document.querySelector("#att-list [id^='attedit-']:not([hidden])")){ ladeAnwesenheit().catch(()=>{}); }
+      if(h==="s-reports"){ ladeTagesberichte("#tb-list2", 14).catch(()=>{}); }
+    }
   }catch(e){}
   finally{ wiederverbindeLaeuft = false; }
 }
@@ -5609,7 +5626,7 @@ function renderRooms(){
      "Present today", die aufs selbe Bild fuehrt (Dennis 01.10.). */
   /* Hendra 23.10.2026: "Wo kann Hendra die Clock-in/out-Zeiten sehen und
      manuell aendern?" Hier. Fuer Leitung und Manager. */
-  const ato=$("#att-open"); if(ato) ato.hidden = !istLeitung();
+  const ato=$("#att-open"); if(ato) ato.hidden = !(me() && me().mgr);   /* Nina 23.10.: "das untere kann weg", Hendra braucht es */
   /* Bruno 23a, Fund 3: der Belegkasten ist serverseitig nur fuer die Leitung
      (090). Hendra bekaeme eine leere Liste und 403 beim Hochladen. */
   const blo=$("#beleg-open"); if(blo) blo.hidden = TESTLAUF || !(me() && me().lead && !me().mgr);
@@ -5806,11 +5823,18 @@ function back(){
      Personen mit Umsatz-Freigabe heisst "Zurueck zur Namensliste" ab jetzt:
      abgemeldet. Beim naechsten Mal fragt die App ihren PIN. 20 Sekunden
      Mehraufwand fuer zwei Menschen, dafuer kein Cockpit auf fremden Haenden. */
-  if(me() && me().rev && (ziel === "s-login" || ziel === "s-pin")){
-    /* Bruno 22.10., Fund 1: das erste Zurueck landete auf dem eingefrorenen
-       PIN-Bildschirm, die Sitzung lebte weiter. Jetzt: ein Druck, abgemeldet,
-       Namensliste. */
-    vergissGeraet(); NAV=[]; go("s-login", false); showBack(); return;
+  /* Seit 23.10. gilt das fuer ALLE mit PIN (Bruno 23e, Fund 1): "Not me" ist
+     weg, also ist der Zurueck-Pfeil der einzige Weg zur Namensliste. Erst
+     den Postausgang leeren (die eigenen Haken noch unter dem richtigen
+     Namen senden), dann abgemeldet, Namensliste. Nie der eingefrorene
+     PIN-Bildschirm. */
+  if(me() && (me().rev || brauchtPin(me())) && (ziel === "s-login" || ziel === "s-pin")){
+    const wer=me() && me().id; NAV=[]; go("s-login", false); showBack();
+    /* Hoechstens 5 s auf den Postausgang warten, dann abmelden - auch wenn
+       das Netz haengt. Tippt inzwischen jemand anderes seinen Namen, hat der
+       Wechsel die Sitzung schon sauber uebernommen, dann nichts mehr tun. */
+    mitZeitlimit(leerePostausgang(), 5000).catch(()=>{}).finally(()=>{ if(me() && me().id===wer){ vergissGeraet(); tr(); } });
+    return;
   }
   go(ziel, false);
 }
