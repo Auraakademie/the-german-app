@@ -1924,7 +1924,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-26a";
+const APP_VERSION = "2026-10-26b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -1964,6 +1964,8 @@ setMode(S.mode || "dark");
 
 function tr(){
   $$("[data-t]").forEach(e=>{const v=L()[e.dataset.t]; if(v!=null)e.innerHTML=v});
+  /* Aufgabenliste hat eigene Texte ("from Nina"), also neu zeichnen (Bruno 26a, Fund 1). */
+  try{ if(typeof ladeMeineAufgaben==="function" && me()) ladeMeineAufgaben().catch(()=>{}); }catch(e){}
   /* Schichtzeile haengt nicht an data-t, sie wird aus dem Zwischenspeicher neu
      gesetzt (Bruno 22f, Fund 8). Vor dem ersten Laden still ueberspringen. */
   try{ const c=JSON.parse(localStorage.getItem("tg-shift")||"null"); const m=me();
@@ -4403,7 +4405,7 @@ async function ladeOffene(){
      Faustregeln, keine Gesetze. Eine App, die ablehnt, was er genehmigt
      haette, wird umgangen. */
   $("#lv-offen").innerHTML = liste.length ? liste.map(r=>`
-    <div class="lvitem" data-antrag="${r.id}">
+    <div class="lvitem" data-antrag="${r.id}" style="flex-wrap:wrap">
       <div class="d">
         <b>${r.name}</b>
         <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
