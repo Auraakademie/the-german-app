@@ -1134,7 +1134,11 @@
       <img id="tk-photo-prev" alt="" style="display:none;max-width:100%;border-radius:14px;margin-top:10px">
 
       <label class="lvlab" data-t="tkWho" style="margin-top:16px"></label>
-      <select class="lvin" id="tk-who" style="width:100%"></select>
+      <!-- Nina 26.10.2026: "an mehrere Leute gleichzeitig, und wenn einer es
+           abhakt, ist es weg." Namen zum Antippen, mehrere erlaubt. Eine
+           Gruppe schliesst Einzelnamen aus (und umgekehrt). -->
+      <p class="lverr" data-t="tkWhoHint" style="margin:0 0 8px;opacity:.8"></p>
+      <div class="lvrow" id="tk-who" style="flex-wrap:wrap;gap:8px"></div>
 
       <label class="lvlab" data-t="tkHow" style="margin-top:16px"></label>
       <div class="lvrow" id="tk-mode">
@@ -1425,7 +1429,7 @@ const T={
   tkH:"Tasks", tkNew:"+ New task",
   tkNewH:"New task", tkNewS:"Write or speak it, choose who does it.",
   tkText:"What needs to be done?", tkWho:"Who does it?", tkHow:"How long?",
-  tkGroups:"Groups (first one to finish closes it for all)", tkPeople:"People",
+  tkGroups:"Groups", tkPeople:"People", tkWith:"with", tkNoTargets:"You cannot give tasks to anyone yet.", tkWhoHint:"Tap one or more names. The first one to finish closes it for everyone.",
   tkGroup:{reception:"All reception", dental_assistants:"All dental assistants", derma_assistants:"All derma assistants", dentists:"All dentists", security:"All security", everyone:"Everyone"},
   tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day",
   tkSend:"Send task", tkSent:"Sent", tkErr:"Could not send. Fill text and pick a person.",
@@ -1477,7 +1481,7 @@ const T={
   wePhotoFail:"The photo did not upload. Nothing saved. Please try again.",
   chCatNone:"— pick one (optional) —", chDocNone:"— no doctor —",
   chCats:{ask_doctor:"Ask the doctor",waiting_doctor:"Waiting for the doctor",waiting_patient:"Waiting for the patient",other:"Other"},
-  tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"— choose a person —",
+  tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"Loading names…",
   tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
   tkPhotoBad:"That photo could not be read. Please take a new one.",
   tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day", tkModeMonthly:"every month",
@@ -1619,7 +1623,7 @@ const T={
   tkH:"Tugas", tkNew:"+ Tugas baru",
   tkNewH:"Tugas baru", tkNewS:"Tulis atau ucapkan, pilih siapa yang mengerjakan.",
   tkText:"Apa yang harus dikerjakan?", tkWho:"Siapa yang mengerjakan?", tkHow:"Berapa lama?",
-  tkGroups:"Grup (yang pertama selesai menutupnya untuk semua)", tkPeople:"Orang",
+  tkGroups:"Grup", tkPeople:"Orang", tkWith:"bersama", tkNoTargets:"Kamu belum bisa memberi tugas kepada siapa pun.", tkWhoHint:"Ketuk satu nama atau lebih. Yang pertama selesai menutupnya untuk semua.",
   tkGroup:{reception:"Semua resepsionis", dental_assistants:"Semua asisten gigi", derma_assistants:"Semua asisten derma", dentists:"Semua dokter gigi", security:"Semua security", everyone:"Semua orang"},
   tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari",
   tkSend:"Kirim tugas", tkSent:"Terkirim", tkErr:"Gagal mengirim. Isi teks dan pilih orang.",
@@ -1671,7 +1675,7 @@ const T={
   wePhotoFail:"Foto gagal terunggah. Belum tersimpan. Coba lagi.",
   chCatNone:"— pilih (opsional) —", chDocNone:"— tanpa dokter —",
   chCats:{ask_doctor:"Tanya dokter",waiting_doctor:"Menunggu dokter",waiting_patient:"Menunggu pasien",other:"Lainnya"},
-  tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"— pilih orang —",
+  tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"Memuat nama…",
   tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
   tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
   tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari", tkModeMonthly:"setiap bulan",
@@ -1924,7 +1928,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-26b";
+const APP_VERSION = "2026-10-26d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3580,7 +3584,7 @@ async function ladeMeineAufgaben(){
   }
   const zeilen = liste.map(a=>`
     <div class="lvitem" data-tkrow="${a.id}" style="flex-wrap:wrap">
-      <div class="d"><b>${escHtml(a.text)}</b><small>${t.tkFrom} ${escHtml(a.von)}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small></div>
+      <div class="d"><b>${escHtml(a.text)}</b><small>${t.tkFrom} ${escHtml(a.von)}${a.mit?` \u00b7 ${t.tkWith} ${escHtml((t.tkGroup&&t.tkGroup[a.mit])||a.mit)}`:""}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small></div>
       <button class="pinrst" data-tknote="${a.id}" title="note">&#128172;</button>
       <button class="pinrst" data-tkdone="${a.id}">${t.tkTick}</button>
       <div class="rvfix" id="tknote-${a.id}" hidden style="width:100%;margin-top:6px;gap:6px">
@@ -3717,11 +3721,18 @@ function zeichneAufgabeNeu(){
   /* Namen-Menue: NUR die erlaubten Empfaenger (Nina 11.09.2026). Aerzte sehen
      ihre Assistenten, Leitung alle. Kommt aus rpc/aufgabe_ziele, nicht mehr aus
      der ganzen PEOPLE-Liste. */
-  const who=$("#tk-who"); if(who){
-    who.innerHTML = `<option value="">${escHtml(L().tkWhoPick)}</option>`;
-    who.value="";
-    aufgabeZiele().catch(()=>{});
+  tkWer = new Set();
+  const who=$("#tk-who"); if(who){ who.innerHTML = `<p class="lverr">${escHtml(L().tkWhoPick)}</p>`; aufgabeZiele().catch(()=>{}); }
+}
+let tkWer = new Set();   /* gewaehlte Empfaenger: "g:<key>" oder Personen-Kennungen */
+function tkWerKlick(wert){
+  if(tkWer.has(wert)) tkWer.delete(wert);
+  else {
+    /* Gruppe oder Namen, nicht beides; und nur eine Gruppe. */
+    if(wert.startsWith("g:")) tkWer = new Set([wert]);
+    else { for(const w of [...tkWer]) if(w.startsWith("g:")) tkWer.delete(w); tkWer.add(wert); }
   }
+  $$("#tk-who [data-tkwer]").forEach(b=>b.classList.toggle("on", tkWer.has(b.dataset.tkwer)));
 }
 
 /* Zeigt den "+ New task"-Knopf auf s-brief nur, wenn der Nutzer ueberhaupt
@@ -3742,13 +3753,11 @@ async function aufgabeZiele(){
   let gruppen=[];
   try{ gruppen = await sbGet("rpc/aufgabe_gruppen") }catch(e){ gruppen=[]; }
   const t=L();
-  const gOpts = gruppen.length ? `<optgroup label="${escHtml(t.tkGroups)}">` +
-      gruppen.map(g=>`<option value="g:${g.key}">${escHtml((t.tkGroup&&t.tkGroup[g.key])||g.key)}</option>`).join("") +
-      `</optgroup>` : "";
-  who.innerHTML = `<option value="">${escHtml(t.tkWhoPick)}</option>` + gOpts +
-    (ziele.length ? `<optgroup label="${escHtml(t.tkPeople)}">` +
-      ziele.map(p=>`<option value="${p.id}">${escHtml(p.name)}</option>`).join("") + `</optgroup>` : "");
-  who.value="";
+  who.innerHTML =
+    (gruppen.length ? `<p class="lvlab" style="width:100%;margin:4px 0 0">${escHtml(t.tkGroups)}</p>` +
+      gruppen.map(g=>`<button type="button" class="dep ${tkWer.has("g:"+g.key)?"on":""}" data-tkwer="g:${g.key}">${escHtml((t.tkGroup&&t.tkGroup[g.key])||g.key)}</button>`).join("") : "") +
+    (ziele.length ? `<p class="lvlab" style="width:100%;margin:8px 0 0">${escHtml(t.tkPeople)}</p>` +
+      ziele.map(p=>`<button type="button" class="dep ${tkWer.has(p.id)?"on":""}" data-tkwer="${p.id}">${escHtml(p.name)}</button>`).join("") : (gruppen.length ? "" : `<p class="lverr">${escHtml(t.tkNoTargets)}</p>`));
 }
 
 let tkSending=false, tkPhotoBlob=null;
@@ -3756,7 +3765,7 @@ async function aufgabeSenden(){
   const t=L(), msg=$("#tk-msg"), btn=$("#tk-send");
   if(tkSending) return;
   const text=($("#tk-text").value||"").trim();
-  const wer=($("#tk-who")||{}).value||"";
+  const gewaehlt=[...tkWer]; const wer=gewaehlt[0]||"";
   msg.className="lverr"; msg.textContent="";
   if(text.length<2 || !wer){ msg.textContent=t.tkErr; return; }
   /* Monatlich: Tag im Monat noetig. */
@@ -3767,11 +3776,12 @@ async function aufgabeSenden(){
   }
   tkSending=true; if(btn) btn.disabled=true;
   try{
-    const anGruppe = wer.startsWith("g:");
+    const anGruppe = wer.startsWith("g:"), mehrere = !anGruppe && gewaehlt.length > 1;
     const koerper = anGruppe ? {p_group:wer.slice(2), p_text:text, p_mode:tkMode}
-                             : {p_assigned:wer, p_text:text, p_mode:tkMode};
+                 : mehrere ? {p_assigned:gewaehlt, p_text:text, p_mode:tkMode}
+                           : {p_assigned:wer, p_text:text, p_mode:tkMode};
     if(tag) koerper.p_day=tag;
-    const neu = await sbSend(anGruppe ? "rpc/aufgabe_erstellen_gruppe" : "rpc/aufgabe_erstellen", koerper);
+    const neu = await sbSend(anGruppe ? "rpc/aufgabe_erstellen_gruppe" : mehrere ? "rpc/aufgabe_erstellen_mehrere" : "rpc/aufgabe_erstellen", koerper);
     /* neu = die neue Aufgaben-ID (die Funktion gibt sie zurueck). Damit das
        Foto ihr zugeordnet wird. Im Demo-Modus ist neu null -> kein Upload. */
     const id = (typeof neu==="string") ? neu : (neu && neu.id);
@@ -5851,7 +5861,13 @@ function go(id, push){
   /* Die Namensliste ist der Anfang. Von dort wird der Verlauf geleert,
      sonst wandert man beim Zurueckgehen durch den ganzen letzten Tag. */
   if(id==="s-login"){ NAV=[]; }
-  else if(push!==false && from && from!==id){ NAV.push(from); }
+  else if(push!==false && from && from!==id){
+    /* Kein Pendeln im Verlauf: s-review -> s-tasknew -> s-review -> ... fuellte
+       den Stapel, der Zurueck-Pfeil brauchte 18 Tipps (Bruno 26c, Fund 2).
+       Ein Bildschirm steht hoechstens einmal im Verlauf. */
+    const i=NAV.indexOf(from); if(i>=0) NAV.length=i;
+    NAV.push(from);
+  }
   $$(".screen").forEach(s=>s.classList.toggle("on",s.id===id));
   /* Die Dokumentnummer unten gehoert zur SOP, nicht zum Geraet. Vorher blieb
      sie stehen, nachdem man die SOP verlassen hatte: Auf der Tagesuebersicht
@@ -6113,6 +6129,7 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#lv-page")){ urlaubAlsSeite(); return }
   if(e.target.closest("#tb-save")){ tagesberichtSpeichern(); return }
   if(e.target.closest("#push-on")){ pushEinschalten(); return }
+  const tw=e.target.closest("[data-tkwer]"); if(tw){ tkWerKlick(tw.dataset.tkwer); return }
   if(e.target.closest("#rs-prev")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),-7); ladeRoster().catch(()=>{}); return; }
   if(e.target.closest("#rs-next")){ rsVon=tagPlus(rsVon||montagVon(heuteISO()),7); ladeRoster().catch(()=>{}); return; }
   if(e.target.closest("#rs-today")){ rsVon=montagVon(heuteISO()); ladeRoster().catch(()=>{}); return; }
