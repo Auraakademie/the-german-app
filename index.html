@@ -1421,7 +1421,7 @@ const T={
   beH:"Birthdays", beS:"Add or correct a birthday. Only you and the leadership see this.",
   beDay:"Day", beMonth:"Month", beSave:"Save", beClear:"Clear",
   beSaved:"Saved", beErr:"Could not save. Check the date.", beNone:"not set",
-  myTasks:"Tasks for you", tkTick:"Done",
+  myTasks:"Tasks for you", tkFrom:"from", tkTick:"Done",
   tkH:"Tasks", tkNew:"+ New task",
   tkNewH:"New task", tkNewS:"Write or speak it, choose who does it.",
   tkText:"What needs to be done?", tkWho:"Who does it?", tkHow:"How long?",
@@ -1615,7 +1615,7 @@ const T={
   beH:"Ulang tahun", beS:"Tambah atau perbaiki ulang tahun. Hanya Anda dan pimpinan yang melihat.",
   beDay:"Tanggal", beMonth:"Bulan", beSave:"Simpan", beClear:"Hapus",
   beSaved:"Tersimpan", beErr:"Gagal menyimpan. Periksa tanggalnya.", beNone:"belum diisi",
-  myTasks:"Tugas untuk Anda", tkTick:"Selesai",
+  myTasks:"Tugas untuk Anda", tkFrom:"dari", tkTick:"Selesai",
   tkH:"Tugas", tkNew:"+ Tugas baru",
   tkNewH:"Tugas baru", tkNewS:"Tulis atau ucapkan, pilih siapa yang mengerjakan.",
   tkText:"Apa yang harus dikerjakan?", tkWho:"Siapa yang mengerjakan?", tkHow:"Berapa lama?",
@@ -1924,7 +1924,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-23h";
+const APP_VERSION = "2026-10-26a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3578,7 +3578,7 @@ async function ladeMeineAufgaben(){
   }
   const zeilen = liste.map(a=>`
     <div class="lvitem" data-tkrow="${a.id}" style="flex-wrap:wrap">
-      <div class="d"><b>${escHtml(a.text)}</b><small>${escHtml(a.von)}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small></div>
+      <div class="d"><b>${escHtml(a.text)}</b><small>${t.tkFrom} ${escHtml(a.von)}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small></div>
       <button class="pinrst" data-tknote="${a.id}" title="note">&#128172;</button>
       <button class="pinrst" data-tkdone="${a.id}">${t.tkTick}</button>
       <div class="rvfix" id="tknote-${a.id}" hidden style="width:100%;margin-top:6px;gap:6px">
@@ -5864,6 +5864,15 @@ function go(id, push){
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){
+    /* Nina 26.10.2026: "Wenn man etwas anklickt, sieht man erstmal ganz viele
+       andere Sachen und muss scrollen." Fuer den Manager steht die Team-Arbeit
+       (To decide, Decided, Sheet) oben, der eigene Urlaub darunter. Fuer das
+       Personal bleibt der eigene Teil oben, es hat keinen Chef-Teil. */
+    { const lc=$("#lv-chef"), lpers=$("#lv-personal");
+      if(lc && lpers && lc.parentNode===lpers.parentNode){
+        if(me() && me().mgr){ if(lc.nextElementSibling!==lpers) lpers.parentNode.insertBefore(lc, lpers); }
+        else { if(lpers.nextElementSibling!==lc) lc.parentNode.insertBefore(lpers, lc); }
+      } }
     ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); krankscheineNachreichen().catch(()=>{});
     /* Reine Leitung (Nina, Micha) sieht nur die Team-Uebersicht, nicht den
        eigenen Antrag/Krank (Dennis, 10.09.2026). Bildschirm + lv-chef bleiben. */
