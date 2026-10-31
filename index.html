@@ -1536,6 +1536,7 @@ const T={
   tkNotePh:"Status or note for Nina and Michael", tkNoteSave:"Save note",
   tbH:"Daily report", tbTileS:"Write today's report for Nina and Michael", tbText:"What happened today", tbProb:"Problems, decisions needed", tbMorgen:"Tomorrow",
   tbSave:"Send report", tbSaved:"Report sent. Nina and Michael can read it now.", tbEmpty:"Please write at least one line.", tbPrev:"Last days", tbNone:"No report yet.",
+  tbTileMissing:"Today's report is still missing", tbMissing:"No report", tbReminded:"reminder sent",
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
@@ -1733,6 +1734,7 @@ const T={
   tkNotePh:"Status atau catatan untuk Nina dan Michael", tkNoteSave:"Simpan catatan",
   tbH:"Laporan harian", tbTileS:"Tulis laporan hari ini untuk Nina dan Michael", tbText:"Apa yang terjadi hari ini", tbProb:"Masalah, perlu keputusan", tbMorgen:"Besok",
   tbSave:"Kirim laporan", tbSaved:"Laporan terkirim. Nina dan Michael bisa membacanya sekarang.", tbEmpty:"Tulis minimal satu baris.", tbPrev:"Hari-hari terakhir", tbNone:"Belum ada laporan.",
+  tbTileMissing:"Laporan hari ini belum ditulis", tbMissing:"Belum ada laporan", tbReminded:"pengingat dikirim",
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
@@ -1959,7 +1961,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-31c";
+const APP_VERSION = "2026-10-31f";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2528,7 +2530,7 @@ async function pushEinschalten(){
 /* ================= Tagesbericht ================= */
 function tbZeile(b, t){
   const d=tagText(b.on_day,{weekday:"short",day:"numeric",month:"short"});
-  const wann=new Date(b.updated_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit"});
+  const wann=new Date(b.updated_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Makassar"});
   return `<div class="lvitem" style="flex-wrap:wrap"><div class="d"><b>${d} \u00b7 ${escHtml(b.wer)} <small>${wann}</small></b>
     ${b.auto?`<small style="opacity:.8">${escHtml(b.auto)}</small><br>`:""}
     <small style="white-space:pre-wrap">${escHtml(b.text||"")}</small>
@@ -2536,15 +2538,91 @@ function tbZeile(b, t){
     ${b.morgen?`<small style="white-space:pre-wrap"><b>${t.tbMorgen}:</b> ${escHtml(b.morgen)}</small>`:""}
   </div></div>`;
 }
+/* Ein Laufzaehler je Liste: Nur die juengste Antwort darf zeichnen. Sonst
+   ueberschreibt eine langsame alte Liste (ohne den eben gesendeten Bericht)
+   die frische und zeigt rot "No report" unter "Report sent" (Bruno 31d, Fund 2). */
+const tbLauf={};
 async function ladeTagesberichte(sel, tage){
   const t=L(); const box=$(sel); if(!box) return;
-  let rows=[]; try{ rows=await sbGet("rpc/tagesbericht_liste?p_tage="+tage); }catch(e){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; return }
-  box.innerHTML = rows.length ? rows.map(b=>tbZeile(b,t)).join("") : `<p class="lverr">${t.tbNone}</p>`;
+  const lauf=(tbLauf[sel]=(tbLauf[sel]||0)+1);
+  /* Erinnerungen (Dennis 31.10.): Wann wurde der Manager an den Bericht
+     erinnert? Steht als kleine Zeile unter dem Tag, auch an Tagen ohne
+     Bericht. Damit sieht die Leitung, dass die Erinnerung rausging. Faellt
+     der Aufruf aus oder haengt er (6 s), fehlt nur diese Zeile, die
+     Berichte kommen trotzdem (Bruno 31d, Fund 3). Beide Aufrufe parallel. */
+  let rows=[], erin={};
+  const [rl, el] = await Promise.allSettled([
+    sbGet("rpc/tagesbericht_liste?p_tage="+tage),
+    mitZeitlimit(sbGet("rpc/erinnerungen_liste?p_tage="+tage), 6000)
+  ]);
+  if(lauf!==tbLauf[sel]) return;
+  if(rl.status!=="fulfilled"){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; return }
+  rows=rl.value||[];
+  if(el.status==="fulfilled") (el.value||[]).forEach(e=>{ (erin[e.on_day]=erin[e.on_day]||[]).push(e); });
+  const uhr=e=>new Date(e.gesendet_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Makassar"});
+  const erinZeile=d=>erin[d]?`<small style="opacity:.8">${t.tbReminded} ${erin[d].map(uhr).join(", ")}</small>`:"";
+  const tage_=new Set(rows.map(b=>b.on_day));
+  const items=rows.map(b=>({d:b.on_day, h:tbZeile(b,t).replace(/<\/div><\/div>$/, erinZeile(b.on_day)+"</div></div>")}));
+  Object.keys(erin).filter(d=>!tage_.has(d)).forEach(d=>{
+    items.push({d, h:`<div class="lvitem"><div class="d"><b>${tagText(d,{weekday:"short",day:"numeric",month:"short"})}</b><small class="lverr bad" style="margin:0">${t.tbMissing} · ${t.tbReminded} ${erin[d].map(uhr).join(", ")}</small></div></div>`});
+  });
+  items.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+  box.innerHTML = items.length ? items.map(i=>i.h).join("") : `<p class="lverr">${t.tbNone}</p>`;
   return rows;
 }
+/* Kachel des Managers (Dennis 31.10.): Ab 16 Uhr Bali-Zeit steht auf der
+   Kachel rot "Today's report is still missing", solange der Bericht fuer
+   heute fehlt. Die Push-Erinnerung (16:30, 18:00) oeffnet die App mit
+   ?open=s-report, dann springt sie direkt in den Bericht. Beides nur
+   fuer den Manager, fuer alle anderen passiert hier nichts. */
+let tbOpenDone=false, tbKachelLauf=0;
+async function tagesberichtKachel(){
+  if(!(me() && me().mgr)) return;
+  const t=L(), s=$("#tb-tile-s"); if(!s) return;
+  const lauf=++tbKachelLauf;
+  const springen = !tbOpenDone && new URLSearchParams(location.search).get("open")==="s-report";
+  if(springen){ tbOpenDone=true; try{ history.replaceState(null,"",location.pathname); }catch(e){} }
+  /* Gleiche Regel wie die Erinnerung in der Datenbank (123): Sonntag nie,
+     Samstag nur mit eigenem Stempel, sonst Montag bis Freitag. Sonst steht
+     die Kachel jeden freien Tag rot da und niemand nimmt rot mehr ernst
+     (Bruno 31d, Fund 1). */
+  const bali=new Date(Date.now()+8*3600000), stunde=bali.getUTCHours(), wtag=bali.getUTCDay();
+  let faellig = wtag>=1 && wtag<=5;
+  let rows=[];
+  try{
+    const [l, a] = await Promise.all([
+      mitZeitlimit(sbGet("rpc/tagesbericht_liste?p_tage=0"), 8000),
+      wtag===6 ? mitZeitlimit(sbGet("rpc/anwesenheit_tag?p_tag="+heuteISO()), 8000).catch(()=>[]) : Promise.resolve([])
+    ]);
+    rows=l||[];
+    if(wtag===6) faellig = (a||[]).some(r=>r.person_id===me().id && r.kam);
+  }catch(e){ rows=null; }
+  /* Der Sprung aus der Push-Mitteilung kommt erst jetzt, nach dem Laden:
+     dann ist geraetKennt() durch und der Verlauf stimmt (Zurueck fuehrt zur
+     Uebersicht, nicht zur Namensliste; Bruno 31d, Fund 4). */
+  if(springen && here()!=="s-report") go("s-report");
+  if(lauf!==tbKachelLauf || rows===null) return;
+  const heute=heuteISO(), da=rows.some(b=>b.on_day===heute && b.von_mir);
+  const fehlt = faellig && !da && stunde>=16;
+  /* data-t mitfuehren, damit der Sprachumschalter (tr) den passenden Text
+     schreibt und nicht den Normaltext in Rot (Bruno 31d, Fund 5). */
+  s.dataset.t = fehlt ? "tbTileMissing" : "tbTileS";
+  s.textContent = fehlt ? t.tbTileMissing : t.tbTileS;
+  s.style.color = fehlt ? "#C4553B" : "";
+  s.style.fontWeight = fehlt ? "600" : "";
+}
+let tbZeichnenLauf=0, tbFelderTag=null;
 async function zeichneTagesbericht(){
-  const t=L(); const heute=heuteISO();
+  const t=L(); const heute=heuteISO(); const lauf=++tbZeichnenLauf;
   const dat=$("#tb-datum"); if(dat) dat.textContent=tagText(heute,{weekday:"long",day:"numeric",month:"long"});
+  /* Die Felder gehoeren zu einem Tag. Wechselt der Tag (App ueber Nacht
+     offen), werden sie sofort geleert, sonst ginge der Montagsbericht als
+     Dienstagsbericht raus (Bruno 31e, Fund 1). Am selben Tag bleibt
+     stehen, was Hendra getippt hat. */
+  if(tbFelderTag!==heute){
+    tbFelderTag=heute;
+    ["#tb-text","#tb-prob","#tb-morgen"].forEach(id=>{ const f=$(id); if(f) f.value=""; });
+  }
   const msg=$("#tb-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   /* Zahlen des Tages vorab (Dienstplan, Stempel, Abwesende), damit Hendra
      nur noch schreibt, was zaehlt. */
@@ -2556,9 +2634,15 @@ async function zeichneTagesbericht(){
   try{ const a=await sbGet("rpc/anwesenheit_tag?p_tag="+heute); const da=(a||[]).filter(r=>r.kam).length; auto.push(t.tbAutoIn.replace("{n}",da)); }catch(e){}
   const au=$("#tb-auto"); if(au) au.textContent=auto.join(" \u00b7 ");
   const rows=await ladeTagesberichte("#tb-list", 7).catch(()=>[]);
+  if(lauf!==tbZeichnenLauf) return;
   const mein=(rows||[]).find(b=>b.on_day===heute && b.von_mir);
   const tx=$("#tb-text"), pr=$("#tb-prob"), mo=$("#tb-morgen");
-  if(tx) tx.value=mein?(mein.text||""):""; if(pr) pr.value=mein?(mein.probleme||""):""; if(mo) mo.value=mein?(mein.morgen||""):"";
+  /* Felder nur vorbefuellen, nicht leeren: Hat Hendra waehrend des Ladens
+     schon getippt oder gesendet, bleibt sein Text stehen (Bruno 31d, Fund 2).
+     Das Leeren passiert oben, beim Tageswechsel. */
+  if(mein){
+    if(tx) tx.value=mein.text||""; if(pr) pr.value=mein.probleme||""; if(mo) mo.value=mein.morgen||"";
+  }
 }
 let tbSending=false;
 async function tagesberichtSpeichern(){
@@ -2566,10 +2650,13 @@ async function tagesberichtSpeichern(){
   const tx=($("#tb-text")||{}).value||"", pr=($("#tb-prob")||{}).value||"", mo=($("#tb-morgen")||{}).value||"";
   if(!tx.trim() && !pr.trim()){ if(msg){ msg.className="lverr bad"; msg.textContent=t.tbEmpty; } return; }
   tbSending=true; if(btn) btn.disabled=true;
+  tbZeichnenLauf++;   /* ein noch laufendes Vorbefuellen darf nichts mehr anfassen */
+  tbFelderTag=heuteISO();
   try{
     await sbSend("rpc/tagesbericht_speichern", {p_tag:heuteISO(), p_text:tx.trim(), p_probleme:pr.trim()||null, p_morgen:mo.trim()||null, p_auto:(($("#tb-auto")||{}).textContent||null)});
     if(msg){ msg.className="lverr good"; msg.textContent=t.tbSaved; }
     ladeTagesberichte("#tb-list", 7).catch(()=>{});
+    tagesberichtKachel().catch(()=>{});
   }catch(e){ if(msg){ msg.className="lverr bad"; msg.textContent=t.rsOffline; } }
   tbSending=false; if(btn) btn.disabled=false;
 }
@@ -3108,7 +3195,9 @@ async function geraetKennt(){
      Tagesliste, Grund geloescht, keine Meldung. */
   const akt = document.querySelector(".screen.on");
   const schonDrin = S.meId === PEOPLE[i].id && akt && akt.id !== "s-login";
-  if(schonDrin){ setzeMe(i); rolleMerken(i); save(); NAV=["s-login"]; showBack(); return true; }
+  /* Ist die App ueber die Push-Erinnerung schon in den Bericht gesprungen,
+     fuehrt Zurueck zur Uebersicht, nicht zur Namensliste (Bruno 31e, Fund 2). */
+  if(schonDrin){ setzeMe(i); rolleMerken(i); save(); NAV = akt.id==="s-report" ? ["s-login","s-brief"] : ["s-login"]; showBack(); return true; }
   setzeMe(i); rolleMerken(i); save(); tr(); renderRooms();
   go(startziel(), false);
   /* Der Zurueck-Pfeil muss zur Namensliste fuehren, auch nach dem
@@ -3227,6 +3316,7 @@ async function fuelleCockpit(){
      die Woche; Krank/Urlaub erscheint fuer Nicht-Leitung nur als "off" (Server). */
   const ro=$("#roster-open"); if(ro) ro.hidden = !(me() && !(me().lead && !me().mgr));
   const tbo=$("#tb-open"); if(tbo) tbo.hidden = !(me() && me().mgr);
+  tagesberichtKachel().catch(()=>{});
   /* Nina 23.10. 15:44: "Not me" weg, jeder hat einen PIN. Bleibt nur fuer
      Personen ohne PIN (Security). */
   const ni2=$("#nichtich2"); if(ni2) ni2.hidden = brauchtPin(me());
