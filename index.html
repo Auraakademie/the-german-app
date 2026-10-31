@@ -855,6 +855,7 @@
         <button class="pinrst" id="att-next" style="min-width:44px">&#8250;</button>
       </div>
       <button class="ghost" id="att-today" data-t="attToday" style="margin-top:4px;font-size:13px"></button>
+      <button class="pinrst" data-go="s-attmonth" data-t="amH" style="margin-top:6px"></button>
       <p class="sub" data-t="attHint"></p>
       <div id="att-list"></div>
     </section>
@@ -1096,6 +1097,20 @@
       <div id="tb-list2" style="margin-top:12px"></div>
     </section>
 
+    <!-- Monatsuebersicht Anwesenheit (Nina 31.10.2026): zu spaet, Ueberstunden,
+         Tage ohne Stempel, gegen den Dienstplan gerechnet. Leitung + Manager. -->
+    <section class="screen" id="s-attmonth">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="amH"></h1>
+      <div class="rvfix" style="align-items:center;gap:8px;margin-top:6px">
+        <button class="pinrst" id="am-prev" style="min-width:44px">&#8249;</button>
+        <b id="am-monat" style="flex:1;text-align:center"></b>
+        <button class="pinrst" id="am-next" style="min-width:44px">&#8250;</button>
+      </div>
+      <p class="sub" data-t="amHint"></p>
+      <div id="am-list" style="margin-top:10px"></div>
+    </section>
+
     <section class="screen" id="s-roster">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="rsH"></h1>
@@ -1105,6 +1120,10 @@
         <button class="pinrst" id="rs-next" style="min-width:44px">&#8250;</button>
       </div>
       <button class="ghost" id="rs-today" data-t="rsToday" style="margin-top:4px;font-size:13px"></button>
+      <button class="glass next" id="am-open" data-go="s-attmonth" hidden style="margin-top:10px">
+        <span class="rm">&#128197;</span>
+        <span style="flex:1"><span class="tt" data-t="amH"></span><span class="mt" data-t="amTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
       <div id="rs-list" style="margin-top:10px"></div>
       <p class="lverr" id="rs-foot" style="margin-top:14px;opacity:.75"></p>
     </section>
@@ -1147,7 +1166,13 @@
         <button class="dep"    data-tkmode="today"     data-t="tkToday"></button>
         <button class="dep"    data-tkmode="week"      data-t="tkWeek"></button>
         <button class="dep"    data-tkmode="recurring" data-t="tkDaily"></button>
+        <button class="dep"    data-tkmode="weekly"    data-t="tkWeekly"></button>
         <button class="dep"    data-tkmode="monthly"   data-t="tkMonthly"></button>
+      </div>
+      <!-- Nina 30.10.2026: "every week brauchen wir noch". Wochentag antippen. -->
+      <div id="tk-wd-wrap" hidden style="margin-bottom:14px">
+        <label class="lvlab" data-t="tkWdLabel"></label>
+        <div class="lvrow" id="tk-wd" style="flex-wrap:wrap;gap:6px"></div>
       </div>
       <div id="tk-day-wrap" hidden style="margin-bottom:14px">
         <label class="lvlab" data-t="tkDayLabel"></label>
@@ -1431,7 +1456,7 @@ const T={
   tkText:"What needs to be done?", tkWho:"Who does it?", tkHow:"How long?",
   tkGroups:"Groups", tkPeople:"People", tkWith:"with", tkNoTargets:"You cannot give tasks to anyone yet.", tkWhoHint:"Tap one or more names. The first one to finish closes it for everyone.",
   tkGroup:{reception:"All reception", dental_assistants:"All dental assistants", derma_assistants:"All derma assistants", dentists:"All dentists", security:"All security", everyone:"Everyone"},
-  tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day",
+  tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day", tkWeekly:"Every week", tkModeWeekly:"every week", tkWdLabel:"Which day of the week?",
   tkSend:"Send task", tkSent:"Sent", tkErr:"Could not send. Fill text and pick a person.",
   tkMicHint:"Voice is not available here. Use the microphone on your keyboard.",
   tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
@@ -1513,7 +1538,10 @@ const T={
   tbSave:"Send report", tbSaved:"Report sent. Nina and Michael can read it now.", tbEmpty:"Please write at least one line.", tbPrev:"Last days", tbNone:"No report yet.",
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
-  attToday:"Today", attCorrected:"corrected by", attWas:"was", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
+  attToday:"Today", attCorrected:"corrected by", attWas:"was",
+  amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Late = more than 10 minutes after shift start. Hendra is in charge, this is your second pair of eyes.",
+  amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in",
+  amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
   lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
   pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.",
   pushNo:"Notifications were not allowed. You can change that in the phone settings.", pushFail:"Could not turn on notifications. Try again later.",
@@ -1625,7 +1653,7 @@ const T={
   tkText:"Apa yang harus dikerjakan?", tkWho:"Siapa yang mengerjakan?", tkHow:"Berapa lama?",
   tkGroups:"Grup", tkPeople:"Orang", tkWith:"bersama", tkNoTargets:"Kamu belum bisa memberi tugas kepada siapa pun.", tkWhoHint:"Ketuk satu nama atau lebih. Yang pertama selesai menutupnya untuk semua.",
   tkGroup:{reception:"Semua resepsionis", dental_assistants:"Semua asisten gigi", derma_assistants:"Semua asisten derma", dentists:"Semua dokter gigi", security:"Semua security", everyone:"Semua orang"},
-  tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari",
+  tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari", tkWeekly:"Setiap minggu", tkModeWeekly:"setiap minggu", tkWdLabel:"Hari apa tiap minggu?",
   tkSend:"Kirim tugas", tkSent:"Terkirim", tkErr:"Gagal mengirim. Isi teks dan pilih orang.",
   tkMicHint:"Suara tidak tersedia di sini. Pakai mikrofon pada keyboard.",
   tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
@@ -1707,7 +1735,10 @@ const T={
   tbSave:"Kirim laporan", tbSaved:"Laporan terkirim. Nina dan Michael bisa membacanya sekarang.", tbEmpty:"Tulis minimal satu baris.", tbPrev:"Hari-hari terakhir", tbNone:"Belum ada laporan.",
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
-  attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
+  attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
+  amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Terlambat = lebih dari 10 menit setelah mulai shift. Hendra yang bertanggung jawab, ini pandangan kedua.",
+  amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk",
+  amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
   lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
   pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.",
   pushNo:"Notifikasi tidak diizinkan. Bisa diubah di pengaturan HP.", pushFail:"Notifikasi belum bisa dinyalakan. Coba lagi nanti.",
@@ -1928,7 +1959,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-10-26d";
+const APP_VERSION = "2026-10-31c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2261,6 +2292,41 @@ function ortText(m, lat, lng){
   const nah = m<=400;
   const link = (lat!=null&&lng!=null) ? ` <a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" rel="noopener" style="color:inherit">${t.attMap}</a>` : "";
   return nah ? " \u00b7 \ud83d\udccd "+t.attAtClinic : " \u00b7 \ud83d\udccd "+(m>=1000?(m/1000).toFixed(1)+" km":m+" m")+" "+t.attAway+link;
+}
+/* Monatsuebersicht: wer kam zu spaet, wer blieb laenger, wer hat trotz
+   Schicht nicht gestempelt. Zahlen gegen den Dienstplan, keine Bewertung. */
+let amMonat=null;
+function monatPlus(iso, n){ const d=new Date(iso+"T00:00:00Z"); d.setUTCMonth(d.getUTCMonth()+n); return d.toISOString().slice(0,10); }
+function minText(m){ return m>=60 ? Math.floor(m/60)+"h "+(m%60)+"m" : m+"m"; }
+async function ladeAnwesenheitMonat(){
+  const t=L(); const box=$("#am-list"), mo=$("#am-monat"); if(!box) return;
+  if(!amMonat) amMonat=heuteISO().slice(0,7)+"-01";
+  const monat=amMonat;
+  if(mo) mo.textContent=new Date(monat+"T00:00:00Z").toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+  box.innerHTML="";
+  let rows; try{ rows=await sbGet("rpc/anwesenheit_monat?p_monat="+monat); }
+  catch(e){ if(amMonat!==monat) return; const code=parseInt(e&&e.message,10); box.innerHTML=`<p class="lverr">${code>=400?t.rsErr.replace("{code}",code):t.rsOffline}</p>`; return; }
+  if(amMonat!==monat) return;
+  const mitDaten=(rows||[]).filter(r=>r.tage>0||r.ohne_stempel>0);
+  const tagWort=(n,eins,viele)=>n+" "+(n===1?eins:viele);
+  box.innerHTML = mitDaten.length ? mitDaten.map(r=>{
+      /* Zeile 1: Stempel. Zeile 2: Bewertung gegen den Dienstplan - nur, wo
+         es einen gibt. Stempeltage ohne Dienstplan werden genannt, nicht
+         verschwiegen (Bruno 31a, Fund 1). Keine haengenden Punkte (Fund 4). */
+      const z1=[tagWort(r.tage,t.amDay,t.amDays), r.stunden+" h"];
+      if(r.ohne_stempel) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_stempel,t.amNoStampDay,t.amNoStamp)}</span>`);
+      if(r.ohne_plan) z1.push(`${tagWort(r.ohne_plan,t.amNoPlanDay,t.amNoPlan)}`);
+      const bewertet = r.tage - r.ohne_plan;   /* Stempeltage mit Dienstplan */
+      const z2=[];
+      if(r.zu_spaet) z2.push(`<span class="warn" style="display:inline">${r.zu_spaet}\u00d7 ${t.amLate} (${minText(r.spaet_min)})</span>`);
+      else if(bewertet>0) z2.push(t.amOnTime);
+      if(r.ueber_min) z2.push(`${t.amOver} ${minText(r.ueber_min)}`);
+      if(!bewertet && !r.zu_spaet && r.ohne_plan>0) z2.push(t.amNoPlanInfo);   /* nur, wenn wirklich Plan fehlt (Bruno 31b, Fund 2) */
+      return `<div class="lvitem"><div class="d"><b>${escHtml(r.name)}</b>
+      <small style="display:block">${z1.join(" \u00b7 ")}</small>
+      ${z2.length?`<small style="display:block">${z2.join(" \u00b7 ")}</small>`:""}</div>
+      <span class="lvst ${r.zu_spaet?"requested":""}">${r.zu_spaet||0}</span></div>`; }).join("")
+    : `<p class="lverr">${t.amNone}</p>`;
 }
 let attTag=null;
 async function ladeAnwesenheit(){
@@ -3563,7 +3629,7 @@ function escHtml(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&am
 
 function tkModeText(m){
   const t=L();
-  return {once:t.tkModeOnce,hours:t.tkModeHours,today:t.tkModeToday,week:t.tkModeWeek,recurring:t.tkModeDaily,monthly:t.tkModeMonthly}[m]||m;
+  return {once:t.tkModeOnce,hours:t.tkModeHours,today:t.tkModeToday,week:t.tkModeWeek,recurring:t.tkModeDaily,monthly:t.tkModeMonthly,weekly:t.tkModeWeekly}[m]||m;
 }
 
 /* Mitarbeiter: meine offenen Aufgaben.
@@ -3654,7 +3720,7 @@ async function ladeAufgabenUebersicht(){
   /* Einmalig heisst: nicht wiederkehrend. Once, A few hours, Today und This
      week sind alle einmalig (Bruno 3. Runde, Fund 7 - vorher griff die Regel
      nur bei "once", die anderen drei blieben fuer immer kleben). */
-  const einmalig = a => a.mode !== "recurring" && a.mode !== "monthly";
+  const einmalig = a => a.mode !== "recurring" && a.mode !== "monthly" && a.mode !== "weekly";
   const frisch=[], alt=[];
   liste.forEach(a=>{
     if(!a.erledigt || !einmalig(a)){ frisch.push(a); return }
@@ -3669,7 +3735,7 @@ async function ladeAufgabenUebersicht(){
                  : spaet ? t.tkExpired : t.tkOpenLbl;
     return `<div class="lvitem" style="flex-wrap:wrap">
       <div class="d"><b>${escHtml(a.text)}</b>
-        <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)} &middot; ${status}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small>
+        <small>${escHtml(a.wer)} &middot; ${tkModeText(a.mode)}${a.mode==="weekly"&&a.weekday!=null?" ("+wochentagName(a.weekday,true)+")":""} &middot; ${status}${a.note?`<br><span style="white-space:pre-wrap">\ud83d\udcac ${escHtml(a.note)}</span>`:""}</small>
         <div class="rvfix"><button class="lvno" data-tkdel="${a.id}">${t.tkDelete}</button>
           <button class="pinrst" data-tknote="${a.id}">&#128172;</button></div>
         <div class="rvfix" id="tknote-${a.id}" hidden style="width:100%;margin-top:6px;gap:6px">
@@ -3706,8 +3772,18 @@ async function aufgabeLoeschen(id){
 }
 
 /* Neue-Aufgabe-Bildschirm frisch aufbauen */
+let tkWochentag=1;   /* Montag */
+function wochentagName(wd, kurz){
+  const d=new Date(Date.UTC(2026,0,4+wd));   /* 4.1.2026 ist ein Sonntag */
+  return d.toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{weekday: kurz?"short":"long", timeZone:"UTC"});
+}
+function zeichneWochentage(){
+  const box=$("#tk-wd"); if(!box) return;
+  box.innerHTML=[1,2,3,4,5,6,0].map(wd=>`<button type="button" class="dep ${wd===tkWochentag?"on":""}" data-tkwd="${wd}">${wochentagName(wd,true)}</button>`).join("");
+}
 function zeichneAufgabeNeu(){
-  tkMode="once";
+  tkMode="once"; tkWochentag=1;
+  const ww=$("#tk-wd-wrap"); if(ww) ww.hidden=true;
   const tx=$("#tk-text"); if(tx) tx.value="";
   const msg=$("#tk-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   const hint=$("#tk-mic-hint"); if(hint) hint.hidden=true;
@@ -3781,6 +3857,7 @@ async function aufgabeSenden(){
                  : mehrere ? {p_assigned:gewaehlt, p_text:text, p_mode:tkMode}
                            : {p_assigned:wer, p_text:text, p_mode:tkMode};
     if(tag) koerper.p_day=tag;
+    if(tkMode==="weekly") koerper.p_weekday=tkWochentag;
     const neu = await sbSend(anGruppe ? "rpc/aufgabe_erstellen_gruppe" : mehrere ? "rpc/aufgabe_erstellen_mehrere" : "rpc/aufgabe_erstellen", koerper);
     /* neu = die neue Aufgaben-ID (die Funktion gibt sie zurueck). Damit das
        Foto ihr zugeordnet wird. Im Demo-Modus ist neu null -> kein Upload. */
@@ -5219,6 +5296,7 @@ async function wiederVerbinden(){
       if(h==="s-review"){ ladeAufgabenUebersicht().catch(()=>{}); }
       if(h==="s-attend" && !document.querySelector("#att-list [id^='attedit-']:not([hidden])")){ ladeAnwesenheit().catch(()=>{}); }
       if(h==="s-reports"){ ladeTagesberichte("#tb-list2", 14).catch(()=>{}); }
+      if(h==="s-attmonth"){ ladeAnwesenheitMonat().catch(()=>{}); }
     }
   }catch(e){}
   finally{ wiederverbindeLaeuft = false; }
@@ -5909,7 +5987,8 @@ function go(id, push){
   }
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bday"){ ladeBday().catch(()=>{}); }
-  if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); }
+  if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); const ao=$("#am-open"); if(ao) ao.hidden=!istLeitung(); }
+  if(id==="s-attmonth"){ amMonat=null; ladeAnwesenheitMonat().catch(()=>{}); }
   if(id==="s-away"){ ladeAbwesend(true).catch(()=>{}); }
   if(id==="s-report"){ zeichneTagesbericht().catch(()=>{}); }
   if(id==="s-reports"){ ladeTagesberichte("#tb-list2", 14).catch(()=>{}); }
@@ -6019,7 +6098,9 @@ document.addEventListener("click",e=>{
   if(tkw){ tkWho=tkw.dataset.tkwho; $$("#tk-who .dep").forEach(b=>b.classList.toggle("on", b===tkw)); return; }
   const tkm=e.target.closest("[data-tkmode]");
   if(tkm){ tkMode=tkm.dataset.tkmode; $$("#tk-mode .dep").forEach(b=>b.classList.toggle("on", b===tkm));
-    const dw=$("#tk-day-wrap"); if(dw) dw.hidden = tkMode!=="monthly"; return; }
+    const dw=$("#tk-day-wrap"); if(dw) dw.hidden = tkMode!=="monthly";
+    const ww=$("#tk-wd-wrap"); if(ww){ ww.hidden = tkMode!=="weekly"; if(!ww.hidden) zeichneWochentage(); } return; }
+  const twd=e.target.closest("[data-tkwd]"); if(twd){ tkWochentag=Number(twd.dataset.tkwd); $$("#tk-wd .dep").forEach(b=>b.classList.toggle("on", Number(b.dataset.tkwd)===tkWochentag)); return; }
   if(e.target.closest("#tk-mic")){ aufgabeSprechen(); return; }
   if(e.target.closest("#tk-photo-btn")){ const pi=$("#tk-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#tk-send")){ aufgabeSenden(); return; }
@@ -6106,6 +6187,8 @@ document.addEventListener("click",e=>{
   const es=e.target.closest("[data-esave]"); if(es){ datumAendern(es.dataset.esave); return }
   const ak=e.target.closest("[data-attedit]"); if(ak){ const ed=$("#attedit-"+ak.dataset.attedit); if(ed) ed.hidden=!ed.hidden; return }
   const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave); return }
+  if(e.target.closest("#am-prev")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",-1); ladeAnwesenheitMonat().catch(()=>{}); return }
+  if(e.target.closest("#am-next")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",1); ladeAnwesenheitMonat().catch(()=>{}); return }
   if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-next")){ attTag=tagPlus(attTag||heuteISO(),1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-today")){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); return }
