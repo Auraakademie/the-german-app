@@ -990,11 +990,18 @@
         <p class="eyebrow" data-t="lvNews"></p>
         <div id="lv-news"></div>
 
-        <!-- Alle Krankmeldungen der letzten 90 Tage, mit Krankschein (Nina
-             02.11.2026: "alles bei uns anzeigen, also Arztnachweis etc.").
+        <!-- Krankmeldungen als Jahresuebersicht je Person, mit Krankschein
+             (Nina 02.11.2026: "alles bei uns anzeigen, also Arztnachweis
+             etc." und "Jahresuebersicht waere toll").
              Vorher verschwand eine Meldung samt Brief aus ihrer Sicht, sobald
              Hendra "noted" gedrueckt hatte. -->
         <p class="eyebrow" data-t="lvKrankH"></p>
+        <div class="rvfix" style="align-items:center;gap:8px;margin-top:4px">
+          <button class="pinrst" id="krank-prev" style="min-width:44px">&#8249;</button>
+          <b id="krank-jahr" style="flex:1;text-align:center"></b>
+          <button class="pinrst" id="krank-next" style="min-width:44px">&#8250;</button>
+        </div>
+        <p class="sub" data-t="lvKrankRule" style="margin-top:4px"></p>
         <div id="lv-krank"></div>
 
         <p class="eyebrow" data-t="lvSheet"></p>
@@ -1548,7 +1555,7 @@ const T={
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
-  amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Hours count from 15 minutes before shift start to 15 minutes after shift end. Later than that is overtime, earlier does not count. Late = more than 10 minutes after shift start. Hendra is in charge, this is your second pair of eyes.",
+  amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Hours count from 15 minutes before shift start to 15 minutes after shift end. Later than that is overtime, earlier does not count. Late = after the real start, 15 minutes before the shift (08:45 for a 09:00 shift). Hendra is in charge, this is your second pair of eyes.",
   amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in",
   amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNotCounted:"not counted (before shift)", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
   lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
@@ -1572,7 +1579,7 @@ const T={
   lvNews:"Decided by Hendra", lvNewsNone:"Nothing in the last two weeks.",
   st_sick:"Sick",
   lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
-  lvKrankH:"Sick reports (last 90 days)", lvKrankNone:"No sick reports in the last 90 days.", lvKrankSeenBy:"letter seen by", lvKrankNotedBy:"noted by", lvKrankDeleted:"doctor's letter deleted automatically (60 days)", awAll:"All sick reports",
+  lvKrankH:"Sick reports", lvKrankNone:"No sick reports in this year.", lvKrankReports:"reports", lvKrankReport:"report", lvKrankSickDays:"sick days", lvKrankRule:"A report counts in the year it starts. Letters are deleted automatically 60 days after the last sick day.", lvKrankSeenBy:"letter seen by", lvKrankNotedBy:"noted by", lvKrankDeleted:"doctor's letter deleted automatically (60 days)", awAll:"All sick reports",
   pinReset:"Reset PIN", pinDone:"reset",
   pinAsk:"Reset the PIN for %s? She chooses a new one next time she signs in.",
   pinResetNew:"New start PIN for %s:  %p\n\nTell her this number now. She will be asked to choose her own PIN when she signs in.\n\nThis number is shown only once.",
@@ -1747,7 +1754,7 @@ const T={
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
-  amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Jam dihitung dari 15 menit sebelum shift mulai sampai 15 menit setelah shift selesai. Lebih dari itu lembur, lebih awal tidak dihitung. Terlambat = lebih dari 10 menit setelah mulai shift. Hendra yang bertanggung jawab, ini pandangan kedua.",
+  amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Jam dihitung dari 15 menit sebelum shift mulai sampai 15 menit setelah shift selesai. Lebih dari itu lembur, lebih awal tidak dihitung. Terlambat = setelah mulai kerja sebenarnya, 15 menit sebelum shift (08:45 untuk shift 09:00). Hendra yang bertanggung jawab, ini pandangan kedua.",
   amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk",
   amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNotCounted:"tidak dihitung (sebelum shift)", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
   lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
@@ -1771,7 +1778,7 @@ const T={
   lvNews:"Keputusan Hendra", lvNewsNone:"Tidak ada dalam dua minggu terakhir.",
   st_sick:"Sakit",
   lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
-  lvKrankH:"Laporan sakit (90 hari terakhir)", lvKrankNone:"Tidak ada laporan sakit dalam 90 hari terakhir.", lvKrankSeenBy:"surat dilihat oleh", lvKrankNotedBy:"dicatat oleh", lvKrankDeleted:"surat dokter sudah dihapus otomatis (60 hari)", awAll:"Semua laporan sakit",
+  lvKrankH:"Laporan sakit", lvKrankNone:"Tidak ada laporan sakit di tahun ini.", lvKrankReports:"laporan", lvKrankReport:"laporan", lvKrankSickDays:"hari sakit", lvKrankRule:"Laporan dihitung di tahun saat mulai. Surat dokter dihapus otomatis 60 hari setelah hari sakit terakhir.", lvKrankSeenBy:"surat dilihat oleh", lvKrankNotedBy:"dicatat oleh", lvKrankDeleted:"surat dokter sudah dihapus otomatis (60 hari)", awAll:"Semua laporan sakit",
   pinReset:"Reset PIN", pinDone:"direset",
   pinAsk:"Reset PIN untuk %s? Dia akan memilih PIN baru saat masuk berikutnya.",
   pinResetNew:"PIN awal baru untuk %s:  %p\n\nBeri tahu dia sekarang. Saat masuk, dia akan diminta memilih PIN sendiri.\n\nNomor ini hanya ditampilkan sekali.",
@@ -1971,7 +1978,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-02b";
+const APP_VERSION = "2026-11-02c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -4646,21 +4653,42 @@ async function ladeNeuigkeiten(){
       <span class="lvst ${r.status}">${t["st_"+r.status]||r.status}</span>
     </div>`).join("")
     : `<p class="lverr">${t.lvNewsNone}</p>`;
+  krankJahr=null;   /* Bildschirm neu geoeffnet: laufendes Jahr (Bruno 126, Fund 3) */
   ladeKrank();
 }
 
-/* Alle Krankmeldungen der letzten 90 Tage fuer Leitung und Manager (Nina
-   02.11.2026). Zeitraum, Tage, Stand, wer den Brief gesehen und wer "noted"
-   hat, und der Krankschein zum Ansehen - im eigenen Fenster, nie als Link
-   (Elke). Ein nach 60 Tagen geloeschter Brief wird genannt, nicht verschwiegen. */
+/* Krankmeldungen eines Kalenderjahres fuer Leitung und Manager (Nina
+   02.11.2026: "Jahresuebersicht waere toll"). Je Person ein Block mit Summe
+   (Meldungen, Kranktage), darunter die Meldungen: Zeitraum, Tage, Stand, wer
+   den Brief gesehen und wer "noted" hat, und der Krankschein zum Ansehen -
+   im eigenen Fenster, nie als Link (Elke). Ein nach 60 Tagen geloeschter
+   Brief wird genannt, nicht verschwiegen. Eine Meldung zaehlt im Jahr ihres
+   Beginns (Migration 126). */
+let krankJahr=null;
 async function ladeKrank(){
   const kasten=$("#lv-krank"); if(!kasten || !istLeitung()) return;
   const t=L(); let liste=[];
+  if(!krankJahr) krankJahr=parseInt(heuteISO().slice(0,4),10);
+  const jahr=krankJahr;
+  const jb=$("#krank-jahr"); if(jb) jb.textContent=String(jahr);
+  const nx=$("#krank-next"); if(nx) nx.disabled = jahr>=parseInt(heuteISO().slice(0,4),10);
+  /* Bruno 126, Fund 1: nicht leeren. Die alte Liste bleibt stehen, bis die
+     neue da ist; eine leere Liste saehe aus wie "niemand war krank". */
+  kasten.style.opacity=".45";
   try{
-  liste = await sbGet("rpc/krankmeldungen?p_tage=90");
+  liste = await sbGet("rpc/krankmeldungen?p_jahr="+jahr);
+  if(krankJahr!==jahr) return;   /* inzwischen weitergeblaettert */
+  kasten.style.opacity="";
   /* standTag liefert schon den Bali-Tag als Text (Bruno 125, Fund 1) */
   const baliTag = ts => ts ? standTag(ts) : null;
-  kasten.innerHTML = liste.length ? liste.map(r=>{
+  /* je Person buendeln; die Datenbank liefert schon nach Name sortiert */
+  const gruppen=[]; const byId={};
+  for(const r of liste){
+    let g=byId[r.person_id]; if(!g){ g={name:r.name, dept:r.department, tage:0, n:0, rows:[]}; byId[r.person_id]=g; gruppen.push(g); }
+    g.rows.push(r); g.n++; g.tage+=Number(r.days)||0;
+  }
+  gruppen.sort((a,b)=>b.tage-a.tage || String(a.name).localeCompare(String(b.name)));
+  const zeile = r => {
     const brief = r.krankschein_pfad
       ? `<button class="pinrst" data-cert-view="${escHtml(r.krankschein_pfad)}" data-cert-typ="${escHtml(r.krankschein_typ||"")}" style="margin-top:6px">&#128196; ${t.lvCertView}</button>`
       : r.krankschein_geloescht ? `<small style="display:block">${t.lvKrankDeleted}</small>`
@@ -4669,13 +4697,16 @@ async function ladeKrank(){
     const noted = r.decided_by ? `<small style="display:block">${t.lvKrankNotedBy} ${escHtml(r.decided_by)}${r.decided_at?" \u00b7 "+datumKurz(baliTag(r.decided_at)):""}</small>` : "";
     const notiz = r.decided_note ? `<small style="display:block">${escHtml(r.decided_note)}</small>` : "";
     const stand = r.status==="approved" ? t.lvNoted : (t["st_"+r.status]||r.status);
-    return `<div class="lvitem" style="flex-wrap:wrap">
-      <div class="d"><b>${escHtml(r.name)}</b>
-        <small style="display:block">${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""} &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}${r.department?" &middot; "+escHtml(r.department):""}</small>
+    return `<div class="lvitem" style="flex-wrap:wrap;margin-left:10px">
+      <div class="d"><small style="display:block"><b>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}</b> &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}</small>
         ${gesehen}${noted}${notiz}${brief}</div>
-      <span class="lvst ${escHtml(r.status)}">${stand}</span></div>`; }).join("")
+      <span class="lvst ${escHtml(r.status)}">${stand}</span></div>`; };
+  const summe = g => `${g.n} ${g.n===1?t.lvKrankReport:t.lvKrankReports} \u00b7 ${+g.tage.toFixed(1)} ${t.lvKrankSickDays}`;
+  kasten.innerHTML = gruppen.length ? gruppen.map(g=>`<div class="lvitem"><div class="d"><b>${escHtml(g.name)}</b>
+      <small style="display:block">${summe(g)}${g.dept?" &middot; "+escHtml(g.dept):""}</small></div>
+      <span class="lvst">${+g.tage.toFixed(1)}</span></div>${g.rows.map(zeile).join("")}`).join("")
     : `<p class="lverr">${t.lvKrankNone}</p>`;
-  }catch(e){ const code=parseInt(e&&e.message,10); kasten.innerHTML=`<p class="lverr">${code>=400?t.rsErr.replace("{code}",code):t.rsOffline}</p>`; }
+  }catch(e){ if(krankJahr!==jahr) return; kasten.style.opacity=""; const code=parseInt(e&&e.message,10); kasten.innerHTML=`<p class="lverr">${code>=400?t.rsErr.replace("{code}",code):t.rsOffline}</p>`; }
 }
 
 /* Sein Blatt, aus der Datenbank heraus.
@@ -6318,6 +6349,8 @@ document.addEventListener("click",e=>{
   const es=e.target.closest("[data-esave]"); if(es){ datumAendern(es.dataset.esave); return }
   const ak=e.target.closest("[data-attedit]"); if(ak){ const ed=$("#attedit-"+ak.dataset.attedit); if(ed) ed.hidden=!ed.hidden; return }
   const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave); return }
+  if(e.target.closest("#krank-prev")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))-1; ladeKrank().catch(()=>{}); return }
+  if(e.target.closest("#krank-next")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))+1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#am-prev")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",-1); ladeAnwesenheitMonat().catch(()=>{}); return }
   if(e.target.closest("#am-next")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",1); ladeAnwesenheitMonat().catch(()=>{}); return }
   if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
