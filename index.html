@@ -1335,6 +1335,18 @@
       <h1 data-t="beH"></h1>
       <p class="sub" data-t="beS"></p>
       <div id="be-list"></div>
+      <!-- Leute ohne App-Konto (128, Nina 03.11.2026: "Rangga ... auch wenn er
+           keinen Account hat"). Nur Name + Tag + Monat, eigene Tabelle. -->
+      <p class="eyebrow" style="margin-top:22px" data-t="beExtH"></p>
+      <p class="sub" data-t="beExtS"></p>
+      <div id="be-extern"></div>
+      <div class="rvfix" style="margin-top:10px">
+        <input class="lvin" id="bx-name" type="text" maxlength="60" autocomplete="off">
+        <input class="lvin" style="width:64px;flex:0 0 64px" type="number" inputmode="numeric" min="1" max="31" id="bx-d">
+        <input class="lvin" style="width:64px;flex:0 0 64px" type="number" inputmode="numeric" min="1" max="12" id="bx-m">
+        <button class="pinrst" id="bx-add"></button>
+      </div>
+      <small class="be-msg" id="bx-msg"></small>
     </section>
 
     <section class="screen" id="s-lead">
@@ -1465,6 +1477,7 @@ const T={
   beH:"Birthdays", beS:"Add or correct a birthday. Only you and the leadership see this.",
   beDay:"Day", beMonth:"Month", beSave:"Save", beClear:"Clear",
   beSaved:"Saved", beErr:"Could not save. Check the date.", beNone:"not set",
+  beExtH:"Without app account", beExtS:"People who are not in the app, for example drivers or helpers. Name, day, month.", beExtName:"Name", beExtAdd:"Add", beExtNone:"Nobody added yet.",
   myTasks:"Tasks for you", tkFrom:"from", tkTick:"Done",
   tkH:"Tasks", tkNew:"+ New task",
   tkNewH:"New task", tkNewS:"Write or speak it, choose who does it.",
@@ -1664,6 +1677,7 @@ const T={
   beH:"Ulang tahun", beS:"Tambah atau perbaiki ulang tahun. Hanya Anda dan pimpinan yang melihat.",
   beDay:"Tanggal", beMonth:"Bulan", beSave:"Simpan", beClear:"Hapus",
   beSaved:"Tersimpan", beErr:"Gagal menyimpan. Periksa tanggalnya.", beNone:"belum diisi",
+  beExtH:"Tanpa akun aplikasi", beExtS:"Orang yang tidak ada di aplikasi, misalnya sopir atau pembantu. Nama, tanggal, bulan.", beExtName:"Nama", beExtAdd:"Tambah", beExtNone:"Belum ada yang ditambahkan.",
   myTasks:"Tugas untuk Anda", tkFrom:"dari", tkTick:"Selesai",
   tkH:"Tugas", tkNew:"+ Tugas baru",
   tkNewH:"Tugas baru", tkNewS:"Tulis atau ucapkan, pilih siapa yang mengerjakan.",
@@ -1982,7 +1996,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-03a";
+const APP_VERSION = "2026-11-03b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2786,7 +2800,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -3641,7 +3655,7 @@ async function ladeBday(){
     const datum = String(r.bday_day).padStart(2,"0")+"."+String(r.bday_month).padStart(2,"0");
     /* Hervorgehoben wird nur noch, was wirklich in dieser Woche liegt. */
     return `<div class="lvitem">
-      <div class="d"><b>${r.name}</b><small>${r.role_en} &middot; ${datum}</small></div>
+      <div class="d"><b>${escHtml(r.name)}</b><small>${r.role_en ? escHtml(r.role_en)+" &middot; " : ""}${datum}</small></div>
       <span class="lvst ${wo===0?"requested":""}">${wann}</span>
     </div>`;
   };
@@ -3655,10 +3669,10 @@ async function ladeBday(){
   const hinweis = diese.map(r=>{
     const bis = tageBisGeburtstag(r.bday_day, r.bday_month);
     const txt = (nachDo && bis<0) ? t.rvThuHintLate : t.rvThuHint;
-    return `<div class="glass hak"><div class="t">&#127874; ${r.name}</div>
+    return `<div class="glass hak"><div class="t">&#127874; ${escHtml(r.name)}</div>
       <div class="m">${txt}</div></div>`; }).join("")
     + naechste.map(r=>
-    `<div class="glass"><div class="t">&#127874; ${r.name}</div>
+    `<div class="glass"><div class="t">&#127874; ${escHtml(r.name)}</div>
       <div class="m">${t.rvNextWeek}</div></div>`).join("");
   wrap.innerHTML = hinweis + bdays.map(zeile).join("");
 }
@@ -3668,7 +3682,7 @@ async function ladeBday(){
 async function ladeGeburtstagEdit(){
   const t=L(), box=$("#be-list"); if(!box) return;
   let leute=[];
-  try{ leute = await sbGet("rpc/geburtstage_alle") }catch(e){ box.innerHTML=`<p class="lverr">${t.beErr}</p>`; return }
+  try{ leute = await sbGet("rpc/geburtstage_alle") }catch(e){ box.innerHTML=`<p class="lverr">${t.beErr}</p>`; ladeGeburtstagExtern().catch(()=>{}); return }
   box.innerHTML = leute.map(p=>{
     const d = p.bday_day||"", m = p.bday_month||"";
     const gesetzt = p.bday_day && p.bday_month;
@@ -3688,6 +3702,46 @@ async function ladeGeburtstagEdit(){
       </div>
     </div>`;
   }).join("");
+  ladeGeburtstagExtern().catch(()=>{});
+}
+
+/* Leute ohne App-Konto (128). Eigene Liste unter den Konten, mit Entfernen. */
+async function ladeGeburtstagExtern(){
+  const t=L(), box=$("#be-extern"); if(!box) return;
+  const nameIn=$("#bx-name"), dIn=$("#bx-d"), mIn=$("#bx-m"), add=$("#bx-add");
+  if(nameIn) nameIn.placeholder=t.beExtName; if(dIn) dIn.placeholder=t.beDay; if(mIn) mIn.placeholder=t.beMonth; if(add) add.textContent=t.beExtAdd;
+  let rows=[];
+  try{ rows = await sbGet("rpc/geburtstage_extern") }catch(e){ box.innerHTML=`<p class="lverr">${t.beErr}</p>`; return }
+  if(!rows.length){ box.innerHTML=`<p class="sub">${t.beExtNone}</p>`; return }
+  box.innerHTML = rows.map(r=>`<div class="lvitem" data-xrow="${r.id}">
+      <div class="d"><b>${escHtml(r.name)}</b><small>${String(r.bday_day).padStart(2,"0")}.${String(r.bday_month).padStart(2,"0")}</small></div>
+      <button class="lvno" data-bxdel="${r.id}">${t.beClear}</button>
+    </div>`).join("");
+}
+
+async function geburtstagExternAnlegen(){
+  const t=L(), msg=$("#bx-msg"), add=$("#bx-add");
+  const name=($("#bx-name").value||"").trim(), d=Number($("#bx-d").value), m=Number($("#bx-m").value);
+  if(msg){ msg.className="be-msg"; msg.textContent=""; }
+  if(!name || !(m>=1&&m<=12) || !(d>=1 && d<=maxTagImMonat(m))){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } return; }
+  if(add) add.disabled=true;            /* Doppeltipp */
+  try{
+    await sbSend("rpc/geburtstag_extern_setzen", {p_name:name, p_day:d, p_month:m});
+    $("#bx-name").value=""; $("#bx-d").value=""; $("#bx-m").value="";
+    if(msg){ msg.className="be-msg good"; msg.textContent=t.beSaved; }
+    await ladeGeburtstagExtern();
+  }catch(e){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } }
+  finally{ if(add) add.disabled=false; }
+}
+
+async function geburtstagExternEntfernen(id){
+  const t=L(), msg=$("#bx-msg");
+  try{
+    await sbSend("rpc/geburtstag_extern_loeschen", {p_id:id});
+    const row=$("#be-extern [data-xrow='"+id+"']"); if(row) row.remove();
+    if(!$("#be-extern .lvitem")) $("#be-extern").innerHTML=`<p class="sub">${t.beExtNone}</p>`;
+    if(msg){ msg.className="be-msg good"; msg.textContent=t.beSaved; }
+  }catch(e){ if(msg){ msg.className="be-msg lverr"; msg.textContent=t.beErr; } }
 }
 
 /* Bruno-Fund: 31.02 oder 31.04 wurden still gespeichert und am falschen Tag
@@ -6248,6 +6302,9 @@ document.addEventListener("click",e=>{
   if(bsv){ geburtstagSpeichern(bsv.dataset.bsave); return; }
   const bcl=e.target.closest("[data-bclear]");
   if(bcl){ geburtstagEntfernen(bcl.dataset.bclear); return; }
+  if(e.target.closest("#bx-add")){ geburtstagExternAnlegen(); return; }
+  const bxd=e.target.closest("[data-bxdel]");
+  if(bxd){ geburtstagExternEntfernen(bxd.dataset.bxdel); return; }
 
   /* Aufgaben (Nina verteilt) */
   const tkdone=e.target.closest("[data-tkdone]");
