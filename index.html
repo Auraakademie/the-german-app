@@ -826,9 +826,10 @@
           <span class="mt" data-t="rsTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
-      <!-- Mitteilungen aufs Handy (23.10.2026): nur Leitung/Manager, nur auf
-           Tipp (iPhone verlangt eine Nutzerhandlung). Versteckt, wenn das Handy
-           es nicht kann oder es schon an ist. -->
+      <!-- Mitteilungen aufs Handy (23.10.2026), seit 05.11.2026 fuer alle
+           (Dennis), nur auf Tipp (iPhone verlangt eine Nutzerhandlung).
+           Versteckt, wenn das Handy es nicht kann, es schon an ist oder das
+           Handy geteilt wird. -->
       <button class="pinrst" id="push-on" hidden style="margin-top:12px">&#128276; <span data-t="pushOn"></span></button>
       <p class="lverr" id="push-hint" hidden style="margin:6px 0 0"></p>
 
@@ -1565,7 +1566,7 @@ const T={
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
-  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.",
+  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} for this day? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
@@ -1594,7 +1595,7 @@ const T={
   amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in",
   amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNotCounted:"not counted (before shift)", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
   lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
-  pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.",
+  pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.", pushOkStaff:"Notifications are on. You will hear about new tasks for you and when management has handled your message.",
   pushNo:"Notifications were not allowed. You can change that in the phone settings.", pushFail:"Could not turn on notifications. Try again later.",
   pushIos:"To get notifications on iPhone: Share \u2192 Add to Home Screen, then open the app from there.",
   lvSickDel:"Remove (entered by mistake)", lvSickDelAsk:"Remove this sick report? Use this only if it was entered by mistake, for example instead of leave.",
@@ -1768,7 +1769,7 @@ const T={
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
-  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.",
+  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} untuk hari ini? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
@@ -1797,7 +1798,7 @@ const T={
   amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk",
   amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNotCounted:"tidak dihitung (sebelum shift)", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
   lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
-  pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.",
+  pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.", pushOkStaff:"Notifikasi aktif. Kamu akan tahu tugas baru untukmu dan saat pesanmu sudah ditangani manajemen.",
   pushNo:"Notifikasi tidak diizinkan. Bisa diubah di pengaturan HP.", pushFail:"Notifikasi belum bisa dinyalakan. Coba lagi nanti.",
   pushIos:"Untuk notifikasi di iPhone: Bagikan \u2192 Tambah ke Layar Utama, lalu buka aplikasi dari sana.",
   lvSickDel:"Hapus (salah input)", lvSickDelAsk:"Hapus laporan sakit ini? Hanya jika salah input, misalnya seharusnya cuti.",
@@ -2021,7 +2022,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-05a";
+const APP_VERSION = "2026-11-05b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2412,6 +2413,7 @@ async function ladeAnwesenheit(){
         <input class="lvin" type="time" data-akam="${r.person_id}" value="${r.kam||""}" style="flex:1;min-width:110px">
         <input class="lvin" type="time" data-aging="${r.person_id}" value="${r.ging||""}" style="flex:1;min-width:110px">
         <button class="lvyes" data-attsave="${r.person_id}">${t.attSave}</button>
+        ${(r.kam && tag<heuteISO())?`<button class="pinrst" data-attdel="${r.person_id}" style="width:100%">${t.attDel}</button>`:""}
       </div>`:""}
     </div>`).join("")
     : `<p class="lverr">${t.attNone}</p>`;
@@ -2427,6 +2429,23 @@ async function anwesenheitSpeichern(pid){
     /* Bruno 23a, Fund 1: Vorher stand hier "nichts ist verloren" und die Zeit
        war weg. Jetzt: ehrlicher Satz, die getippte Zeit bleibt im Feld. */
     chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
+  chefSendet=false;
+  await ladeAnwesenheit().catch(()=>{});
+}
+/* Stempel loeschen (Hendra 05.11.2026: leerte bei Wiwik beide Felder, weil
+   der Zuhause-Stempel weg sollte, und bekam "Please enter the check-in
+   time."). Nur Leitung/Manager, Rueckfrage mit Namen, Spur in der DB (131).
+   Nur fuer vergangene Tage: Wer heute geloescht wird und abends "End of
+   shift" tippt, bekaeme Kommen = Gehen und zaehlte still als stark
+   verspaetet (Bruno 131, Fund 2). Heute bleibt "Change". */
+async function anwesenheitLoeschen(pid, name){
+  const t=L();
+  let ok=false; try{ ok=confirm(t.attDelAsk.replace("{name}", name||"")) }catch(_){ ok=false }
+  if(!ok) return;
+  if(chefSendet) return; chefSendet=true;
+  const btn=document.querySelector(`[data-attdel="${pid}"]`); if(btn) btn.disabled=true;
+  try{ await sbSend("rpc/anwesenheit_loeschen", {p_person:pid, p_tag:attTag||heuteISO()}); }
+  catch(e){ chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
   chefSendet=false;
   await ladeAnwesenheit().catch(()=>{});
 }
@@ -2559,13 +2578,30 @@ function pushStandalone(){ return window.matchMedia("(display-mode: standalone)"
 async function pushKnopf(){
   const t=L(); const b=$("#push-on"), h=$("#push-hint"); if(!b) return;
   b.hidden=true; if(h) h.hidden=true;
-  if(!istLeitung() || !pushMoeglich()) return;
+  /* Seit 05.11.2026 (Dennis: "fuer alle") darf jede Person ihr Handy
+     anmelden (DB 131). Vorher nur Leitung und Manager. */
+  if(!pushMoeglich()) return;
+  if(typeof demoAktiv==="function" && demoAktiv()) return;
   if(S.geteilt) return;   /* Tresen-Handy: keine Mitteilungen auf dem Sperrbildschirm (Bruno 23c, Fund 1) */
   if(Notification.permission==="denied") return;
   try{
     const reg = await navigator.serviceWorker.getRegistration("sw.js");
     const sub = reg && await reg.pushManager.getSubscription();
-    if(sub && Notification.permission==="granted"){ return; }   /* laeuft schon */
+    if(sub && Notification.permission==="granted"){
+      /* Laeuft schon. Aber fuer WEN? Wechselt die Person auf diesem Handy,
+         hing das Abonnement bisher weiter an der Vorperson: deren Aufgaben
+         kamen hier an, die neue Person bekam nie etwas (Bruno 131, Fund 1).
+         Darum still auf die angemeldete Person umschreiben (push_abonnieren
+         ueberschreibt person_id je Endpunkt). Nur einmal je Person. */
+      const wer = me() && me().id; let alt=null;
+      try{ alt=localStorage.getItem("push_fuer") }catch(_){}
+      if(wer && alt!==wer){
+        const j=sub.toJSON();
+        await sbSend("rpc/push_abonnieren", {p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth});
+        try{ localStorage.setItem("push_fuer", wer) }catch(_){}
+      }
+      return;
+    }
   }catch(e){}
   /* iPhone: nur als App auf dem Startbildschirm. Sonst den Weg erklaeren. */
   const ios = /iPhone|iPad/.test(navigator.userAgent);
@@ -2584,7 +2620,8 @@ async function pushEinschalten(){
     const sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: raw});
     const j = sub.toJSON();
     await sbSend("rpc/push_abonnieren", {p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth});
-    if(b) b.hidden=true; if(h){ h.hidden=false; h.textContent=t.pushOk; }
+    try{ if(me()) localStorage.setItem("push_fuer", me().id) }catch(_){}
+    if(b) b.hidden=true; if(h){ h.hidden=false; h.textContent=istLeitung()?t.pushOk:t.pushOkStaff; }
   }catch(e){ if(h){ h.hidden=false; h.textContent=t.pushFail; } }
 }
 
@@ -2825,7 +2862,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -6501,6 +6538,7 @@ document.addEventListener("click",e=>{
   const es=e.target.closest("[data-esave]"); if(es){ datumAendern(es.dataset.esave); return }
   const ak=e.target.closest("[data-attedit]"); if(ak){ const ed=$("#attedit-"+ak.dataset.attedit); if(ed) ed.hidden=!ed.hidden; return }
   const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave); return }
+  const ad=e.target.closest("[data-attdel]"); if(ad){ const row=ad.closest(".lvitem"), b=row&&row.querySelector("b"); anwesenheitLoeschen(ad.dataset.attdel, b?b.textContent:""); return }
   if(e.target.closest("#krank-prev")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))-1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#krank-next")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))+1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#am-prev")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",-1); ladeAnwesenheitMonat().catch(()=>{}); return }
