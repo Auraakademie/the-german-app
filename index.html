@@ -651,6 +651,11 @@
       <p class="sub" id="c-shift" hidden style="color:var(--gold-ink);font-weight:600"></p>
       <div class="glass note" data-t="clockNote"></div>
       <button class="cta" id="btn-clock" data-t="clockIn"></button>
+      <!-- Dr. Billy, 04.11.2026: "I had to clock in for attendance at my house
+           before going to task menu". Die zweite Tuer: nur gucken, ohne Stempel.
+           Auf der Uebersicht bleibt dann oben die Leiste "noch nicht gestartet"
+           stehen, bis wirklich gestempelt ist. -->
+      <button class="ghost" id="btn-look" data-go="s-brief" data-t="clockLook" style="margin-top:10px"></button>
       <!-- Klein, unten, ohne Warnfarbe. Wer hier landet, ist meistens richtig.
            Der Knopf ist fuer den seltenen Fall, dass jemand ein fremdes Handy
            in der Hand hat oder das Geraet weitergegeben wurde. -->
@@ -664,6 +669,13 @@
       <p class="sub" id="b-shift" hidden style="color:var(--gold-ink);font-weight:600"></p>
       <!-- Vorfuehr-Umschalter, nur fuer Dennis. Leer fuer alle anderen. -->
       <div id="demoswitch"></div>
+
+      <!-- Wer ueber "Just have a look" hereinkam (Billy, 04.11.2026), sieht
+           das hier, bis gestempelt ist. Leitung und Hendra nie. -->
+      <div class="glass note" id="start-leiste" hidden style="margin-bottom:14px">
+        <div data-t="briefNotStarted" style="margin-bottom:12px"></div>
+        <button class="cta" id="btn-clock-brief" data-t="clockIn"></button>
+      </div>
 
       <!-- COCKPIT: nur fuer die Leitung (Nina, Micha). Kacheln mit echten
            Zahlen + was heute hakt. Der Mitarbeiter-Teil darunter (Ring, SOPs,
@@ -1291,6 +1303,13 @@
 
       <button class="bigcheck" id="rn-save" style="margin-top:20px"><span class="bx"></span><span data-t="rnSave"></span></button>
       <p class="lverr" id="rn-msg"></p>
+
+      <!-- Nina 04.11.2026: der Absender sah nie, ob seine Nachricht ankam.
+           Keine Kommentare, der Haken der Leitung ist die Rueckmeldung. -->
+      <div id="rn-mine-wrap" hidden>
+        <p class="eyebrow" data-t="rnMineH" style="margin-top:24px"></p>
+        <div id="rn-mine"></div>
+      </div>
     </section>
 
     <!-- Wareneingang erfassen (Dilla): Produkt waehlen/neu, Lieferant, Foto. -->
@@ -1520,8 +1539,11 @@ const T={
   rnSendTile:"Message to Nina, Michael & Hendra", rnSendTileS:"anything they should know",
   rnBoardTile:"Messages from the team", rnBoardTileS:"open, with sender",
   rnBoardH:"Messages from the team",
-  rnBoardS:"What the team sent you. You see who wrote it. Tick when handled.",
-  rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name.",
+  rnBoardS:"What the team sent you. You see who wrote it. Tick when handled. Handled ones stay for 7 days in grey, so all three of you see them.",
+  rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name. When they tick it as done, you see it below.",
+  rnMineH:"Your messages", rnMineNone:"Nothing sent in the last 14 days.", rnOpen:"Open", rnDoneBy:"Done by",
+  clockLook:"Just have a look, I'm not at work yet",
+  briefNotStarted:"<b>You have not started your day yet.</b> Looking is fine. When you are at work, start your day here.",
   rnPatient:"Patient (short, optional)", rnTask:"Your message",
   rnSave:"Send", rnDone:"Done", rnNone:"Nothing open.",
   rnErr:"Could not send. Try again.", rnTaskErr:"Write your message first.",
@@ -1720,8 +1742,11 @@ const T={
   rnSendTile:"Pesan ke Nina, Michael & Hendra", rnSendTileS:"apa pun yang perlu mereka tahu",
   rnBoardTile:"Pesan dari tim", rnBoardTileS:"terbuka, dengan pengirim",
   rnBoardH:"Pesan dari tim",
-  rnBoardS:"Yang dikirim tim ke Anda. Anda lihat siapa yang menulis. Centang bila sudah ditangani.",
-  rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil.",
+  rnBoardS:"Yang dikirim tim ke Anda. Anda lihat siapa yang menulis. Centang bila sudah ditangani. Yang sudah ditangani tetap tampil 7 hari dalam warna abu-abu, supaya kalian bertiga melihatnya.",
+  rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil. Saat mereka mencentang selesai, Anda melihatnya di bawah.",
+  rnMineH:"Pesan Anda", rnMineNone:"Tidak ada pesan dalam 14 hari terakhir.", rnOpen:"Terbuka", rnDoneBy:"Selesai oleh",
+  clockLook:"Hanya lihat dulu, saya belum mulai kerja",
+  briefNotStarted:"<b>Anda belum memulai hari kerja.</b> Melihat saja tidak apa-apa. Saat sudah di tempat kerja, mulai hari kerja di sini.",
   rnPatient:"Pasien (singkat, opsional)", rnTask:"Pesan Anda",
   rnSave:"Kirim", rnDone:"Selesai", rnNone:"Tidak ada yang terbuka.",
   rnErr:"Gagal mengirim. Coba lagi.", rnTaskErr:"Tulis pesan Anda dulu.",
@@ -1996,7 +2021,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-03b";
+const APP_VERSION = "2026-11-05a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3978,7 +4003,8 @@ function tkWerKlick(wert){
 }
 
 /* Zeigt den "+ New task"-Knopf auf s-brief nur, wenn der Nutzer ueberhaupt
-   jemandem eine Aufgabe geben darf (Leitung, Aerzte, Dilla). */
+   jemandem eine Aufgabe geben darf (Leitung, Aerzte, Dilla, seit 129 das
+   ganze Dental-Team). Wer, sagt der Server (aufgabe_ziele). */
 async function zeigeNeueAufgabe(){
   const b=$("#new-task-brief"); if(!b) return;
   try{ const ok=await sbGet("rpc/darf_aufgeben"); b.hidden = (ok!==true); }
@@ -4473,8 +4499,16 @@ async function ladeNotiz(){
   let liste=[];
   try{ liste = await sbGet("rpc/leitung_nachricht_liste") }catch(e){ box.innerHTML=`<p class="lverr">${t.tkOfflineNone}</p>`; return }
   if(!liste.length){ box.innerHTML=`<p class="lverr">${t.rnNone}</p>`; return }
+  /* Nina 04.11.2026: Erledigtes bleibt 7 Tage grau stehen, mit "Done by".
+     Sonst sieht Nina nie, was Micha schon abgehakt hat. Offen zuerst. */
   box.innerHTML = liste.map(n=>{
-    const wann = new Date(n.created_at).toLocaleString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+    const wann = nachrichtZeit(n.created_at);
+    if(n.resolved){
+      return `<div class="lvitem" data-rnrow="${n.id}" style="opacity:.55">
+        <div class="d"><b>${escHtml(n.wer||"")}</b><br><span>${escHtml(n.text)}</span>
+          <small><br>${wann} &middot; ${escHtml(t.rnDoneBy)} ${escHtml(n.erledigt_von||"")}${n.resolved_at?", "+nachrichtZeit(n.resolved_at):""}</small></div>
+      </div>`;
+    }
     return `<div class="lvitem" data-rnrow="${n.id}">
       <div class="d"><b>${escHtml(n.wer||"")}</b><br><span>${escHtml(n.text)}</span>
         <small><br>${wann}</small></div>
@@ -4482,9 +4516,33 @@ async function ladeNotiz(){
     </div>`;
   }).join("");
 }
+function nachrichtZeit(iso){
+  try{ return new Date(iso).toLocaleString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}); }
+  catch(e){ return ""; }
+}
 function zeichneNotizNeu(){
   const tk=$("#rn-task"); if(tk) tk.value="";
   const msg=$("#rn-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
+  ladeMeineNachrichten().catch(()=>{});
+}
+/* Die eigenen Nachrichten mit Status (Nina 04.11.2026, Migration 129).
+   Fehlt die Funktion auf dem Server (aelterer Stand), bleibt der Block weg. */
+async function ladeMeineNachrichten(){
+  const t=L(), wrap=$("#rn-mine-wrap"), box=$("#rn-mine"); if(!wrap||!box) return;
+  let liste=null;
+  try{ liste = await sbGet("rpc/meine_nachrichten"); }catch(e){ liste=null; }
+  if(!Array.isArray(liste)){ wrap.hidden=true; return; }
+  wrap.hidden=false;
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${escHtml(t.rnMineNone)}</p>`; return; }
+  box.innerHTML = liste.map(n=>{
+    const status = n.resolved
+      ? `<b>${escHtml(t.rnDoneBy)} ${escHtml(n.erledigt_von||"")}</b>${n.resolved_at?", "+nachrichtZeit(n.resolved_at):""}`
+      : escHtml(t.rnOpen);
+    return `<div class="lvitem"${n.resolved?' style="opacity:.7"':''}>
+      <div class="d"><span>${escHtml(n.text)}</span>
+        <small><br>${nachrichtZeit(n.created_at)} &middot; ${status}</small></div>
+    </div>`;
+  }).join("");
 }
 let notizSending=false;
 async function notizSpeichern(){
@@ -6218,7 +6276,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -6252,6 +6310,39 @@ document.addEventListener("change",e=>{
 document.addEventListener("input",e=>{
   if(e.target && e.target.id==="we-search"){ renderWeList(e.target.value); }
 });
+
+/* Die Leiste "noch nicht gestartet" auf der Uebersicht: nur Personal, nur
+   ohne Stempel. Leitung und Hendra stempeln nicht (Dennis 10.09.2026). */
+function zeigeStartLeiste(){
+  const el=$("#start-leiste"); if(!el) return;
+  el.hidden = !!(S.lead||S.mgr||S.started||TESTLAUF);
+  /* Bruno 05a, Fund 1: "End of shift" ohne Stempel schriebe Kommen = Gehen =
+     jetzt (111) und fraesse den echten Stempel. Im Guck-Modus also weg. */
+  const ed=$("#btn-endday"); if(ed) ed.hidden = !(S.lead||S.mgr) && !S.started;
+}
+function tagStarten(){
+    /* Das ist das Einstempeln, auch wenn es nirgends so heisst. Niemand
+       stempelt ein, jede faengt an. Die Uhrzeit faellt dabei nebenbei ab.
+       Bis 14.08.2026 stand hier fest "08:04" aus dem ersten Entwurf. Fuer eine
+       Anzeige reichte das, fuer Hendras Stundenzettel waere es eine Luege. */
+    if(!S.started){
+      const j=new Date();
+      S.started=String(j.getHours()).padStart(2,"0")+":"+String(j.getMinutes()).padStart(2,"0");
+      S.startedAt=j.toISOString();   /* die volle Zeit, fuer die Datenbank */
+      /* NEU 08.09.2026: Das Einstempeln landet jetzt WIRKLICH in der
+         Datenbank, nicht nur lokal. Ueber den Postausgang, also
+         offline-sicher. Das ersetzt Hendras Handzettel. */
+      /* Hendra 23.10.2026: "sehen, wo sie sind". Ein Schnappschuss im Moment
+         des Stempelns, wenn das Handy es erlaubt. Keine Dauerortung. Ohne
+         Erlaubnis oder ohne Antwort in 8 s geht der Stempel ohne Ort raus. */
+      /* Bruno 23b, Fund 2: Der Stempel geht SOFORT in den Postausgang wie
+         frueher. Der Ort kommt als zweite Meldung hinterher, wenn er da ist,
+         und nur, wenn noch dieselbe Person angemeldet ist. */
+      melde("einchecken", {});
+      const wer = me() && me().id;
+      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"in", lat:pos.lat, lng:pos.lng}); });
+    }
+}
 
 document.addEventListener("click",e=>{
   if(e.target.closest("#mode")){
@@ -6452,28 +6543,11 @@ document.addEventListener("click",e=>{
     go("s-clock"); return;
   }
   const g=e.target.closest("[data-go]"); if(g){go(g.dataset.go);return}
+  /* Billy 04.11.2026: derselbe Stempel auch aus der Leiste auf der Uebersicht,
+     wenn jemand ueber "Just have a look" hereinkam. */
+  if(e.target.closest("#btn-clock-brief")){ tagStarten(); save(); renderGroups(); zeigeStartLeiste(); return }
   if(e.target.closest("#btn-clock")){
-    /* Das ist das Einstempeln, auch wenn es nirgends so heisst. Niemand
-       stempelt ein, jede faengt an. Die Uhrzeit faellt dabei nebenbei ab.
-       Bis 14.08.2026 stand hier fest "08:04" aus dem ersten Entwurf. Fuer eine
-       Anzeige reichte das, fuer Hendras Stundenzettel waere es eine Luege. */
-    if(!S.started){
-      const j=new Date();
-      S.started=String(j.getHours()).padStart(2,"0")+":"+String(j.getMinutes()).padStart(2,"0");
-      S.startedAt=j.toISOString();   /* die volle Zeit, fuer die Datenbank */
-      /* NEU 08.09.2026: Das Einstempeln landet jetzt WIRKLICH in der
-         Datenbank, nicht nur lokal. Ueber den Postausgang, also
-         offline-sicher. Das ersetzt Hendras Handzettel. */
-      /* Hendra 23.10.2026: "sehen, wo sie sind". Ein Schnappschuss im Moment
-         des Stempelns, wenn das Handy es erlaubt. Keine Dauerortung. Ohne
-         Erlaubnis oder ohne Antwort in 8 s geht der Stempel ohne Ort raus. */
-      /* Bruno 23b, Fund 2: Der Stempel geht SOFORT in den Postausgang wie
-         frueher. Der Ort kommt als zweite Meldung hinterher, wenn er da ist,
-         und nur, wenn noch dieselbe Person angemeldet ist. */
-      melde("einchecken", {});
-      const wer = me() && me().id;
-      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"in", lat:pos.lat, lng:pos.lng}); });
-    }
+    tagStarten();
     save(); renderGroups(); go("s-brief"); return}
   const dp=e.target.closest("[data-dep]");
   if(dp){S.dep=dp.dataset.dep;save();renderRooms();return}
