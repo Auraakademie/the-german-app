@@ -1566,7 +1566,7 @@ const T={
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
-  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} for this day? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
+  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
@@ -1769,7 +1769,7 @@ const T={
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
-  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} untuk hari ini? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
+  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
@@ -2022,7 +2022,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-05b";
+const APP_VERSION = "2026-11-06a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2398,10 +2398,16 @@ async function ladeAnwesenheit(){
   const t=L(); if(!attTag) attTag=heuteISO();
   const dat=$("#att-datum"); if(dat) dat.textContent=tagText(attTag,{weekday:"short",day:"numeric",month:"short"});
   const tag=attTag;
+  /* Bruno 131 Nachpruefung, Fund A: Beim Blaettern blieben die Zeilen des
+     alten Tages stehen, bis die Antwort da war. "Save" und "Remove stamp"
+     trafen dann den neuen Tag. Jetzt: alte Zeilen sofort weg, und jeder
+     Knopf traegt den Tag, fuer den er gezeichnet wurde (data-atag). */
+  if(box.dataset.tag!==tag){ box.innerHTML=""; box.dataset.tag=""; }
   let rows=[];
   try{ rows=await sbGet("rpc/anwesenheit_tag?p_tag="+tag); }
-  catch(e){ if(attTag===tag) box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; return }
+  catch(e){ if(attTag===tag){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; box.dataset.tag=""; } return }
   if(attTag!==tag) return;
+  box.dataset.tag=tag;
   const darf=istLeitung();
   box.innerHTML = rows.length ? rows.map(r=>`
     <div class="lvitem" style="flex-wrap:wrap">
@@ -2412,19 +2418,20 @@ async function ladeAnwesenheit(){
       <div class="rvfix" id="attedit-${r.person_id}" hidden style="width:100%;margin-top:6px;gap:6px;flex-wrap:wrap">
         <input class="lvin" type="time" data-akam="${r.person_id}" value="${r.kam||""}" style="flex:1;min-width:110px">
         <input class="lvin" type="time" data-aging="${r.person_id}" value="${r.ging||""}" style="flex:1;min-width:110px">
-        <button class="lvyes" data-attsave="${r.person_id}">${t.attSave}</button>
-        ${(r.kam && tag<heuteISO())?`<button class="pinrst" data-attdel="${r.person_id}" style="width:100%">${t.attDel}</button>`:""}
+        <button class="lvyes" data-attsave="${r.person_id}" data-atag="${tag}">${t.attSave}</button>
+        ${(r.kam && tag<heuteISO())?`<button class="pinrst" data-attdel="${r.person_id}" data-atag="${tag}" style="width:100%">${t.attDel}</button>`:""}
       </div>`:""}
     </div>`).join("")
     : `<p class="lverr">${t.attNone}</p>`;
 }
-async function anwesenheitSpeichern(pid){
+async function anwesenheitSpeichern(pid, tag){
+  if(!tag) return;
   const t=L(); const kam=document.querySelector(`[data-akam="${pid}"]`), ging=document.querySelector(`[data-aging="${pid}"]`);
   if(!kam||!kam.value){ try{ alert(t.attNeedIn) }catch(_){} return; }
   if(ging&&ging.value&&ging.value<=kam.value){ try{ alert(t.attOrder) }catch(_){} return; }
   if(chefSendet) return; chefSendet=true;
   const btn=document.querySelector(`[data-attsave="${pid}"]`); if(btn) btn.disabled=true;
-  try{ await sbSend("rpc/anwesenheit_korrigieren", {p_person:pid, p_tag:attTag||heuteISO(), p_kam:kam.value, p_ging:(ging&&ging.value)||null}); }
+  try{ await sbSend("rpc/anwesenheit_korrigieren", {p_person:pid, p_tag:tag, p_kam:kam.value, p_ging:(ging&&ging.value)||null}); }
   catch(e){
     /* Bruno 23a, Fund 1: Vorher stand hier "nichts ist verloren" und die Zeit
        war weg. Jetzt: ehrlicher Satz, die getippte Zeit bleibt im Feld. */
@@ -2438,13 +2445,14 @@ async function anwesenheitSpeichern(pid){
    Nur fuer vergangene Tage: Wer heute geloescht wird und abends "End of
    shift" tippt, bekaeme Kommen = Gehen und zaehlte still als stark
    verspaetet (Bruno 131, Fund 2). Heute bleibt "Change". */
-async function anwesenheitLoeschen(pid, name){
+async function anwesenheitLoeschen(pid, name, tag){
+  if(!tag) return;
   const t=L();
-  let ok=false; try{ ok=confirm(t.attDelAsk.replace("{name}", name||"")) }catch(_){ ok=false }
+  let ok=false; try{ ok=confirm(t.attDelAsk.replace("{name}", name||"").replace("{day}", tagText(tag,{weekday:"short",day:"numeric",month:"short"}))) }catch(_){ ok=false }
   if(!ok) return;
   if(chefSendet) return; chefSendet=true;
   const btn=document.querySelector(`[data-attdel="${pid}"]`); if(btn) btn.disabled=true;
-  try{ await sbSend("rpc/anwesenheit_loeschen", {p_person:pid, p_tag:attTag||heuteISO()}); }
+  try{ await sbSend("rpc/anwesenheit_loeschen", {p_person:pid, p_tag:tag}); }
   catch(e){ chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
   chefSendet=false;
   await ladeAnwesenheit().catch(()=>{});
@@ -2862,7 +2870,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -6537,8 +6545,8 @@ document.addEventListener("click",e=>{
   const dt=e.target.closest("[data-datum]"); if(dt){ const ed=$("#lvedit-"+dt.dataset.datum); if(ed) ed.hidden=!ed.hidden; return }
   const es=e.target.closest("[data-esave]"); if(es){ datumAendern(es.dataset.esave); return }
   const ak=e.target.closest("[data-attedit]"); if(ak){ const ed=$("#attedit-"+ak.dataset.attedit); if(ed) ed.hidden=!ed.hidden; return }
-  const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave); return }
-  const ad=e.target.closest("[data-attdel]"); if(ad){ const row=ad.closest(".lvitem"), b=row&&row.querySelector("b"); anwesenheitLoeschen(ad.dataset.attdel, b?b.textContent:""); return }
+  const as=e.target.closest("[data-attsave]"); if(as){ anwesenheitSpeichern(as.dataset.attsave, as.dataset.atag); return }
+  const ad=e.target.closest("[data-attdel]"); if(ad){ const row=ad.closest(".lvitem"), b=row&&row.querySelector("b"); anwesenheitLoeschen(ad.dataset.attdel, b?b.textContent:"", ad.dataset.atag); return }
   if(e.target.closest("#krank-prev")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))-1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#krank-next")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))+1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#am-prev")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",-1); ladeAnwesenheitMonat().catch(()=>{}); return }
