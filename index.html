@@ -2025,7 +2025,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-06d";
+const APP_VERSION = "2026-11-06e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3689,14 +3689,19 @@ function geburtstagsWoche(tag, monat){
   return d < new Date(mo.getTime() + 7*86400000) ? 0 : 1;
 }
 
+let rvLauf=0;   /* zaehlt beim Abmelden hoch, siehe sitzungZuruecksetzen */
 async function ladeReview(){
   const t=L();
   const heute = heuteISO();
+  /* Bruno 06d, N1: Eine Antwort, die noch fuer die Vorperson unterwegs war,
+     darf nach dem Abmelden nicht mehr gezeichnet werden. */
+  const lauf=rvLauf;
   let tag=[], woche=[];
   try{
     tag   = await sbGet("app_day_review?select=*&on_day=eq."+heute);
     woche = await sbGet("app_week_blocked?select=*");
   }catch(e){ return }
+  if(lauf!==rvLauf) return;
 
   $("#rv-datum").textContent =
     new Date().toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",
@@ -5946,8 +5951,11 @@ function sitzungZuruecksetzen(){
      versteckt ist - aber Datensparsamkeit darf nicht an einem hidden haengen. */
   LVBLATT = null;
   if(typeof lvAbzugZuruecksetzen === "function") lvAbzugZuruecksetzen();
-  /* Bruno 06d, P1: Aufgaben-Uebersicht der Vorperson aus dem Bild. */
-  try{ const rt=$("#rv-tasks"); if(rt) rt.innerHTML=""; tkOverMap={}; tkOverLauf++; }catch(e){}
+  /* Bruno 06d, P1 und N1: "What is stuck" der Vorperson aus dem Bild, oben
+     (heute, Woche) wie unten (Aufgaben). Am geteilten Handy sah die Naechste
+     sonst bei haengendem Netz, wer woran gescheitert ist. */
+  try{ ["rv-tasks","rv-heute","rv-woche"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; });
+    tkOverMap={}; tkOverLauf++; rvLauf++; }catch(e){}
   /* Aufgaben-Zwischenspeicher der Vorperson weg (Bruno 3. Runde, Fund 13). */
   try{
     if(S.me!=null && PEOPLE[S.me]) localStorage.removeItem("tk_mine_"+PEOPLE[S.me].id);
