@@ -1566,7 +1566,7 @@ const T={
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
-  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
+  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attBusy:"The previous change is still being sent. Wait a moment, then tap again.", attChanged:"NOT saved. This stamp changed while the form was open. The list will load again now. Check it, then change it again if needed.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
@@ -1769,7 +1769,7 @@ const T={
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"selesai",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
-  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
+  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attBusy:"Perubahan sebelumnya masih dikirim. Tunggu sebentar, lalu ketuk lagi.", attChanged:"BELUM tersimpan. Absen ini berubah saat formulir terbuka. Daftar akan dimuat ulang. Periksa dulu, lalu ubah lagi bila perlu.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
@@ -2022,7 +2022,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-06b";
+const APP_VERSION = "2026-11-06c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2422,8 +2422,8 @@ async function ladeAnwesenheit(still){
       </div>
       ${darf?`<button class="pinrst" data-attedit="${r.person_id}">${t.attEdit}</button>
       <div class="rvfix" id="attedit-${r.person_id}" hidden style="width:100%;margin-top:6px;gap:6px;flex-wrap:wrap">
-        <input class="lvin" type="time" data-akam="${r.person_id}" value="${r.kam||""}" style="flex:1;min-width:110px">
-        <input class="lvin" type="time" data-aging="${r.person_id}" value="${r.ging||""}" style="flex:1;min-width:110px">
+        <input class="lvin" type="time" data-akam="${r.person_id}" data-war="${r.kam||""}" value="${r.kam||""}" style="flex:1;min-width:110px">
+        <input class="lvin" type="time" data-aging="${r.person_id}" data-war="${r.ging||""}" value="${r.ging||""}" style="flex:1;min-width:110px">
         <button class="lvyes" data-attsave="${r.person_id}" data-atag="${tag}">${t.attSave}</button>
         ${(r.kam && tag<heuteISO())?`<button class="pinrst" data-attdel="${r.person_id}" data-atag="${tag}" style="width:100%">${t.attDel}</button>`:""}
       </div>`:""}
@@ -2435,9 +2435,34 @@ async function anwesenheitSpeichern(pid, tag){
   const t=L(); const kam=document.querySelector(`[data-akam="${pid}"]`), ging=document.querySelector(`[data-aging="${pid}"]`);
   if(!kam||!kam.value){ try{ alert(t.attNeedIn) }catch(_){} return; }
   if(ging&&ging.value&&ging.value<=kam.value){ try{ alert(t.attOrder) }catch(_){} return; }
-  if(chefSendet) return; chefSendet=true;
+  /* Bruno 06b, Fund 5: Ein zweites Save, waehrend das erste noch unterwegs
+     war, wurde stumm verschluckt und sah aus wie gespeichert. Jetzt ein Satz. */
+  if(chefSendet){ try{ alert(t.attBusy) }catch(_){} return; }
+  chefSendet=true;
   const btn=document.querySelector(`[data-attsave="${pid}"]`); if(btn) btn.disabled=true;
-  try{ await sbSend("rpc/anwesenheit_korrigieren", {p_person:pid, p_tag:tag, p_kam:kam.value, p_ging:(ging&&ging.value)||null}); }
+  const vKam=kam.value, vGing=(ging&&ging.value)||null, wKam=kam.dataset.war||"", wGing=(ging&&ging.dataset.war)||"";
+  /* Bruno 06b, Fund 3 und 4: Das Formular kann lange offen stehen (der Takt
+     zeichnet nicht darueber). Checkt die Person inzwischen aus oder korrigiert
+     Nina dieselbe Zeile, haette Save das ueberschrieben, ein leeres Gehen-Feld
+     haette den Check-out geloescht. Darum vor dem Senden frisch lesen: Steht
+     in der DB etwas anderes, als hier gezeichnet wurde, wird nichts gesendet. */
+  /* Bruno 06c, Fund 1: sbGet hat kein Zeitlimit. Ohne die 10 Sekunden hier
+     blieb bei toter Leitung der Knopf grau und die Sperre gesetzt, ohne
+     Meldung. Eine Antwort, die spaeter noch kommt, wird nicht mehr benutzt. */
+  let frisch;
+  try{ frisch=await mitZeitlimit(sbGet("rpc/anwesenheit_tag?p_tag="+tag), 10000); if(!Array.isArray(frisch)) throw new Error("keine Liste"); }
+  catch(e){ chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
+  const jetzt=frisch.find(r=>r.person_id===pid);
+  if(!jetzt || (jetzt.kam||"")!==wKam || (jetzt.ging||"")!==wGing){
+    chefSendet=false;
+    /* Bruno 06c, Fund 4: Steht in der DB schon genau das Getippte (die
+       Sendung kam an, nur die Antwort ging verloren), ist nichts zu melden. */
+    const schonDa = jetzt && (jetzt.kam||"")===vKam && (jetzt.ging||"")===(vGing||"");
+    if(!schonDa){ try{ alert(t.attChanged) }catch(_){} }
+    await ladeAnwesenheit().catch(()=>{});
+    return;
+  }
+  try{ await sbSend("rpc/anwesenheit_korrigieren", {p_person:pid, p_tag:tag, p_kam:vKam, p_ging:vGing}); }
   catch(e){
     /* Bruno 23a, Fund 1: Vorher stand hier "nichts ist verloren" und die Zeit
        war weg. Jetzt: ehrlicher Satz, die getippte Zeit bleibt im Feld. */
@@ -2454,9 +2479,11 @@ async function anwesenheitSpeichern(pid, tag){
 async function anwesenheitLoeschen(pid, name, tag){
   if(!tag) return;
   const t=L();
+  if(chefSendet){ try{ alert(t.attBusy) }catch(_){} return; }
   let ok=false; try{ ok=confirm(t.attDelAsk.replace("{name}", name||"").replace("{day}", tagText(tag,{weekday:"short",day:"numeric",month:"short"}))) }catch(_){ ok=false }
   if(!ok) return;
-  if(chefSendet) return; chefSendet=true;
+  if(chefSendet){ try{ alert(t.attBusy) }catch(_){} return; }
+  chefSendet=true;
   const btn=document.querySelector(`[data-attdel="${pid}"]`); if(btn) btn.disabled=true;
   try{ await sbSend("rpc/anwesenheit_loeschen", {p_person:pid, p_tag:tag}); }
   catch(e){ chefSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
