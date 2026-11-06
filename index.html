@@ -2022,7 +2022,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-06a";
+const APP_VERSION = "2026-11-06b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2392,8 +2392,12 @@ async function ladeAnwesenheitMonat(){
       <span class="lvst ${r.zu_spaet?"requested":""}">${r.zu_spaet||0}</span></div>`; }).join("")
     : `<p class="lverr">${t.amNone}</p>`;
 }
-let attTag=null;
-async function ladeAnwesenheit(){
+let attTag=null, attLauf=0;
+/* still=true kommt nur vom 30-Sekunden-Takt. Ein stiller Lauf zeichnet nie
+   ueber ein aufgeklapptes "Change"-Formular (die getippte Zeit waere weg) und
+   nie ueber einen juengeren Lauf nach Save, Remove stamp oder Blaettern
+   (Bruno 131 Nachpruefung, die zwei niedrigen Funde). */
+async function ladeAnwesenheit(still){
   const box=$("#att-list"); if(!box) return;
   const t=L(); if(!attTag) attTag=heuteISO();
   const dat=$("#att-datum"); if(dat) dat.textContent=tagText(attTag,{weekday:"short",day:"numeric",month:"short"});
@@ -2402,11 +2406,13 @@ async function ladeAnwesenheit(){
      alten Tages stehen, bis die Antwort da war. "Save" und "Remove stamp"
      trafen dann den neuen Tag. Jetzt: alte Zeilen sofort weg, und jeder
      Knopf traegt den Tag, fuer den er gezeichnet wurde (data-atag). */
-  if(box.dataset.tag!==tag){ box.innerHTML=""; box.dataset.tag=""; }
+  const lauf = still ? attLauf : ++attLauf;
+  const tippt=()=> !!still && !!box.querySelector("[id^='attedit-']:not([hidden])");
+  if(box.dataset.tag!==tag){ box.innerHTML=`<p class="lverr">${t.umLoading}</p>`; box.dataset.tag=""; }
   let rows=[];
   try{ rows=await sbGet("rpc/anwesenheit_tag?p_tag="+tag); }
-  catch(e){ if(attTag===tag){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; box.dataset.tag=""; } return }
-  if(attTag!==tag) return;
+  catch(e){ if(attTag===tag && lauf===attLauf && !tippt()){ box.innerHTML=`<p class="lverr">${t.rsOffline}</p>`; box.dataset.tag=""; } return }
+  if(attTag!==tag || lauf!==attLauf || tippt()) return;
   box.dataset.tag=tag;
   const darf=istLeitung();
   box.innerHTML = rows.length ? rows.map(r=>`
@@ -5617,7 +5623,7 @@ async function wiederVerbinden(){
       if(h==="s-leave" && istLeitung() && !document.querySelector("#lv-offen [id^='lvedit-']:not([hidden])")){ ladeOffene().catch(()=>{}); }
       if(h==="s-brief"){ ladeMeineAufgaben().catch(()=>{}); if(istLeitung()) ladeAbwesend(false).catch(()=>{}); }
       if(h==="s-review"){ ladeAufgabenUebersicht().catch(()=>{}); }
-      if(h==="s-attend" && !document.querySelector("#att-list [id^='attedit-']:not([hidden])")){ ladeAnwesenheit().catch(()=>{}); }
+      if(h==="s-attend" && !document.querySelector("#att-list [id^='attedit-']:not([hidden])")){ ladeAnwesenheit(true).catch(()=>{}); }
       if(h==="s-reports"){ ladeTagesberichte("#tb-list2", 14).catch(()=>{}); }
       if(h==="s-attmonth"){ ladeAnwesenheitMonat().catch(()=>{}); }
     }
