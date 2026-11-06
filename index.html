@@ -473,6 +473,9 @@
     color:var(--ink-2);font-family:"TG Text",system-ui,sans-serif}
   .lvst.approved{border-color:var(--ok);color:var(--ok)}
   .lvst.requested{border-color:var(--gold);color:var(--gold-ink)}
+  /* Der Kreis in der Aufgaben-Uebersicht ist ein Knopf (Nina 06.11.2026). */
+  button.lvst{background:transparent;cursor:pointer;min-width:44px;min-height:44px;-webkit-tap-highlight-color:transparent}
+  button.lvst:disabled{opacity:.4}
   .lvbtns{display:flex;gap:8px}
   /* Zustimmen und Ablehnen sehen bewusst NICHT gleich aus. Zwei gleiche
      Knoepfe nebeneinander sind eine Falle: Man tippt den falschen. */
@@ -1507,7 +1510,7 @@ const T={
   tkOnce:"Once", tkHours:"A few hours", tkToday:"Today", tkWeek:"This week", tkDaily:"Every day", tkWeekly:"Every week", tkModeWeekly:"every week", tkWdLabel:"Which day of the week?",
   tkSend:"Send task", tkSent:"Sent", tkErr:"Could not send. Fill text and pick a person.",
   tkMicHint:"Voice is not available here. Use the microphone on your keyboard.",
-  tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove",
+  tkNone:"No open tasks.", tkDoneBy:"done by", tkOpenLbl:"waiting", tkDelete:"remove", tkOverAsk:"Mark this task as done? This cannot be undone.\n\nFor {who}: {text}", tkOverLaterW:"This task is for a later day this week. It cannot be marked as done here before that day.", tkOverLaterM:"Monthly tasks cannot be marked as done here. The person who does the task marks it in \"Tasks for you\".",
   tkDoneOlder:"Done",
   tkExpired:"expired, not done", tkOffline:"Offline. Showing last known list.", tkOfflineNone:"Offline. Cannot load tasks now.",
   tkTileT:"Tasks", tkTileS:"done and open today",
@@ -1710,7 +1713,7 @@ const T={
   tkOnce:"Sekali", tkHours:"Beberapa jam", tkToday:"Hari ini", tkWeek:"Minggu ini", tkDaily:"Setiap hari", tkWeekly:"Setiap minggu", tkModeWeekly:"setiap minggu", tkWdLabel:"Hari apa tiap minggu?",
   tkSend:"Kirim tugas", tkSent:"Terkirim", tkErr:"Gagal mengirim. Isi teks dan pilih orang.",
   tkMicHint:"Suara tidak tersedia di sini. Pakai mikrofon pada keyboard.",
-  tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus",
+  tkNone:"Tidak ada tugas terbuka.", tkDoneBy:"selesai oleh", tkOpenLbl:"menunggu", tkDelete:"hapus", tkOverAsk:"Tandai tugas ini selesai? Tidak bisa dibatalkan.\n\nUntuk {who}: {text}", tkOverLaterW:"Tugas ini untuk hari lain di minggu ini. Belum bisa ditandai selesai di sini sebelum hari itu.", tkOverLaterM:"Tugas bulanan tidak bisa ditandai selesai di sini. Orang yang ditugaskan menandainya di \"Tugas untuk Anda\".",
   tkDoneOlder:"Selesai",
   tkExpired:"lewat waktu, belum selesai", tkOffline:"Offline. Menampilkan daftar terakhir.", tkOfflineNone:"Offline. Tidak bisa memuat tugas sekarang.",
   tkTileT:"Tugas", tkTileS:"selesai dan terbuka hari ini",
@@ -2022,7 +2025,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-06c";
+const APP_VERSION = "2026-11-06d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3965,11 +3968,20 @@ function aufgabeAbhaken(id){
    erledigte Aufgaben bleiben sichtbar (Bruno-Fund 2). */
 async function ladeAufgabenUebersicht(){
   const t=L(), box=$("#rv-tasks"); if(!box) return;
+  /* Bruno 06d, P1: Am geteilten Handy blieben Ninas Zeilen nach dem Abmelden
+     im versteckten Bildschirm liegen. Wer kein Leitungsrecht hat, bekommt
+     hier nichts gezeichnet und nichts aus dem Zwischenspeicher. */
+  if(!istLeitung()){ box.innerHTML=""; tkOverMap={}; return; }
+  /* Bruno 06d, Fund 5: Eine Antwort, die vor einem Abhaken losgelaufen ist,
+     darf den frischen Haken nicht wieder gelb zeichnen. */
+  const lauf=tkOverLauf;
   let liste=[], offline=false;
   try{
     liste = await sbGet("rpc/aufgaben_uebersicht");
+    if(lauf!==tkOverLauf || !istLeitung()) return;
     try{ localStorage.setItem("tk_over", JSON.stringify(liste)) }catch(e){}
   }catch(e){
+    if(lauf!==tkOverLauf || !istLeitung()) return;
     offline=true;
     try{ const c=localStorage.getItem("tk_over"); if(c) liste=JSON.parse(c) }catch(_){}
   }
@@ -4012,11 +4024,22 @@ async function ladeAufgabenUebersicht(){
           <button class="lvyes" data-tknotesave="${a.id}">${t.tkNoteSave}</button>
         </div>
       </div>
-      <span class="lvst ${fertig?"":"requested"}">${fertig?"&#10003;":spaet?"!":"&bull;"}</span>
+      ${fertig?`<span class="lvst">&#10003;</span>`
+        :`<button class="lvst requested" data-tkover="${a.id}" aria-label="${t.tkTick}">${spaet?"!":"&bull;"}</button>`}
       ${a.photo_path?`<img class="tkfoto" data-foto="${escHtml(a.photo_path)}" alt="" style="display:none;width:100%;border-radius:12px;margin-top:8px">`:""}
     </div>`;
   };
 
+  /* Bruno 06d, Fund 1 und 2: Ein Haken von heute zaehlt bei einer Wochen-
+     aufgabe erst ab ihrem Wochentag (120: on_day >= woche_termin, Woche ab
+     Montag) und streicht eine Monatsaufgabe fuer den ganzen Monat, auch vor
+     dem Stichtag. Den Stichtag kennt die Uebersicht nicht. Darum hier nur
+     abhakbar: einmalige, taegliche und Wochenaufgaben ab ihrem Tag. */
+  const heuteWd=(new Date(heuteISO()+"T00:00:00Z").getUTCDay()+6)%7;   /* Montag = 0 */
+  const hakbar = a => a.mode==="monthly" ? false
+                    : a.mode==="weekly" ? (a.weekday!=null && heuteWd >= ((Number(a.weekday)+6)%7))
+                    : true;
+  tkOverMap={}; liste.forEach(a=>{ tkOverMap[a.id]={text:a.text, wer:a.wer, mode:a.mode, hakbar:hakbar(a)}; });
   const zeilen = frisch.map(zeile).join("");
   /* Neueste zuerst im Ordner, damit Nina sofort sieht, was gerade erledigt wurde. */
   alt.sort((x,y)=>String(y.erledigt_am||"").localeCompare(String(x.erledigt_am||"")));
@@ -4033,6 +4056,29 @@ async function ladeAufgabenUebersicht(){
      Fotos erst beim Aufklappen (Bruno 3. Runde, Fund 8: sonst gingen jedes
      Mal alle Beweisfotos der Woche ueber das Netz, fuer einen versteckten Block). */
   $$("#rv-tasks img.tkfoto").forEach(img=>{ if(!img.closest("#tk-alt")) ladeFoto(img.dataset.foto, img) });
+}
+
+/* Nina 06.11.2026 (Bild ueber Dennis): "Wo druecken wenn erledigt? Wofuer ist
+   der gelbe Kreis?" Der Kreis war nur Anzeige, sah aber aus wie ein Abhak-
+   Knopf. Jetzt ist er einer. Die Datenbank erlaubt Leitung und Manager das
+   Abhaken jeder Aufgabe seit 117. Mit Rueckfrage, weil es kein Zurueck gibt
+   und oft die Aufgabe einer anderen Person abgehakt wird. Direkt gesendet,
+   nicht ueber den Postausgang: Die Liste soll danach den echten Stand zeigen. */
+let tkOverMap={}, tkOverSendet=false, tkOverLauf=0;
+async function aufgabeUebersichtAbhaken(id){
+  const t=L(), a=tkOverMap[id]; if(!a) return;
+  if(!a.hakbar){ try{ alert(a.mode==="monthly" ? t.tkOverLaterM : t.tkOverLaterW) }catch(_){} return; }
+  if(tkOverSendet){ try{ alert(t.attBusy) }catch(_){} return; }
+  const lang=String(a.text||""), kurz=lang.length>120 ? lang.slice(0,117)+"\u2026" : lang;
+  let ok=false; try{ ok=confirm(t.tkOverAsk.replace("{who}", ()=>a.wer||"").replace("{text}", ()=>kurz)) }catch(_){ ok=false }
+  if(!ok) return;
+  if(tkOverSendet){ try{ alert(t.attBusy) }catch(_){} return; }
+  tkOverSendet=true;
+  const btn=document.querySelector(`[data-tkover="${id}"]`); if(btn) btn.disabled=true;
+  try{ await sbSend("rpc/aufgabe_erledigen", {p_task:id, p_on_day:heuteISO()}); }
+  catch(e){ tkOverSendet=false; if(btn) btn.disabled=false; try{ alert(t.lvSaveFail) }catch(_){} return; }
+  tkOverSendet=false; tkOverLauf++;
+  await ladeAufgabenUebersicht().catch(()=>{});
 }
 
 async function aufgabeLoeschen(id){
@@ -5900,6 +5946,8 @@ function sitzungZuruecksetzen(){
      versteckt ist - aber Datensparsamkeit darf nicht an einem hidden haengen. */
   LVBLATT = null;
   if(typeof lvAbzugZuruecksetzen === "function") lvAbzugZuruecksetzen();
+  /* Bruno 06d, P1: Aufgaben-Uebersicht der Vorperson aus dem Bild. */
+  try{ const rt=$("#rv-tasks"); if(rt) rt.innerHTML=""; tkOverMap={}; tkOverLauf++; }catch(e){}
   /* Aufgaben-Zwischenspeicher der Vorperson weg (Bruno 3. Runde, Fund 13). */
   try{
     if(S.me!=null && PEOPLE[S.me]) localStorage.removeItem("tk_mine_"+PEOPLE[S.me].id);
@@ -6484,6 +6532,8 @@ document.addEventListener("click",e=>{
     if(!box.hidden) $$("#tk-alt img.tkfoto").forEach(img=>{ if(!img.dataset.geladen){ img.dataset.geladen="1"; ladeFoto(img.dataset.foto, img) } });
     return;
   }
+  const tkov=e.target.closest("[data-tkover]");
+  if(tkov){ aufgabeUebersichtAbhaken(tkov.dataset.tkover); return; }
   const tkdel=e.target.closest("[data-tkdel]");
   if(tkdel){ aufgabeLoeschen(tkdel.dataset.tkdel); return; }
   const tkw=e.target.closest("[data-tkwho]");
