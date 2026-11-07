@@ -670,6 +670,18 @@
       <h1 data-t="briefH"></h1>
       <p class="sub"><span id="c-name2"></span> &middot; <span data-t="briefT"></span></p>
       <p class="sub" id="b-shift" hidden style="color:var(--gold-ink);font-weight:600"></p>
+      <!-- Eigenes Foto, selbst wechselbar (134, Nina 07.11.2026). Vorher
+           steckten die Fotos fest in dieser Datei, Wechsel nur ueber Dennis. -->
+      <div class="row" id="foto-zeile" style="gap:12px;margin:6px 0 4px;flex-wrap:wrap">
+        <div class="avatar" id="me-face"></div>
+        <button class="pinrst" id="btn-foto" style="margin:0">&#128247; <span data-t="fotoChange"></span></button>
+        <button class="pinrst" id="btn-foto-weg" style="margin:0" hidden data-t="fotoRemove"></button>
+        <span class="lverr" id="foto-msg" style="margin:0"></span>
+      </div>
+      <!-- Elke 07.11.2026: Wer hochlaedt, muss wissen, wer es sieht, und es
+           jederzeit wieder wegnehmen koennen. -->
+      <p class="sub" data-t="fotoHint" style="margin:0 0 14px;font-size:13px"></p>
+      <input type="file" id="foto-input" accept="image/*" style="display:none">
       <!-- Vorfuehr-Umschalter, nur fuer Dennis. Leer fuer alle anderen. -->
       <div id="demoswitch"></div>
 
@@ -1563,6 +1575,12 @@ const T={
   tkPhoto:"Add photo", tkPhotoWait:"Sending photo…", tkWhoPick:"Loading names…",
   tkPhotoFail:"Task sent, but the photo did not upload. Please try again later.",
   tkPhotoBad:"That photo could not be read. Please take a new one.",
+  fotoChange:"Change photo", fotoWait:"Uploading photo…", fotoDone:"Photo updated",
+  fotoFail:"The photo did not upload. Please try again when you have internet.",
+  fotoRemove:"Remove photo", fotoRemoved:"Photo removed", fotoWait2:"Removing photo…",
+  fotoRemoveFail:"The photo could not be removed. Please try again when you have internet.",
+  fotoDemo:"Not in demo mode.",
+  fotoHint:"Your photo is visible on the sign-in screen and to the whole team. You can remove it any time.",
   tkModeOnce:"once", tkModeHours:"a few hours", tkModeToday:"today", tkModeWeek:"this week", tkModeDaily:"every day", tkModeMonthly:"every month",
   tkMonthly:"Monthly", tkDayLabel:"Which day of the month?", tkDayErr:"Enter a day from 1 to 31.",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
@@ -1766,6 +1784,12 @@ const T={
   tkPhoto:"Tambah foto", tkPhotoWait:"Mengirim foto…", tkWhoPick:"Memuat nama…",
   tkPhotoFail:"Tugas terkirim, tetapi foto gagal terunggah. Coba lagi nanti.",
   tkPhotoBad:"Foto tidak bisa dibaca. Silakan ambil foto baru.",
+  fotoChange:"Ganti foto", fotoWait:"Mengupload foto…", fotoDone:"Foto sudah diganti",
+  fotoFail:"Foto gagal diupload. Coba lagi kalau sudah ada internet.",
+  fotoRemove:"Hapus foto", fotoRemoved:"Foto sudah dihapus", fotoWait2:"Menghapus foto…",
+  fotoRemoveFail:"Foto gagal dihapus. Coba lagi kalau sudah ada internet.",
+  fotoDemo:"Tidak bisa di mode demo.",
+  fotoHint:"Foto ini terlihat di layar masuk dan oleh seluruh tim. Bisa dihapus kapan saja.",
   tkModeOnce:"sekali", tkModeHours:"beberapa jam", tkModeToday:"hari ini", tkModeWeek:"minggu ini", tkModeDaily:"setiap hari", tkModeMonthly:"setiap bulan",
   tkMonthly:"Bulanan", tkDayLabel:"Tanggal berapa tiap bulan?", tkDayErr:"Masukkan tanggal 1 sampai 31.",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
@@ -2028,7 +2052,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-07c";
+const APP_VERSION = "2026-11-07d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2085,6 +2109,10 @@ function tr(){
   $$("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
   const m=me();
   if(m){$("#c-role").textContent=m.r[S.lang];$("#c-name").textContent=m.n;$("#c-name2").textContent=m.n;
+    const mf=$("#me-face"); if(mf) mf.innerHTML=avatarHtml(m);
+    const fw=$("#btn-foto-weg"); if(fw) fw.hidden=!(m.foto || (m.img && m.foto!==""));
+    /* Bruno 134 Fund 2: Meldung der Vorperson nicht stehen lassen. */
+    const fm=$("#foto-msg"); if(fm && fm.dataset.wer!==m.id){ fm.textContent=""; fm.className="lverr"; fm.dataset.wer=m.id; }
     /* Stand fest auf "Reception", weil der Prototyp mit dem Empfang angefangen
        hat. Bei Uma stand dann "Uma . Reception". Die Rolle gehoert an den
        Menschen, nicht an den Bildschirm. */
@@ -2094,10 +2122,27 @@ function tr(){
   if(curRoom!==null) openRoom(curRoom,true);
   $("#save").textContent=L().saved;
 }
+/* Foto einer Person als HTML fuer einen .avatar-Kasten. Reihenfolge:
+   1. selbst hochgeladenes Foto (134, person.photo_path, oeffentlicher Bucket;
+      laedt es nicht, z.B. ohne Netz, faellt das img weg und der Rest zeigt),
+   2. eingebautes Foto aus dieser Datei, 3. Anfangsbuchstabe. */
+function avatarHtml(p){
+  if(!p) return "";
+  /* photo_path '' (leer) heisst "ausdruecklich kein Foto" (134, Remove photo
+     oder ausgeschieden): dann auch kein eingebautes Foto, nur der Buchstabe. */
+  if(p.foto==="") return escHtml(p.n[0]);
+  const rest = p.img ? '<img src="'+p.img+'" alt="">' : escHtml(p.n[0]);
+  if(p.foto && /^[0-9a-f-]{36}\/[A-Za-z0-9_-]+\.jpg$/.test(p.foto)){
+    return '<img src="'+SB.url+'/storage/v1/object/public/profilfotos/'+p.foto+'" alt="" '
+         + 'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'">'
+         + '<span style="display:none">'+rest+'</span>';
+  }
+  return rest;
+}
 function renderPeople(){
   $("#people").innerHTML=PEOPLE.map((p,i)=>`
    <button class="glass card" data-p="${i}"><div class="row">
-     <div class="avatar">${p.img?'<img src="'+p.img+'" alt="">':p.n[0]}</div>
+     <div class="avatar">${avatarHtml(p)}</div>
      <div><div class="name">${p.n}</div><div class="role">${p.r[S.lang]}</div></div>
      <div class="chev">&rsaquo;</div></div></button>`).join("");
   zeichneGeteilt();
@@ -2853,7 +2898,7 @@ async function ladePersonen(){
   try{
     /* Feste Reihenfolge. Ohne order= verschob eine einzige Aenderung an einer
        Person (z.B. PIN-Reset) die ganze Liste (Bruno 3. Runde, Fund 1). */
-    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,sees_revenue,pin_set,is_demo,needs_pin&order=name.asc,id.asc");
+    const rows = await sbGet("login_people?select=id,name,role_en,role_id,department,is_lead,is_manager,sees_revenue,pin_set,is_demo,needs_pin,photo_path&order=name.asc,id.asc");
     if(!rows.length) throw new Error("leer");
     const bilder = {}; PEOPLE.forEach(p=>{ if(p.img) bilder[p.n]=p.img; });
     PEOPLE = rows.map(r=>({
@@ -2865,6 +2910,7 @@ async function ladePersonen(){
       pin:(r.needs_pin===true)?1:(r.needs_pin===false?0:undefined),
       demo:r.is_demo?1:0,
       doc:/^Dr\./.test(r.name)&&r.department==="dental"?1:0,
+      foto:(r.photo_path==null ? null : r.photo_path),   /* 134: Pfad im Bucket profilfotos; '' = ausdruecklich keins */
       img:bilder[r.name]||null
     }));
     online = true;
@@ -2909,7 +2955,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -4236,6 +4282,73 @@ function tkFotoGewaehlt(file){
     }, "image/jpeg", 0.7);
   }; img.src=rd.result; };
   rd.readAsDataURL(file);
+}
+
+/* Eigenes Profilfoto (134): Bild lesen, mittig quadratisch auf 256 px
+   schneiden, als JPEG in den eigenen Ordner im Bucket profilfotos laden,
+   Pfad per profilfoto_setzen eintragen, dann ueberall neu zeichnen.
+   Nichts stumm: jeder Fehlweg endet in einer Meldung neben dem Knopf. */
+let fotoLaeuft=false;
+function profilfotoGewaehlt(file){
+  const t=L(), m=me(), msg=$("#foto-msg");
+  /* Bruno 134 Fund 1: Fehler rot (.bad), sonst liest er sich wie der graue
+     Hinweissatz darunter. Fund 8: Sperre schon bei der Auswahl, nicht erst
+     nach dem Verkleinern. */
+  const sag=(txt,art)=>{ if(msg){ msg.className="lverr"+(art==="gut"?" good":art==="schlecht"?" bad":""); msg.textContent=txt; } };
+  if(!file || !m || fotoLaeuft) return;
+  if(demoAktiv()){ sag(t.fotoDemo, "schlecht"); return; }
+  fotoLaeuft=true;
+  const img=new Image(), rd=new FileReader();
+  const kaputt=()=>{ fotoLaeuft=false; sag(t.tkPhotoBad, "schlecht"); };
+  rd.onerror=kaputt;
+  rd.onload=()=>{ img.onerror=kaputt; img.onload=async()=>{
+    const w=img.width, h=img.height; if(!w||!h){ kaputt(); return; }
+    const q=Math.min(w,h), sx=Math.round((w-q)/2), sy=Math.round((h-q)/2);
+    const c=document.createElement("canvas"); c.width=256; c.height=256;
+    c.getContext("2d").drawImage(img, sx, sy, q, q, 0, 0, 256, 256);
+    c.toBlob(async b=>{
+      if(!b){ kaputt(); return; }
+      sag(t.fotoWait);
+      try{
+        const pfad = m.id + "/" + Math.random().toString(36).slice(2,10) + ".jpg";
+        const lade=()=>mitZeitlimit(fetch(SB.url+"/storage/v1/object/profilfotos/"+pfad, {
+          method:"POST",
+          headers:{ apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"image/jpeg" },
+          body:b }), 30000);
+        let up=await lade();
+        /* Bruno 134 Fund 5: Storage antwortet bei abgelaufenem Token nicht
+           mit 401, sondern 400. Wie beim Krankschein: bei jedem Fehlschlag
+           einmal mit erneuerter Sitzung. */
+        if(!up.ok && await erneuereSitzung()) up=await lade();
+        if(!up.ok) throw new Error("upload "+up.status);
+        await sbSend("rpc/profilfoto_setzen", {p_path:pfad});
+        m.foto=pfad; fotoMerken(m); sag(t.fotoDone, "gut");
+      }catch(e){ sag(t.fotoFail, "schlecht"); }
+      fotoLaeuft=false;
+    }, "image/jpeg", 0.75);
+  }; img.src=rd.result; };
+  rd.readAsDataURL(file);
+}
+
+/* Nach Wechsel oder Loeschen: Liste im Geraet merken, ueberall neu zeichnen. */
+function fotoMerken(m){
+  try{ localStorage.setItem("tg-people", JSON.stringify(PEOPLE.map(p=>Object.assign({}, p, {img:undefined})))) }catch(e){}
+  const mf=$("#me-face"); if(mf) mf.innerHTML=avatarHtml(m);
+  const fw=$("#btn-foto-weg"); if(fw) fw.hidden=!(m.foto || (m.img && m.foto!==""));
+  renderPeople();
+}
+/* "Remove photo" (134, Elke): eigenes Foto weg, auch ein eingebautes. */
+async function profilfotoWeg(){
+  const t=L(), m=me(), msg=$("#foto-msg");
+  const sag=(txt,art)=>{ if(msg){ msg.className="lverr"+(art==="gut"?" good":art==="schlecht"?" bad":""); msg.textContent=txt; } };
+  if(!m || fotoLaeuft) return;
+  if(demoAktiv()){ sag(t.fotoDemo, "schlecht"); return; }
+  fotoLaeuft=true; sag(t.fotoWait2);
+  try{
+    await sbSend("rpc/profilfoto_loeschen", {p_person:m.id});
+    m.foto=""; fotoMerken(m); sag(t.fotoRemoved, "gut");
+  }catch(e){ sag(t.fotoRemoveFail, "schlecht"); }
+  fotoLaeuft=false;
 }
 
 /* Ein Aufgaben-Foto sicher laden (RLS-geschuetzt) und ins img-Element setzen. */
@@ -5765,7 +5878,7 @@ async function nameLogin(k){
 function VORFUEHRUNG_AUS(k){
   const p=PEOPLE[k]; pinFor=k; pinBuf=""; pinTries=0; pinFirst=null; pinAlt=null;
   pinMode = "check";
-  $("#p-face").innerHTML = p.img?'<img src="'+p.img+'" alt="">':p.n[0];
+  $("#p-face").innerHTML = avatarHtml(p);
   $("#p-name").textContent = p.n;
   $("#p-role").textContent = p.r[S.lang];
   $("#p-err").textContent = L().pinFirst;
@@ -5795,7 +5908,7 @@ function zeigePinBildschirm(k){
   /* Der Server entscheidet ueber must_set_pin, nicht das Handy. Deshalb "check".
      pinSet dient allein dem Hinweistext darunter. */
   pinMode = "check";
-  $("#p-face").innerHTML = p.img?'<img src="'+p.img+'" alt="">':p.n[0];
+  $("#p-face").innerHTML = avatarHtml(p);
   $("#p-name").textContent = p.n;
   $("#p-role").textContent = p.r[S.lang];
   $("#p-err").textContent = p.pinSet===false ? L().pinFirst : "";
@@ -6439,6 +6552,9 @@ document.addEventListener("change",e=>{
     const f=e.target.files && e.target.files[0]; if(f) tkFotoGewaehlt(f);
   }
   if(e.target && e.target.id==="sk-cert-input"){ krankscheinGewaehlt(e.target.files && e.target.files[0]); return; }
+  if(e.target && e.target.id==="foto-input"){
+    const f=e.target.files && e.target.files[0]; if(f) profilfotoGewaehlt(f); return;
+  }
   if(e.target && e.target.id==="bl-photo-input"){
     const f=e.target.files && e.target.files[0]; if(f) belegFotoGewaehlt(f);
   }
@@ -6559,6 +6675,8 @@ document.addEventListener("click",e=>{
   const twd=e.target.closest("[data-tkwd]"); if(twd){ tkWochentag=Number(twd.dataset.tkwd); $$("#tk-wd .dep").forEach(b=>b.classList.toggle("on", Number(b.dataset.tkwd)===tkWochentag)); return; }
   if(e.target.closest("#tk-mic")){ aufgabeSprechen(); return; }
   if(e.target.closest("#tk-photo-btn")){ const pi=$("#tk-photo-input"); if(pi) pi.click(); return; }
+  if(e.target.closest("#btn-foto-weg")){ profilfotoWeg(); return; }
+  if(e.target.closest("#btn-foto")){ const fi=$("#foto-input"); if(fi){ fi.value=""; fi.click(); } return; }
   if(e.target.closest("#tk-send")){ aufgabeSenden(); return; }
   /* Belegkasten */
   const blk=e.target.closest("[data-blkind]");
