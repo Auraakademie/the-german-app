@@ -252,6 +252,17 @@
        padding:18px;font:700 16px/1.2 var(--sans);cursor:pointer;
        display:flex;align-items:center;justify-content:center;gap:9px}
   .cta:active{filter:brightness(.94)}
+  /* "Now"-Karte (Nina 07.11.2026, Entwurf aus Claude Design): ganz oben steht
+     nur, was jetzt dran ist. Gross, kraeftig, ein Knopf. */
+  .nowcard{border-radius:22px;padding:20px;margin:4px 0 18px;display:flex;flex-direction:column;gap:12px;
+           border:1px solid var(--hair-gold);background:var(--bg-lift)}
+  .nowcard .eb{display:flex;justify-content:space-between;align-items:center}
+  .nowcard .eb b{font:700 12px var(--sans);letter-spacing:.14em;color:var(--gold-ink)}
+  .nowcard .eb span{font-size:13px;color:var(--ink-3)}
+  .nowcard .tt{font:700 22px/1.2 var(--sans);color:var(--ink)}
+  .nowbar{height:8px;border-radius:999px;background:var(--hair);overflow:hidden}
+  .nowbar i{display:block;height:100%;background:var(--gold-ink);border-radius:999px}
+  .nowcard .mt{font-size:13px;color:var(--ink-3);line-height:1.4}
   .ghost{width:100%;background:var(--tint-b);color:var(--ink-2);border:1px solid var(--hair);min-height:48px;
          border-radius:14px;padding:14px;font:600 14px/1.2 var(--sans);cursor:pointer;margin:16px 0 0}
 
@@ -725,7 +736,9 @@
       <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
       <div id="cockpit-stuck" hidden></div>
 
-      <div class="glass hero">
+      <div class="nowcard" id="now-card" hidden></div>
+
+      <div class="glass hero" id="hero-box">
         <div class="ring">
           <svg viewBox="0 0 76 76" aria-hidden="true">
             <circle class="trk" cx="38" cy="38" r="33"/>
@@ -1483,6 +1496,9 @@ const T={
   clockNote:"<b>Your day starts here.</b> Start your day and you will see exactly what is waiting for you.",
   clockIn:"Start my day",briefH:"Today",briefT:"Reception",
   heroT:"Your shift",heroDone:"done",heroBlocked:"cannot be done",heroSince:"Started at",
+  nowEb:"NOW", nowSteps:"{a} of {b} steps done", nowNext:"next:", nowGo:"Continue", nowStart:"Start",
+  nowToday:"Today: {n} of {m} done", nowAll:"All your lists are done for today.",
+  nowBlocked:"The rest cannot be done right now. The manager can see it.",
   handover:"Note from the last shift",
   hoTxt:"",
   hoFrom:"",endDay:"End of shift",
@@ -1695,6 +1711,9 @@ const T={
   clockNote:"<b>Hari kerja dimulai di sini.</b> Mulai hari kerja dan Anda langsung melihat apa yang menunggu.",
   clockIn:"Mulai hari kerja",briefH:"Hari ini",briefT:"Resepsionis",
   heroT:"Shift Anda",heroDone:"selesai",heroBlocked:"tidak bisa dikerjakan",heroSince:"Mulai pukul",
+  nowEb:"SEKARANG", nowSteps:"{a} dari {b} langkah selesai", nowNext:"berikutnya:", nowGo:"Lanjutkan", nowStart:"Mulai",
+  nowToday:"Hari ini: {n} dari {m} selesai", nowAll:"Semua daftar hari ini sudah selesai.",
+  nowBlocked:"Sisanya tidak bisa dikerjakan sekarang. Manajer bisa melihatnya.",
   handover:"Catatan dari shift sebelumnya",
   hoTxt:"",
   hoFrom:"",endDay:"Akhiri shift",
@@ -2059,7 +2078,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-07e";
+const APP_VERSION = "2026-11-07g";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2378,6 +2397,48 @@ function renderGroups(){
     (zaehlt ? `${n} / ${meine.length} ${L().heroDone}`
               + (bl?` &middot; ${bl} ${L().heroBlocked}`:"") + "<br>" : "")
     + `${L().heroSince} <b>${S.started||"\u2014"}</b>`;
+  zeichneNowKarte(meine.length, n, bl);
+}
+
+/* "Now"-Karte (Nina 07.11.2026, freigegeben am Claude-Design-Entwurf): Wer
+   eine Tagesliste hat, sieht oben nur den naechsten offenen Ablauf, mit
+   Fortschritt, naechstem Schritt und einem Knopf. Der Ring faellt dann weg,
+   seine Zahlen stehen unten in der Karte. Leitung und Leute ohne Liste
+   behalten den Ring wie bisher. Reihenfolge = Tagesliste (Tageszeit 1, 2, 3,
+   darin wie angezeigt), erledigt und blockiert zaehlen nicht. */
+function zeichneNowKarte(gesamt, fertig, blockiert){
+  const box=$("#now-card"), hero=$("#hero-box"); if(!box) return;
+  const t=L();
+  /* Bruno 07f Fund 2: Ablaeufe, die genau EINER Person gehoeren (Hendras
+     HR-*), haben Termine wie "21st to 20th" oder "When it happens". Die Karte
+     schickte ihn damit jeden Tag zum Lohnabschluss. Die Karte gilt nur fuer
+     Abteilungs-Tageslisten; wer nur Personen-Ablaeufe hat, behaelt den Ring. */
+  const abteilung=TASKS.filter(q=>mineTask(q) && !q.nur).length;
+  if(!gesamt || !abteilung){ box.hidden=true; box.innerHTML=""; if(hero) hero.hidden=false; return; }
+  let ziel=-1;
+  [1,2,3].some(g=>TASKS.some((q,i)=>{
+    if(q.g===g && mineTask(q) && !q.nur && !isDone(i) && !isBlocked(i)){ ziel=i; return true; } return false; }));
+  const sub = t.nowToday.replace("{n}",fertig).replace("{m}",gesamt)
+            + (blockiert ? ` &middot; ${blockiert} ${t.heroBlocked}` : "")   /* Fund 4 */
+            + (S.started ? ` &middot; ${t.heroSince} ${escHtml(S.started)}` : "");
+  if(ziel<0){
+    box.innerHTML = `<div class="tt" style="font-size:19px">${blockiert ? t.nowBlocked : t.nowAll}</div>
+      <div class="mt">${sub}</div>`;
+  } else {
+    const q=TASKS[ziel], schritte=q.steps||[];
+    const sd=(S.steps[taskKey(ziel)]||[]).filter(j=>j<schritte.length);
+    const a=sd.length, b=schritte.length;
+    const naechster=schritte.findIndex((x,j)=>sd.indexOf(j)<0);
+    const pct=b ? Math.round(100*a/b) : 0;
+    box.innerHTML = `<div class="eb"><b>${t.nowEb}</b><span>${escHtml(when(q))}</span></div>
+      <div class="tt">${escHtml(q.t[S.lang])}</div>
+      ${b ? `<div class="nowbar"><i style="width:${pct}%"></i></div>
+      <div class="mt">${t.nowSteps.replace("{a}",a).replace("{b}",b)}${naechster>=0 ? ` &middot; ${t.nowNext} ${escHtml(schritte[naechster][S.lang])}` : ""}</div>` : ""}
+      <button class="cta" data-s="${ziel}">${a ? t.nowGo : t.nowStart}
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></button>
+      <div class="mt">${sub}</div>`;
+  }
+  box.hidden=false; if(hero) hero.hidden=true;
 }
 
 
@@ -6375,6 +6436,10 @@ function openRoom(i,keep){
   if(!keep) go("s-room");
 }
 
+/* Bruno 07f Fund 3: Der zweite Tipp eines Doppeltipps (Handschuh) landete auf
+   dem frisch geoeffneten Ablauf und hakte stumm einen Schritt ab. Schritte
+   reagieren erst 450 ms nach dem Oeffnen. */
+let sopOffenAm=0;
 function openSop(i,kind,keep){
   const t=list(kind||"task")[i];
   /* Gefunden am 13.08.2026: Die Liste filterte nach Abteilung, das OEFFNEN aber
@@ -6396,7 +6461,7 @@ function openSop(i,kind,keep){
    </div>`}).join("");
   renderActions();
   $("#reasons").classList.remove("on");
-  if(!keep) go("s-sop");
+  if(!keep){ sopOffenAm=Date.now(); go("s-sop"); }
 }
 
 /* Nachschlagewerke haben keinen Abschluss. Aufgaben schon, aber erst wenn alle
@@ -6869,6 +6934,7 @@ document.addEventListener("click",e=>{
   const gd=e.target.closest("[data-g]"); if(gd){openSop(+gd.dataset.g,"guide");return}
 
   const st=e.target.closest(".step");
+  if(st && Date.now()-sopOffenAm<450) return;
   if(st){
     /* Nur diesen einen Schritt anfassen, nicht die ganze Liste neu zeichnen.
        Sonst flackert es und die Scrollposition springt weg. */
@@ -6878,6 +6944,10 @@ document.addEventListener("click",e=>{
     const on=at<0;
     st.classList.toggle("done",on);
     st.querySelector(".num").textContent=on?"\u2713":(j+1);
+    /* Bruno 07f Fund 1: Die Now-Karte zeigte ohne Netz den alten Stand. */
+    if(curKind==="task") try{ zeichneNowKarte(TASKS.filter(mineTask).length,
+        TASKS.filter((t,i)=>isDone(i)&&mineTask(t)).length,
+        TASKS.filter((t,i)=>isBlocked(i)&&mineTask(t)).length); }catch(e){}
     /* Der Haken ist auf dem Bildschirm schon passiert. Das Melden laeuft
        hinterher und darf scheitern, ohne dass jemand etwas merkt. */
     const q=list(curKind)[cur];
