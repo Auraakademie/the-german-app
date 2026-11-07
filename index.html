@@ -263,6 +263,13 @@
   .nowbar{height:8px;border-radius:999px;background:var(--hair);overflow:hidden}
   .nowbar i{display:block;height:100%;background:var(--gold-ink);border-radius:999px}
   .nowcard .mt{font-size:13px;color:var(--ink-3);line-height:1.4}
+  /* Stimmung nach "End of shift" (136, Dennis/Nina 07.11.2026): drei grosse
+     Gesichter, ein Tipp. Anonym, die Datenbank zaehlt nur. */
+  .moodgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:26px 0 18px}
+  .mood{min-height:128px;border-radius:20px;border:2px solid var(--hair);background:var(--bg-lift);color:var(--ink);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+        font:600 15px var(--sans);cursor:pointer}
+  .mood.on{background:var(--gold);border-color:var(--gold);color:#141413}
   .ghost{width:100%;background:var(--tint-b);color:var(--ink-2);border:1px solid var(--hair);min-height:48px;
          border-radius:14px;padding:14px;font:600 14px/1.2 var(--sans);cursor:pointer;margin:16px 0 0}
 
@@ -649,6 +656,19 @@
       <div class="pad" id="p-pad"></div>
     </section>
 
+    <!-- Stimmung nach "End of shift" (Migration 136). Bewusst ohne jeden
+         Zusatztext: Frage, drei Gesichter, Skip. Ehrlich, weil die Datenbank
+         keine Namen speichert, nur drei Zaehler pro Tag. -->
+    <section class="screen" id="s-mood">
+      <h1 data-t="moodQ" style="margin-top:40px"></h1>
+      <div class="moodgrid">
+        <button class="mood" data-mood="gut"><svg aria-hidden="true" width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="20"/><circle cx="17" cy="20" r="1.6" fill="currentColor" stroke="none"/><circle cx="31" cy="20" r="1.6" fill="currentColor" stroke="none"/><path d="M15 28c2.5 3.5 5.5 5 9 5s6.5-1.5 9-5"/></svg><span data-t="moodGut"></span></button>
+        <button class="mood" data-mood="okay"><svg aria-hidden="true" width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="20"/><circle cx="17" cy="20" r="1.6" fill="currentColor" stroke="none"/><circle cx="31" cy="20" r="1.6" fill="currentColor" stroke="none"/><path d="M16 30h16"/></svg><span data-t="moodOkay"></span></button>
+        <button class="mood" data-mood="schwer"><svg aria-hidden="true" width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="20"/><circle cx="17" cy="20" r="1.6" fill="currentColor" stroke="none"/><circle cx="31" cy="20" r="1.6" fill="currentColor" stroke="none"/><path d="M15 33c2.5-3.5 5.5-5 9-5s6.5 1.5 9 5"/></svg><span data-t="moodSchwer"></span></button>
+      </div>
+      <button class="ghost" id="mood-skip" data-t="moodSkip"></button>
+    </section>
+
     <section class="screen" id="s-clock">
       <button class="back" data-go="s-login">&#8249; <span data-t="back"></span></button>
       <h1><span data-t="hello"></span>, <span id="c-name"></span></h1>
@@ -726,6 +746,9 @@
         <button class="glass kpi" data-go="s-reports" style="text-align:left">
           <div class="k" id="kpi-report" style="font-size:17px">&mdash;</div>
           <div class="lbl" data-t="ckReport"></div></button>
+        <div class="glass kpi">
+          <div class="k" id="kpi-mood" style="font-size:17px">&mdash;</div>
+          <div class="lbl" data-t="ckMood"></div></div>
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
@@ -1502,6 +1525,8 @@ const T={
   handover:"Note from the last shift",
   hoTxt:"",
   hoFrom:"",endDay:"End of shift",
+  moodQ:"How was your day?", moodGut:"Good", moodOkay:"Okay", moodSchwer:"Hard", moodSkip:"Skip",
+  ckMood:"Team mood: good · okay · hard", ckMoodFew:"answers: {n}",
   guides:"Look up any time",
   sopVer:"Version 1.0",sopDone:"Mark as done",sopNeed:"Tick every step first",
   sopUndo:"Not done after all",sopBlock:"I cannot do this today",
@@ -1717,6 +1742,8 @@ const T={
   handover:"Catatan dari shift sebelumnya",
   hoTxt:"",
   hoFrom:"",endDay:"Akhiri shift",
+  moodQ:"Bagaimana hari ini?", moodGut:"Baik", moodOkay:"Biasa saja", moodSchwer:"Berat", moodSkip:"Lewati",
+  ckMood:"Suasana tim: baik · biasa · berat", ckMoodFew:"jawaban: {n}",
   guides:"Bisa dilihat kapan saja",
   sopVer:"Versi 1.0",sopDone:"Tandai selesai",sopNeed:"Centang semua langkah dulu",
   sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",
@@ -2078,7 +2105,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-07g";
+const APP_VERSION = "2026-11-07j";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3207,6 +3234,7 @@ async function sendeEinen(e){
   if(e.art==="aufgabe"){ await sbSend("rpc/aufgabe_erledigen",{p_task:d.task, p_on_day:d.tag||null}); return; }
   if(e.art==="einchecken"){ await sbSend("rpc/einchecken", {p_lat:null, p_lng:null}); return; }
   if(e.art==="auschecken"){ await sbSend("rpc/auschecken", {p_lat:null, p_lng:null}); return; }
+  if(e.art==="stimmung"){ await sbSend("rpc/stimmung_abgeben", {p_wert:d.wert, p_tag:d.tag||null}); return; }
   if(e.art==="standort"){ await sbSend("rpc/stempel_ort", {p_art:d.art, p_lat:d.lat, p_lng:d.lng}); return; }
   if(e.art==="zimmer"){
     await sbSend("rpc/zimmer_melden", {p_appt:d.termin, p_was:d.was});
@@ -3632,6 +3660,18 @@ async function fuelleCockpit(){
     const soon=(b||[]).filter(x=>geburtstagsWoche(x.bday_day,x.bday_month)===0);
     const el=$("#kpi-bday"); if(el) el.textContent = soon.length ? soon[0].name : "—";
   }catch(e){ const el=$("#kpi-bday"); if(el) el.textContent="—"; }
+
+  /* Stimmung GESTERN (136): nie der laufende Tag, sonst verraet der
+     Zwischenstand gegen die Auscheckzeit die einzelne Stimme (Bruno Fund 1).
+     Erst ab 5 Antworten die Aufteilung, sonst nur die Anzahl. */
+  /* N1: Die Datenbank liefert nur geschlossene Tage (gestern erst ab 12:00
+     Bali). Die Kachel zeigt den juengsten davon mit Wochentag, so sieht Nina
+     am Montag auch den Samstag (N2). */
+  try{ const m=(await sbGet("rpc/stimmung_auswertung?p_tage=7"))||[]; const r=m[0];
+    const tg = r ? tagText(r.on_day,{weekday:"short"})+" " : "";
+    const el=$("#kpi-mood"); if(el) el.textContent = !r ? "—"
+      : tg + (r.gut==null ? L().ckMoodFew.replace("{n}", r.antworten) : `${r.gut} · ${r.okay} · ${r.schwer}`);
+  }catch(e){ const el=$("#kpi-mood"); if(el) el.textContent="—"; }
 
   /* Umsatz NUR fuer Micha + Nina (sees_revenue). Oberstes Gebot: kein anderer,
      auch keine andere Leitung und kein Manager, sieht Zahlen. Die beiden
@@ -6438,7 +6478,8 @@ function openRoom(i,keep){
 
 /* Bruno 07f Fund 3: Der zweite Tipp eines Doppeltipps (Handschuh) landete auf
    dem frisch geoeffneten Ablauf und hakte stumm einen Schritt ab. Schritte
-   reagieren erst 450 ms nach dem Oeffnen. */
+   reagieren erst 600 ms nach dem Oeffnen (performance.now, damit ein
+   Ruecksprung der Handyuhr nichts sperrt). */
 let sopOffenAm=0;
 function openSop(i,kind,keep){
   const t=list(kind||"task")[i];
@@ -6461,7 +6502,7 @@ function openSop(i,kind,keep){
    </div>`}).join("");
   renderActions();
   $("#reasons").classList.remove("on");
-  if(!keep){ sopOffenAm=Date.now(); go("s-sop"); }
+  if(!keep){ sopOffenAm=performance.now(); go("s-sop"); }
 }
 
 /* Nachschlagewerke haben keinen Abschluss. Aufgaben schon, aber erst wenn alle
@@ -6557,7 +6598,31 @@ function showBack(){
   b.hidden = !NAV.length;
 }
 
+/* Stimmung (136). moodOffen: nur direkt nach "End of shift" ist s-mood
+   erreichbar. Bruno 136 Fund 2: Am Tresen-Handy zeigte der Zurueck-Pfeil der
+   naechsten Kollegin das gewaehlte Gesicht der vorigen. Jetzt: Markierung
+   weg beim Verlassen, s-mood nie im Verlauf, ueber Zurueck nicht erreichbar.
+   stimmungSchonHeute: das Geraet merkt sich pro Person nur DASS heute
+   abgestimmt wurde (nicht WAS), damit die Frage nicht zweimal kommt (Fund 8). */
+let moodOffen=false;
+function moodSchliessen(){
+  $$("#s-mood .mood").forEach(b=>b.classList.remove("on"));
+  moodOffen=false;
+  if(here()==="s-mood") go("s-clock", false);
+}
+function stimmungSchonHeute(){
+  try{ const m=me(), o=JSON.parse(localStorage.getItem("tg-mood-tag")||"{}");
+    return !!(m && o[m.id]===heuteISO()); }catch(e){ return false; }
+}
+function stimmungMerken(){
+  try{ const m=me(); if(!m) return;
+    const o=JSON.parse(localStorage.getItem("tg-mood-tag")||"{}"), h=heuteISO();
+    Object.keys(o).forEach(k=>{ if(o[k]!==h) delete o[k]; });
+    o[m.id]=h; localStorage.setItem("tg-mood-tag", JSON.stringify(o)); }catch(e){}
+}
 function go(id, push){
+  if(id==="s-mood" && !moodOffen) id="s-clock";
+  if(here()==="s-mood" && id!=="s-mood"){ $$("#s-mood .mood").forEach(b=>b.classList.remove("on")); moodOffen=false; push=false; }
   const from=here();
   /* Die Namensliste ist der Anfang. Von dort wird der Verlauf geleert,
      sonst wandert man beim Zurueckgehen durch den ganzen letzten Tag. */
@@ -6893,8 +6958,24 @@ document.addEventListener("click",e=>{
     { const wer = me() && me().id;
       mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"out", lat:pos.lat, lng:pos.lng}); }); }
     S.started=null; S.startedAt=null; save();
+    if(!istLeitung() && !demoAktiv() && !stimmungSchonHeute()){
+      $$("#s-mood .mood").forEach(b=>b.classList.remove("on"));
+      moodOffen=true; go("s-mood"); return;
+    }
     go("s-clock"); return;
   }
+  const md=e.target.closest("[data-mood]");
+  if(md){
+    if(!moodOffen || $("#s-mood .mood.on")) return;   /* ein Tipp zaehlt, kein Doppeltipp */
+    md.classList.add("on");
+    /* Tag des Tipps mit (Bruno 136 Fund 3): offline getippt zaehlt die Stimme
+       fuer heute, auch wenn sie erst morgen ankommt. */
+    melde("stimmung", {wert: md.dataset.mood, tag: heuteISO()});
+    stimmungMerken();
+    setTimeout(moodSchliessen, 450);
+    return;
+  }
+  if(e.target.closest("#mood-skip")){ moodSchliessen(); return; }
   const g=e.target.closest("[data-go]"); if(g){go(g.dataset.go);return}
   /* Billy 04.11.2026: derselbe Stempel auch aus der Leiste auf der Uebersicht,
      wenn jemand ueber "Just have a look" hereinkam. */
@@ -6934,7 +7015,7 @@ document.addEventListener("click",e=>{
   const gd=e.target.closest("[data-g]"); if(gd){openSop(+gd.dataset.g,"guide");return}
 
   const st=e.target.closest(".step");
-  if(st && Date.now()-sopOffenAm<450) return;
+  if(st && performance.now()-sopOffenAm<600) return;   /* Bruno 07g: monotone Uhr, 600 ms */
   if(st){
     /* Nur diesen einen Schritt anfassen, nicht die ganze Liste neu zeichnen.
        Sonst flackert es und die Scrollposition springt weg. */
