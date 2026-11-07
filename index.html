@@ -1119,6 +1119,7 @@
       <p class="sub" id="tb-datum"></p>
       <div class="glass" style="padding:16px">
         <p class="lverr" id="tb-auto" style="margin:0 0 12px"></p>
+        <p class="lverr" id="tb-entwurf" hidden style="margin:0 0 12px"></p>
         <label class="lvlab" data-t="tbText"></label>
         <textarea class="lvin" id="tb-text" rows="5" style="resize:none"></textarea>
         <label class="lvlab" data-t="tbProb"></label>
@@ -1609,6 +1610,9 @@ const T={
   tbH:"Daily report", tbTileS:"Write today's report for Nina and Michael", tbText:"What happened today", tbProb:"Problems, decisions needed", tbMorgen:"Tomorrow",
   tbSave:"Send report", tbSaved:"Report sent. Nina and Michael can read it now.", tbEmpty:"Please write at least one line.", tbPrev:"Last days", tbNone:"No report yet.",
   tbTileMissing:"Today's report is still missing", tbMissing:"No report", tbReminded:"reminder sent",
+  tbDraft:"Written automatically from today's data. Check it, add what you saw, then send.",
+  tbDraftFail:"The automatic text failed today. Please write the report yourself.", tbOpenTasks:"Open tasks",
+  tbAutoSent:"Sent automatically at 18:00, not checked by the manager.",
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
@@ -1818,6 +1822,9 @@ const T={
   tbH:"Laporan harian", tbTileS:"Tulis laporan hari ini untuk Nina dan Michael", tbText:"Apa yang terjadi hari ini", tbProb:"Masalah, perlu keputusan", tbMorgen:"Besok",
   tbSave:"Kirim laporan", tbSaved:"Laporan terkirim. Nina dan Michael bisa membacanya sekarang.", tbEmpty:"Tulis minimal satu baris.", tbPrev:"Hari-hari terakhir", tbNone:"Belum ada laporan.",
   tbTileMissing:"Laporan hari ini belum ditulis", tbMissing:"Belum ada laporan", tbReminded:"pengingat dikirim",
+  tbDraft:"Ditulis otomatis dari data hari ini. Periksa, tambahkan yang kamu lihat, lalu kirim.",
+  tbDraftFail:"Teks otomatis gagal hari ini. Tolong tulis laporannya sendiri.", tbOpenTasks:"Tugas terbuka",
+  tbAutoSent:"Dikirim otomatis jam 18:00, belum diperiksa manajer.",
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
@@ -2052,7 +2059,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-07d";
+const APP_VERSION = "2026-11-07e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2722,7 +2729,7 @@ function tbZeile(b, t){
   const d=tagText(b.on_day,{weekday:"short",day:"numeric",month:"short"});
   const wann=new Date(b.updated_at).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Makassar"});
   return `<div class="lvitem" style="flex-wrap:wrap"><div class="d"><b>${d} \u00b7 ${escHtml(b.wer)} <small>${wann}</small></b>
-    ${b.auto?`<small style="opacity:.8">${escHtml(b.auto)}</small><br>`:""}
+    ${b.auto?`<small style="opacity:.8">${b.auto==="automatic"?t.tbAutoSent:escHtml(b.auto)}</small><br>`:""}
     <small style="white-space:pre-wrap">${escHtml(b.text||"")}</small>
     ${b.probleme?`<small style="white-space:pre-wrap"><b>${t.tbProb}:</b> ${escHtml(b.probleme)}</small>`:""}
     ${b.morgen?`<small style="white-space:pre-wrap"><b>${t.tbMorgen}:</b> ${escHtml(b.morgen)}</small>`:""}
@@ -2812,6 +2819,7 @@ async function zeichneTagesbericht(){
   if(tbFelderTag!==heute){
     tbFelderTag=heute;
     ["#tb-text","#tb-prob","#tb-morgen"].forEach(id=>{ const f=$(id); if(f) f.value=""; });
+    const hz=$("#tb-entwurf"); if(hz){ hz.hidden=true; hz.innerHTML=""; }
   }
   const msg=$("#tb-msg"); if(msg){ msg.textContent=""; msg.className="lverr"; }
   /* Zahlen des Tages vorab (Dienstplan, Stempel, Abwesende), damit Hendra
@@ -2832,6 +2840,24 @@ async function zeichneTagesbericht(){
      Das Leeren passiert oben, beim Tageswechsel. */
   if(mein){
     if(tx) tx.value=mein.text||""; if(pr) pr.value=mein.probleme||""; if(mo) mo.value=mein.morgen||"";
+  } else {
+    /* 135 (Dennis 07.11.): Der Bericht schreibt sich ab 16:15 selbst vor.
+       Nur in leere Felder, nie ueber Getipptes. Dazu der Fakten-Block mit
+       den offenen Aufgaben (Texte bleiben im Haus, gehen nicht an die KI). */
+    try{
+      const e=(await sbGet("rpc/tagesbericht_entwurf_heute"))||[]; const d=e[0];
+      if(lauf!==tbZeichnenLauf) return;
+      if(d){
+        if(d.zusammenfassung && tx && !tx.value.trim()) tx.value=d.zusammenfassung;
+        if(d.probleme && pr && !pr.value.trim()) pr.value=d.probleme;
+        const f=d.fakten||{}, offen=(f.aufgaben&&f.aufgaben.offen_liste)||[];
+        const hint=$("#tb-entwurf"); if(hint){
+          hint.hidden=false;
+          hint.innerHTML = (d.zusammenfassung ? `<b>${t.tbDraft}</b>` : `<b class="lverr bad" style="margin:0">${t.tbDraftFail}</b>`)
+            + (offen.length ? `<br><small>${t.tbOpenTasks} (${offen.length}): ${offen.map(o=>escHtml(o.text)+" \u2192 "+escHtml(o.an||"")+(o.seit_tagen>0?" ("+o.seit_tagen+"d)":"")).join(" \u00b7 ")}</small>` : "");
+        }
+      }
+    }catch(e){}
   }
 }
 let tbSending=false;
@@ -2845,6 +2871,7 @@ async function tagesberichtSpeichern(){
   try{
     await sbSend("rpc/tagesbericht_speichern", {p_tag:heuteISO(), p_text:tx.trim(), p_probleme:pr.trim()||null, p_morgen:mo.trim()||null, p_auto:(($("#tb-auto")||{}).textContent||null)});
     if(msg){ msg.className="lverr good"; msg.textContent=t.tbSaved; }
+    const hz=$("#tb-entwurf"); if(hz){ hz.hidden=true; hz.innerHTML=""; }   /* Bruno 135 Fund 8 */
     ladeTagesberichte("#tb-list", 7).catch(()=>{});
     tagesberichtKachel().catch(()=>{});
   }catch(e){ if(msg){ msg.className="lverr bad"; msg.textContent=t.rsOffline; } }
