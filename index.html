@@ -484,6 +484,7 @@
   .lvitem .d{flex:1;font-family:"TG Text",system-ui,sans-serif}
   .lvitem .d b{display:block;font-size:15px;color:var(--ink)}
   .lvitem .d small{font-size:13px;color:var(--ink-2)}
+  .lvlater{opacity:.6} .rvlater-t{margin-top:18px}
   /* Der Zustand als Wort, nicht als Farbfleck. Ein gelber Punkt allein sagt
      niemandem, ob der Urlaub genehmigt ist. */
   .lvst{font-size:12px;letter-spacing:.04em;text-transform:uppercase;
@@ -657,8 +658,9 @@
     </section>
 
     <!-- Stimmung nach "End of shift" (Migration 136). Bewusst ohne jeden
-         Zusatztext: Frage, drei Gesichter, Skip. Ehrlich, weil die Datenbank
-         keine Namen speichert, nur drei Zaehler pro Tag. -->
+         Zusatztext: Frage, drei Gesichter, Skip. Ab 139 (Dennis 09.11.2026)
+         mit Namen fuer Nina und Dr. Michael; das Team hat zugestimmt und
+         unterschreibt das Blatt projekt/zustimmung_stimmung.md. -->
     <section class="screen" id="s-mood">
       <h1 data-t="moodQ" style="margin-top:40px"></h1>
       <div class="moodgrid">
@@ -746,9 +748,9 @@
         <button class="glass kpi" data-go="s-reports" style="text-align:left">
           <div class="k" id="kpi-report" style="font-size:17px">&mdash;</div>
           <div class="lbl" data-t="ckReport"></div></button>
-        <div class="glass kpi">
+        <button class="glass kpi" data-go="s-moodlist" style="text-align:left">
           <div class="k" id="kpi-mood" style="font-size:17px">&mdash;</div>
-          <div class="lbl" data-t="ckMood"></div></div>
+          <div class="lbl" data-t="ckMood"></div></button>
         <div class="glass kpi">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
           <div class="lbl" data-t="ckRev"></div></div>
@@ -1208,6 +1210,14 @@
       <p class="lverr" id="rs-foot" style="margin-top:14px;opacity:.75"></p>
     </section>
 
+    <!-- Stimmung der letzten 7 Tage, nur Leitung (Nina 09.11.2026, 139). -->
+    <section class="screen" id="s-moodlist">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="mdH"></h1>
+      <p class="eyebrow" data-t="md7" style="margin-top:6px"></p>
+      <div id="md-liste" style="margin-top:10px"></div>
+    </section>
+
     <section class="screen" id="s-bday">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="rvBday"></h1>
@@ -1527,6 +1537,7 @@ const T={
   hoFrom:"",endDay:"End of shift",
   moodQ:"How was your day?", moodGut:"Good", moodOkay:"Okay", moodSchwer:"Hard", moodSkip:"Skip",
   ckMood:"Team mood: good · okay · hard", ckMoodFew:"answers: {n}",
+  mdH:"Team mood", md7:"Last 7 days", mdToday:"Today", mdAns1:"1 answer", mdAnsN:"{n} answers", mdNone:"No answers yet.", mdOffline:"Offline. Try again later.", mdOhne:"Without name: {n}",
   guides:"Look up any time",
   sopVer:"Version 1.0",sopDone:"Mark as done",sopNeed:"Tick every step first",
   sopUndo:"Not done after all",sopBlock:"I cannot do this today",
@@ -1544,6 +1555,7 @@ const T={
   leadHere:"Your view",
   rvH:"What is stuck", rvToday:"Today", rvWeek:"This week, repeated",
   rvNothing:"Nothing stuck today. Good day.",
+  rvLater:"Later today", rvFrom:"from",
   rvNoWeek:"Nothing repeated this week.",
   rvBday:"Birthdays", rvBdayNone:"No birthdays saved yet.",
   rvBdayToday:"today", rvBdayIn:"in", rvBdayDays:"days", rvBdayDay:"day",
@@ -1744,6 +1756,7 @@ const T={
   hoFrom:"",endDay:"Akhiri shift",
   moodQ:"Bagaimana hari ini?", moodGut:"Baik", moodOkay:"Biasa saja", moodSchwer:"Berat", moodSkip:"Lewati",
   ckMood:"Suasana tim: baik · biasa · berat", ckMoodFew:"jawaban: {n}",
+  mdH:"Suasana tim", md7:"7 hari terakhir", mdToday:"Hari ini", mdAns1:"1 jawaban", mdAnsN:"{n} jawaban", mdNone:"Belum ada jawaban.", mdOffline:"Offline. Coba lagi nanti.", mdOhne:"Tanpa nama: {n}",
   guides:"Bisa dilihat kapan saja",
   sopVer:"Versi 1.0",sopDone:"Tandai selesai",sopNeed:"Centang semua langkah dulu",
   sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",
@@ -1761,6 +1774,7 @@ const T={
   leadHere:"Tampilan Anda",
   rvH:"Apa yang tersendat", rvToday:"Hari ini", rvWeek:"Minggu ini, berulang",
   rvNothing:"Tidak ada yang tersendat hari ini. Hari yang baik.",
+  rvLater:"Nanti hari ini", rvFrom:"mulai",
   rvNoWeek:"Tidak ada yang berulang minggu ini.",
   rvBday:"Ulang tahun", rvBdayNone:"Belum ada ulang tahun tersimpan.",
   rvBdayToday:"hari ini", rvBdayIn:"dalam", rvBdayDays:"hari", rvBdayDay:"hari",
@@ -2105,7 +2119,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-07k";
+const APP_VERSION = "2026-11-09a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3599,10 +3613,63 @@ const GRUND = {
 async function zaehleHaengt(){
   try{
     const heute=heuteISO();
-    const tag=await sbGet("app_day_review?select=status&on_day=eq."+heute);
-    const n=tag.filter(r=>r.status!=="done").length;
+    const tag=await sbGet("app_day_review?select=*&on_day=eq."+heute);
+    const n=tag.filter(ablaufHaengt).length;
     const b=$("#rv-badge"); if(b) b.textContent = n ? n : "\u2713";
   }catch(e){}
+}
+
+/* 138 (Nina 09.11.2026): Ein offener Ablauf haengt erst ab seiner Uhrzeit.
+   "Close the derma room" (16:45) stand vorher ab dem Morgen unter "What is
+   stuck". Davor steht er grau unter "Later today". Blockiert zaehlt immer
+   sofort. Ohne faellig_um (Datenbank vor 138) wie bisher: sofort. */
+function baliUhr(){ return new Date(Date.now()+8*3600000).toISOString().slice(11,16); }
+function ablaufSpaeter(r){
+  return r.status!=="done" && r.status!=="blocked" && !r.on_demand && !!r.faellig_um
+      && r.on_day===heuteISO() && r.faellig_um > baliUhr();
+}
+function ablaufHaengt(r){
+  return r.status==="blocked" ? !r.handled_at : r.status==="done" ? false : !r.on_demand && !ablaufSpaeter(r);
+}
+function spaeterHtml(tag, t){
+  const sp=tag.filter(ablaufSpaeter).sort((a,b)=>a.faellig_um<b.faellig_um?-1:a.faellig_um>b.faellig_um?1:0);
+  return sp.length ? `<p class="eyebrow rvlater-t">${t.rvLater}</p>` + sp.map(r=>
+    `<div class="lvitem lvlater"><div class="d"><b>${escHtml(r.titel||"")}</b>
+      <small>${escHtml(r.wer||"")} &middot; ${t.rvFrom} ${escHtml(r.faellig_um)}</small></div></div>`).join("") : "";
+}
+
+function moodTag(iso){ return iso===heuteISO() ? L().mdToday : tagText(iso,{weekday:"short"}); }
+async function ladeMoodListe(){
+  const t=L(), wrap=$("#md-liste"); if(!wrap) return;
+  wrap.innerHTML="";
+  const lauf=rvLauf;   /* Antwort fuer die Vorperson nach Abmelden nicht zeichnen */
+  let m=[];
+  try{ m=(await sbGet("rpc/stimmung_auswertung?p_tage=7"))||[]; }
+  catch(e){ if(lauf===rvLauf) wrap.innerHTML=`<p class="lverr">${t.mdOffline}</p>`; return; }
+  if(lauf!==rvLauf) return;
+  if(!m.length){ wrap.innerHTML=`<p class="lverr">${t.mdNone}</p>`; return; }
+  /* 139, Dennis 09.11.: mit Namen, nur Nina und Micha (sees_mood, Server) (Server). Fehlt die
+     Funktion (Datenbank vor 139) oder ist das Netz weg: nur die Zahlen. */
+  let namen=[]; try{ namen=(await sbGet("rpc/stimmung_namen?p_tage=7"))||[]; }catch(e){ namen=[]; }
+  if(lauf!==rvLauf) return;
+  const wort={gut:t.moodGut, okay:t.moodOkay, schwer:t.moodSchwer};
+  const namenAm = iso => ["schwer","okay","gut"].map(w=>{
+    const n=namen.filter(x=>x.on_day===iso && x.wert===w).map(x=>escHtml(x.name));
+    return n.length ? `<b>${escHtml(wort[w])}:</b> ${n.join(", ")}` : "";
+  }).filter(Boolean).join("<br>");
+  wrap.innerHTML = m.map(r=>{
+    const datum = r.on_day===heuteISO() ? t.mdToday : tagText(r.on_day,{weekday:"long", day:"numeric", month:"long"});
+    const anz = r.antworten===1 ? t.mdAns1 : t.mdAnsN.replace("{n}", r.antworten);
+    const teil = r.gut==null ? "" : `${r.gut} ${escHtml(t.moodGut)} &middot; ${r.okay} ${escHtml(t.moodOkay)} &middot; ${r.schwer} ${escHtml(t.moodSchwer)}`;
+    const wer = namenAm(r.on_day);
+    /* Bruno 09a Fund 5: Stimmen vor 139 haben keinen Namen. Sonst haelt man
+       den einzigen genannten "Hard" fuer alle "Hard" des Tages. */
+    const mitName = namen.filter(x=>x.on_day===r.on_day).length;
+    const ohne = namen.length && r.antworten>mitName ? r.antworten-mitName : 0;
+    return `<div class="lvitem"><div class="d"><b>${escHtml(datum)}</b>
+      <small>${escHtml(anz)}${teil?"<br>"+teil:""}${wer?"<br>"+wer:""}${ohne?"<br>"+escHtml(t.mdOhne.replace("{n}",ohne)):""}</small></div>
+      <span class="lvst ${r.schwer>0?"requested":""}">${r.gut==null?r.antworten:r.gut+" · "+r.okay+" · "+r.schwer}</span></div>`;
+  }).join("");
 }
 
 /* Cockpit fuer die Leitung: Kacheln (anwesend, nicht erledigt, Geburtstag,
@@ -3641,9 +3708,14 @@ async function fuelleCockpit(){
   let tag=[], offline=false;
   try{ const heute=heuteISO();
     tag=await sbGet("app_day_review?select=*&on_day=eq."+heute);
-    try{ localStorage.setItem("ck_stuck", JSON.stringify(tag)) }catch(e){}
-  }catch(e){ offline=true; try{ const c=localStorage.getItem("ck_stuck"); if(c) tag=JSON.parse(c) }catch(_){} }
-  const haengt = tag.filter(r => r.status==="blocked" ? !r.handled_at : r.status==="done" ? false : !r.on_demand);
+    try{ localStorage.setItem("ck_stuck", JSON.stringify({d:heute, r:tag})) }catch(e){}
+  }catch(e){ offline=true;
+    /* Bruno 09a Fund 7: nur der Stand von HEUTE, sonst zeigt das Cockpit
+       offline die Liste von gestern als heute haengend. Altes Format
+       (blosse Liste ohne Datum) gilt als veraltet. */
+    try{ const c=JSON.parse(localStorage.getItem("ck_stuck")||"null");
+      if(c && c.d===heuteISO() && Array.isArray(c.r)) tag=c.r }catch(_){} }
+  const haengt = tag.filter(ablaufHaengt);
   const ks=$("#kpi-stuck"); if(ks){ ks.textContent = offline && !tag.length ? "—" : haengt.length; }
   if(cs){
     cs.innerHTML = haengt.length ? haengt.map(r=>{
@@ -3651,6 +3723,7 @@ async function fuelleCockpit(){
       return `<div class="lvitem"><div class="d"><b>${escHtml(r.titel||"")}</b>
         <small>${escHtml(r.wer||"")}${grund?" &middot; "+escHtml(grund):""}</small></div></div>`;
     }).join("") : `<p class="lverr">${offline?t.tkOffline:t.rvNothing}</p>`;
+    cs.innerHTML += spaeterHtml(tag, t);
   }
 
   /* Geburtstag diese Woche */
@@ -3663,16 +3736,14 @@ async function fuelleCockpit(){
     const el=$("#kpi-bday"); if(el) el.textContent = soon.length ? soon[0].name : "—";
   }catch(e){ const el=$("#kpi-bday"); if(el) el.textContent="—"; }
 
-  /* Stimmung GESTERN (136): nie der laufende Tag, sonst verraet der
-     Zwischenstand gegen die Auscheckzeit die einzelne Stimme (Bruno Fund 1).
-     Erst ab 5 Antworten die Aufteilung, sonst nur die Anzahl. */
-  /* N1: Die Datenbank liefert nur geschlossene Tage (gestern erst ab 12:00
-     Bali). Die Kachel zeigt den juengsten davon mit Wochentag, so sieht Nina
-     am Montag auch den Samstag (N2). */
+  /* Stimmung (136, ab 139 Dennis 09.11.2026): Nina sieht die Verteilung
+     immer, auch den laufenden Tag. Das Team hat zugestimmt. Die Kachel zeigt
+     den juengsten Tag, antippen fuehrt zu den letzten 7 Tagen (s-moodlist).
+     Gegen eine Datenbank vor 139 kommt unter 5 Antworten gut=null: dann wie
+     bisher nur die Anzahl. */
   try{ const m=(await sbGet("rpc/stimmung_auswertung?p_tage=7"))||[]; const r=m[0];
-    const tg = r ? tagText(r.on_day,{weekday:"short"})+" " : "";
     const el=$("#kpi-mood"); if(el) el.textContent = !r ? "—"
-      : tg + (r.gut==null ? L().ckMoodFew.replace("{n}", r.antworten) : `${r.gut} · ${r.okay} · ${r.schwer}`);
+      : moodTag(r.on_day)+" " + (r.gut==null ? L().ckMoodFew.replace("{n}", r.antworten) : `${r.gut} · ${r.okay} · ${r.schwer}`);
   }catch(e){ const el=$("#kpi-mood"); if(el) el.textContent="—"; }
 
   /* Umsatz NUR fuer Micha + Nina (sees_revenue). Oberstes Gebot: kein anderer,
@@ -3892,10 +3963,8 @@ async function ladeReview(){
      Nicht zeigen: fertig, erledigte Blockaden, und offene Ereignis-Ablaeufe
      (Notfall, Absage, Behandlung pro Patient) - die laufen nur bei
      Ausloesung und sind kein Versaeumnis (Bruno/Dennis, 08.09.2026). */
-  const haengt = tag.filter(r =>
-    r.status==="blocked" ? !r.handled_at
-    : r.status==="done"  ? false
-    : !r.on_demand);
+  /* 138: und offen erst ab seiner Uhrzeit (ablaufHaengt). */
+  const haengt = tag.filter(ablaufHaengt);
   $("#rv-heute").innerHTML = haengt.length ? haengt.map(r=>{
     const grund = r.grund ? (t[r.grund] || GRUND[r.grund] || r.grund) : null;
     const blockiert = r.status==="blocked";
@@ -3914,6 +3983,7 @@ async function ladeReview(){
       <span class="lvst ${blockiert?"requested":""}">${r.gehakt}/${r.schritte}</span>
     </div>`}).join("")
     : `<p class="lverr">${t.rvNothing}</p>`;
+  $("#rv-heute").innerHTML += spaeterHtml(tag, t);
 
   /* Die Woche: nur was MEHR ALS EINMAL passiert ist, faellt auf. */
   $("#rv-woche").innerHTML = woche.length ? woche.map(r=>{
@@ -6203,7 +6273,9 @@ function sitzungZuruecksetzen(){
   /* Bruno 06d, P1 und N1: "What is stuck" der Vorperson aus dem Bild, oben
      (heute, Woche) wie unten (Aufgaben). Am geteilten Handy sah die Naechste
      sonst bei haengendem Netz, wer woran gescheitert ist. */
-  try{ ["rv-tasks","rv-heute","rv-woche"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; });
+  /* 139, Elke Fund 5: Stimmungsliste mit Namen ebenso weg. */
+  try{ ["rv-tasks","rv-heute","rv-woche","md-liste"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; });
+    const km=$("#kpi-mood"); if(km) km.textContent="—";
     tkOverMap={}; tkOverLauf++; rvLauf++; }catch(e){}
   /* Aufgaben-Zwischenspeicher der Vorperson weg (Bruno 3. Runde, Fund 13). */
   try{
@@ -6677,6 +6749,7 @@ function go(id, push){
   }
   if(id==="s-review"){ ladeReview().catch(()=>{}); ladeAufgabenUebersicht().catch(()=>{}); }
   if(id==="s-bday"){ ladeBday().catch(()=>{}); }
+  if(id==="s-moodlist"){ ladeMoodListe().catch(()=>{}); }
   if(id==="s-roster"){ rsVon=null; ladeRoster().catch(()=>{}); const ao=$("#am-open"); if(ao) ao.hidden=!istLeitung(); }
   if(id==="s-attmonth"){ amMonat=null; ladeAnwesenheitMonat().catch(()=>{}); }
   if(id==="s-away"){ ladeAbwesend(true).catch(()=>{}); }
