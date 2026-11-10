@@ -1549,6 +1549,7 @@ const T={
   mdH:"Team mood", md7:"Last 7 days", mdToday:"Today", mdAns1:"1 answer", mdAnsN:"{n} answers", mdNone:"No answers yet.", mdOffline:"Offline. Try again later.", mdOhne:"Without name: {n}",
   guides:"Look up any time",
   sopVer:"Version 1.0",sopDone:"Mark as done",sopNeed:"Tick every step first",
+  shDoneBy:"Done by {name} at {time}",
   sopUndo:"Not done after all",sopBlock:"I cannot do this today",
   whyH:"What is stopping you?",
   r1:"Equipment is broken",r2:"Material is missing",r3:"No time today",r4:"Someone else did it",
@@ -1771,6 +1772,7 @@ const T={
   mdH:"Suasana tim", md7:"7 hari terakhir", mdToday:"Hari ini", mdAns1:"1 jawaban", mdAnsN:"{n} jawaban", mdNone:"Belum ada jawaban.", mdOffline:"Offline. Coba lagi nanti.", mdOhne:"Tanpa nama: {n}",
   guides:"Bisa dilihat kapan saja",
   sopVer:"Versi 1.0",sopDone:"Tandai selesai",sopNeed:"Centang semua langkah dulu",
+  shDoneBy:"Sudah dikerjakan {name} pukul {time}",
   sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",
   whyH:"Apa kendalanya?",
   r1:"Alat rusak",r2:"Bahan habis",r3:"Tidak ada waktu hari ini",r4:"Sudah dikerjakan orang lain",
@@ -2076,7 +2078,9 @@ let GUIDES=[
  {"id": "6f9bd503-28bc-4228-93f4-b87309c3a807", "doc": "NM-STERILISE", "dep": "dental", "nur": null, "weekday": null, "nurse": 1, "t": {"en": "Sterilise instruments", "id": "Sterilkan instrumen"}, "steps": [{"sid": "c859f2b5-d18b-410f-aae5-5ed0deef1b11", "en": "From the HYGOBOX onto the dirty side of the sink", "id": "Dari HYGOBOX ke sisi kotor wastafel"}, {"sid": "653f2c20-9c67-482d-b0c0-1588b162d822", "en": "Everything into the Bio sonic, burs in the tea strainer, 15 minute cycle", "id": "Semua ke Bio sonic, bur di saringan teh, siklus 15 menit", "hint": {"en": "NOT into the Bio sonic: ultrasonic tip, x-ray rod, LA syringes, endo hook. Those are washed separately.", "id": "TIDAK ke Bio sonic: ujung ultrasonic, batang x-ray, LA syringe, endo hook. Itu dicuci terpisah."}}, {"sid": "a2c8c87b-a383-4f88-8d84-19b6869f8676", "en": "Rinse with tap water, dry with a towel, wipe everything", "id": "Bilas dengan air keran, keringkan dengan handuk, lap semuanya"}, {"sid": "758da23b-c54d-4d9f-9cdb-fef93f5bddb6", "en": "All on one tray into the bottom autoclave rack", "id": "Semua di satu tray, ke rak bawah autoclave"}, {"sid": "6a4aa048-2f68-449b-921c-ecf3a3d1b4a7", "en": "Right glove off. Open the door with the bare hand, load with the gloved hand", "id": "Lepas sarung tangan kanan. Buka pintu dengan tangan telanjang, muat dengan tangan bersarung"}, {"sid": "c107afc8-6448-407a-8f25-6090e4fc7d0f", "en": "Close with the bare hand, press 134 Universal B, then start", "id": "Tutup dengan tangan telanjang, tekan 134 Universal B, lalu start"}, {"sid": "259785db-c934-4c8b-93bd-4f684ebe0f12", "en": "After the cycle: blue tray handle, careful, it is hot. Onto the clean bench", "id": "Setelah siklus: pakai pegangan tray biru, hati-hati panas. Taruh di meja bersih"}]},
  {"id": "cf9f2496-1f0f-415d-b0cf-042d280b0456", "doc": "NM-WEEKLY", "dep": "dental", "nur": null, "weekday": null, "nurse": 1, "t": {"en": "Weekly chair maintenance (MD555)", "id": "Perawatan kursi mingguan (MD555)"}, "steps": [{"sid": "bd366509-c916-49c6-b737-9824967852cc", "en": "At the END of the day, never during", "id": "Di AKHIR hari, jangan di tengah hari"}, {"sid": "f7fab553-755c-4d62-87b4-8439291cf3b2", "en": "Baskets and spittoon must be clean first", "id": "Keranjang dan spittoon harus bersih dulu"}, {"sid": "6b38ec3f-427b-46c4-a798-c56adb7f6e96", "en": "Half a dosing cap of MD555 into the Orocup, tap water to the 2 litre mark", "id": "Setengah tutup takar MD555 ke Orocup, air keran sampai tanda 2 liter"}, {"sid": "05e53ddf-b577-4c3f-97f6-fb8a9e6b876d", "en": "Both suctions onto the cup, switch on with the suction slide", "id": "Kedua suction ke cangkir, nyalakan dengan slide suction"}, {"sid": "c8096e68-6fe5-4390-be0d-727a321475ed", "en": "Pour the rest of the bottle into the spittoon", "id": "Tuang sisa botol ke spittoon"}]},
  {"id": "9be123ee-cb69-441d-92f2-611ea7a5fcad", "doc": "REC-EMERGENCY", "dep": "reception", "nur": null, "weekday": null, "t": {"en": "Emergency patient", "id": "Pasien darurat"}, "steps": [{"sid": "a4feca16-f40c-4590-b4ba-bc5fb4f6578b", "en": "Assess how urgent it is", "id": "Nilai seberapa mendesak"}, {"sid": "a006d340-e206-481c-bcbe-563f2d984292", "en": "Notify the dentist immediately", "id": "Segera beri tahu dokter gigi", "hint": {"en": "Immediately means now, not after the current patient.", "id": "Segera berarti sekarang, bukan setelah pasien yang sedang ditangani."}}, {"sid": "31907c6f-fc5c-4669-a161-f220b3b9d9f4", "en": "Allocate an emergency appointment", "id": "Berikan slot janji temu darurat"}, {"sid": "23fd2f33-e5bf-460b-930a-fcef0f52e6f4", "en": "Register the patient", "id": "Daftarkan pasien"}, {"sid": "dfc2dd89-7dea-47b4-bcc0-ae9a8855a865", "en": "Obtain consent if needed", "id": "Minta persetujuan bila diperlukan"}, {"sid": "e95e2c78-d4cb-40a5-8d66-0cc561b64898", "en": "Payment and documentation come AFTER the treatment", "id": "Pembayaran dan dokumentasi dilakukan SETELAH perawatan"}]},
- {"id": "ce51e482-9ef4-4187-a126-bd9c224ae4b9", "doc": "REC-NOSHOW", "dep": "reception", "nur": null, "weekday": null, "t": {"en": "Cancellation and no-show", "id": "Pembatalan dan tidak datang"}, "steps": [{"sid": "2ec86d1b-35ba-4f39-89ea-b82d89def5ce", "en": "CANCELLATION: record the reason", "id": "PEMBATALAN: catat alasannya"}, {"sid": "c40c626d-cf9a-4f15-8752-e40407bb0ba6", "en": "Offer a new appointment and update the schedule", "id": "Tawarkan janji temu baru dan perbarui jadwal"}, {"sid": "7036d587-417c-4555-857a-2a533de5ba7c", "en": "Fill the free slot from the waiting list if possible", "id": "Isi slot kosong dari daftar tunggu bila memungkinkan"}, {"sid": "a1224a8a-fd52-4a3f-b249-502fd4da91af", "en": "NO-SHOW: wait 10 to 15 minutes", "id": "TIDAK DATANG: tunggu 10 sampai 15 menit"}, {"sid": "c8828969-0bb9-4fe4-a381-89ff4b72d448", "en": "Try to reach the patient by phone", "id": "Coba hubungi pasien lewat telepon"}, {"sid": "11df8eaf-afdd-41e1-9696-98cc20b2ee51", "en": "Record as \"No Show\" and reschedule if appropriate", "id": "Catat sebagai \"No Show\" dan jadwalkan ulang bila perlu"}]}
+ {"id": "ce51e482-9ef4-4187-a126-bd9c224ae4b9", "doc": "REC-NOSHOW", "dep": "reception", "nur": null, "weekday": null, "t": {"en": "Cancellation and no-show", "id": "Pembatalan dan tidak datang"}, "steps": [{"sid": "2ec86d1b-35ba-4f39-89ea-b82d89def5ce", "en": "CANCELLATION: record the reason", "id": "PEMBATALAN: catat alasannya"}, {"sid": "c40c626d-cf9a-4f15-8752-e40407bb0ba6", "en": "Offer a new appointment and update the schedule", "id": "Tawarkan janji temu baru dan perbarui jadwal"}, {"sid": "7036d587-417c-4555-857a-2a533de5ba7c", "en": "Fill the free slot from the waiting list if possible", "id": "Isi slot kosong dari daftar tunggu bila memungkinkan"}, {"sid": "a1224a8a-fd52-4a3f-b249-502fd4da91af", "en": "NO-SHOW: wait 10 to 15 minutes", "id": "TIDAK DATANG: tunggu 10 sampai 15 menit"}, {"sid": "c8828969-0bb9-4fe4-a381-89ff4b72d448", "en": "Try to reach the patient by phone", "id": "Coba hubungi pasien lewat telepon"}, {"sid": "11df8eaf-afdd-41e1-9696-98cc20b2ee51", "en": "Record as \"No Show\" and reschedule if appropriate", "id": "Catat sebagai \"No Show\" dan jadwalkan ulang bila perlu"}]},
+ {"id": "5b85276a-a9dd-5ea8-a90b-67d8adf0b370", "doc": "REC-PATIENT", "dep": "reception", "nur": null, "weekday": null, "t": {"en": "Every patient", "id": "Setiap pasien"}, "steps": [{"sid": "b7a703eb-7e49-5155-b02e-8001872b821d", "en": "Send the confirmation with the Info Visual.", "id": "Kirim konfirmasi bersama Info Visual.", "hint": {"en": "Send it right after booking. Check: the Visual is for the booked treatment.", "id": "Kirim langsung setelah booking. Cek: Info Visual sesuai dengan perawatan yang dibooking."}}, {"sid": "9055f884-94be-567e-b25e-6624bd423b06", "en": "Call the treatment room when a patient arrives.", "id": "Telepon ruang perawatan saat pasien datang.", "hint": {"en": "Early, on time or late: always call. Ask: is the room ready? How long? Tell the patient the waiting time. Early patient: ask the room if they can start earlier.", "id": "Datang lebih awal, tepat waktu, atau terlambat: selalu telepon. Tanya: ruangan sudah siap? Berapa lama lagi? Beri tahu pasien berapa lama harus menunggu. Pasien datang lebih awal: tanya ruangan, apakah bisa mulai lebih cepat."}}, {"sid": "f26f55a3-57b7-5dd7-a94d-560a1499ce07", "en": "Room not ready: talk to the patient every 5 minutes.", "id": "Ruangan belum siap: beri kabar ke pasien setiap 5 menit.", "hint": {"en": "Also when you have no new waiting time. Do this until the patient goes into the room.", "id": "Juga kalau belum ada perkiraan waktu baru. Lakukan terus sampai pasien masuk ruangan."}}, {"sid": "d468017b-5b6c-553b-955f-0016ecab5cc1", "en": "Call Hendra when the wait is unclear or long.", "id": "Telepon Hendra kalau waktu tunggu tidak jelas atau lama.", "hint": {"en": "Call him right away. Hendra talks to the room and decides: treatment, new appointment or another approved solution. Hendra reports every voucher to management.", "id": "Telepon langsung. Hendra bicara dengan tim di ruangan dan memutuskan: perawatan, janji baru, atau solusi lain yang sudah disetujui. Hendra melaporkan setiap voucher ke manajemen."}}, {"sid": "1ec8385b-c645-5a00-9c80-2e90ef261156", "en": "At checkout, ask: \"How was your experience?\"", "id": "Saat checkout, tanya: \"Bagaimana kunjungan Bapak/Ibu hari ini?\"", "hint": {"en": "Also ask: \"Did everything go well? Could we do anything better?\" Good feedback: ask politely for an honest Google Review. No gift, no pressure. Complaint: write it down. Unsolved: tell Hendra.", "id": "Tanya juga: \"Apakah semuanya lancar? Apakah ada yang bisa kami lakukan lebih baik?\" Pasien puas: minta Google Review yang jujur dengan sopan. Tanpa hadiah, tanpa memaksa. Ada keluhan: catat. Belum teratasi: lapor ke Hendra. Bahasa Inggris: \"How was your experience? Did everything go well? Could we do anything better?\""}}, {"sid": "c3bc4a4d-e162-54ef-a3ad-afef379c1d9a", "en": "Ask: \"Do you need a Medical Report for your insurance?\"", "id": "Tanya: \"Apakah Bapak/Ibu memerlukan laporan medis (Medical Report) untuk asuransi?\"", "hint": {"en": "Yes: start the request.", "id": "Ya: buat permintaannya. Bahasa Inggris: \"Do you need a Medical Report for your insurance?\""}}, {"sid": "6ec94059-4bb7-5261-b5b2-f0c20903b746", "en": "Ask: \"Do you know the next step of your treatment?\"", "id": "Tanya: \"Apakah Bapak/Ibu sudah tahu langkah perawatan selanjutnya?\"", "hint": {"en": "Yes: book the next appointment, if possible. Unclear: call the treating doctor now. Medical questions: the doctor answers.", "id": "Sudah tahu: buat janji berikutnya, kalau bisa. Belum jelas: telepon dokter yang menangani, sekarang. Pertanyaan medis: dokter yang menjawab. Bahasa Inggris: \"Do you know the next step of your treatment?\""}}, {"sid": "9863047c-9f01-5641-9c0f-469933da121d", "en": "Send the Aftercare Visual.", "id": "Kirim Aftercare Visual.", "hint": {"en": "Wait until the room tells you which treatment was done. Send the Visual for that treatment, also when it differs from the booking. Check that it arrived. Not arrived: send it again. Admin work still open: give it to one person by name.", "id": "Tunggu sampai ruangan memberi tahu perawatan apa yang sudah dilakukan. Kirim Visual untuk perawatan itu, juga kalau berbeda dari booking. Cek apakah sudah diterima. Belum diterima: kirim lagi. Urusan admin belum selesai: serahkan ke satu orang tertentu."}}]},
+ {"id": "ac3f09b0-d410-5f79-961b-ed528ce364a7", "doc": "LAB-STOP", "dep": "laboratory", "nur": null, "weekday": null, "t": {"en": "STOP rule", "id": "Aturan STOP"}, "steps": [{"sid": "7f6ad419-0afc-5929-ad60-fe91a140cd13", "en": "STOP when order data is wrong or missing.", "id": "STOP kalau data order salah atau tidak lengkap.", "hint": {"en": "Patient or tooth unclear. Prescription missing. Scan unusable. Wrong file version.", "id": "Pasien atau gigi tidak jelas. Prescription tidak ada. Scan tidak bisa dipakai. Versi file salah."}}, {"sid": "b5b7b50d-a729-501a-8ddb-46755d195c30", "en": "STOP when an approval is missing.", "id": "STOP kalau persetujuan belum ada.", "hint": {"en": "Also: material or device is not approved.", "id": "Juga: bahan atau alat belum disetujui."}}, {"sid": "2f83d82c-dd07-581d-bf00-fb65f347062b", "en": "STOP when there is a hygiene problem or a failed QC.", "id": "STOP kalau ada masalah kebersihan atau QC gagal.", "hint": {"en": "QC means quality check.", "id": "QC artinya quality check (cek kualitas)."}}, {"sid": "b6aa056c-889b-5fc3-92ad-76b9c64b797c", "en": "Write down why you stopped.", "id": "Tulis alasan STOP."}, {"sid": "3169411e-4e30-5232-9b79-1288094c612e", "en": "Ask the treating doctor or Hendra.", "id": "Tanya dokter yang menangani atau Hendra.", "hint": {"en": "Clinical or medical question: the treating doctor decides. Organisation: Hendra.", "id": "Pertanyaan klinis atau medis: keputusan dari dokter yang menangani. Urusan organisasi: Hendra."}}, {"sid": "4d0df0d1-af5f-5229-b638-f14d9b2c70b7", "en": "Continue when the answer is written down.", "id": "Lanjutkan kalau jawaban sudah tertulis.", "hint": {"en": "A spoken \"OK\" is not enough. Do only the work you are trained and approved for.", "id": "\"OK\" lisan tidak cukup. Kerjakan hanya tugas yang sudah Anda pelajari dan sudah diizinkan."}}]}
 ];
 
 /* ================= Zimmervorbereitung =================
@@ -2133,7 +2137,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-10a";
+const APP_VERSION = "2026-11-10b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2253,8 +2257,28 @@ const when=t=>!t.when?"":(typeof t.when==="string"?t.when:t.when[S.lang]);
    galt eine Aufgabe als erledigt, die nie gemacht wurde. Beides stumm. */
 const sopKey=(kind,i)=>{ const q=list(kind||"task")[i]; return q ? (q.id||q.doc||(kind+i)) : (kind+i) };
 const taskKey=i=>sopKey("task",i);
-const isDone=i=>S.done.indexOf(taskKey(i))>=0;
-const isBlocked=i=>S.blocked[taskKey(i)]!=null;
+/* 142 "Eine fuer alle" (Nina 10.11.2026): Open reception, Close reception
+   und CBCT reichen, wenn EINE Person sie gemacht hat. GETEILT kommt aus
+   rpc/geteilt_heute (wer hat welche geteilte Liste heute fertig). Dann gilt
+   die Liste bei allen als erledigt, auch im Ring und in der Now-Karte. */
+let GETEILT={d:null, m:{}};
+try{ const c=JSON.parse(localStorage.getItem("tg-geteilt")||"null"); if(c && c.d && c.m) GETEILT=c; }catch(e){}
+const gedeckt=i=>{ const q=TASKS[i];
+  return !!(q && q.shared && GETEILT.d===heuteISO() && GETEILT.m[q.doc]) && S.done.indexOf(taskKey(i))<0; };
+const isDone=i=>S.done.indexOf(taskKey(i))>=0 || gedeckt(i);
+async function ladeGeteilt(){
+  const rows=await sbGet("rpc/geteilt_heute");
+  if(!Array.isArray(rows)) return;
+  const m={}; rows.forEach(r=>{ if(r && r.doc) m[r.doc]={wer:r.wer||"", um:r.um||""}; });
+  const neu={d:heuteISO(), m}, alt=JSON.stringify(GETEILT);
+  GETEILT=neu; try{ localStorage.setItem("tg-geteilt", JSON.stringify(neu)); }catch(e){}
+  if(JSON.stringify(neu)!==alt){ try{ renderGroups(); }catch(e){} }
+}
+function gedecktText(i){ const q=TASKS[i], g=q && GETEILT.m[q.doc]; if(!g) return "";
+  return L().shDoneBy.replace("{name}", escHtml(g.wer)).replace("{time}", escHtml(g.um)); }
+/* 142 (Bruno Fund 2): eigene Blockade zaehlt nicht mehr, wenn eine Kollegin
+   die geteilte Liste fertig hat. */
+const isBlocked=i=>S.blocked[taskKey(i)]!=null && !gedeckt(i);
 
 /* Jeder sieht NUR die Ablaeufe seiner Abteilung.
    Dennis am 12.08.2026: "nicht wieder, der eine muss irgendwie Rezeption machen
@@ -2414,7 +2438,7 @@ function renderGroups(){
          <span class="tt">${t.t[S.lang]}</span>
          ${b?`<span class="why">${L().blockedAs} ${L()[S.blocked[taskKey(i)]]}</span>`:""}
          <span class="tm">
-           <span class="pill ${hot?"hot":""}">${hot?L().now:when(t)}</span>
+           <span class="pill ${hot?"hot":""}">${hot?L().now:(gedeckt(i)?"\u2713 "+gedecktText(i):when(t))}</span>
            <span class="pill">${t.steps.length} ${L().steps}</span></span>
        </span><span class="chev">&rsaquo;</span></button>`}).join("");
   });
@@ -3334,6 +3358,7 @@ async function ladeSops(){
     g: r.day_part || undefined,
     nurse: r.for_nurse ? 1 : undefined,
     nurDoc: r.for_doctor_only ? 1 : undefined,
+    shared: r.shared ? 1 : undefined,
     /* Zwei Arten von Zeitangabe, und beide muessen mit:
        eine reine Uhrzeit ("08:00", in jeder Sprache gleich) oder eine
        zweisprachige Beschreibung ("During the day" / "Sepanjang hari"). */
@@ -3644,10 +3669,13 @@ async function zaehleHaengt(){
    sofort. Ohne faellig_um (Datenbank vor 138) wie bisher: sofort. */
 function baliUhr(){ return new Date(Date.now()+8*3600000).toISOString().slice(11,16); }
 function ablaufSpaeter(r){
+  /* 142: gedeckt = geteilte Liste, die eine Kollegin heute fertig hat. */
+  if(r.gedeckt) return false;
   return r.status!=="done" && r.status!=="blocked" && !r.on_demand && !!r.faellig_um
       && r.on_day===heuteISO() && r.faellig_um > baliUhr();
 }
 function ablaufHaengt(r){
+  if(r.gedeckt) return false;
   return r.status==="blocked" ? !r.handled_at : r.status==="done" ? false : !r.on_demand && !ablaufSpaeter(r);
 }
 /* 140 Ampel. null = Datenbank ohne 140 oder kein Netz, dann gilt die alte Anzeige. */
@@ -3761,6 +3789,7 @@ async function fuelleCockpit(){
      Personen ohne PIN (Security). */
   const ni2=$("#nichtich2"); if(ni2) ni2.hidden = brauchtPin(me());
   pushKnopf().catch(()=>{});
+  ladeGeteilt().catch(()=>{});
   /* Bruno 10.11. (Nachpruefung, Fund 1): Hendras Kachel "Daily lists" zaehlte
      nur beim Anmelden. fuelleCockpit laeuft auch beim Zurueckkehren und bei
      der 5-Minuten-Auffrischung, also wird sie hier mit aufgefrischt. */
@@ -6386,7 +6415,7 @@ function sitzungZuruecksetzen(){
   }catch(e){}
 }
 function vergissGeraet(){
-  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); localStorage.removeItem("tg-shift"); zeigeSchicht(null);
+  try{ umsatzWeg(); localStorage.removeItem("ck_stuck"); localStorage.removeItem("tg-shift"); localStorage.removeItem("tg-geteilt"); GETEILT={d:null,m:{}}; zeigeSchicht(null);
     ["lv-offen","lv-news","lv-tabelle","att-list","tb-list","tb-list2","aw-list","rs-list"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; }); }catch(e){}
   neueAnmeldung();   /* alles, was noch unterwegs ist, gilt ab jetzt nicht mehr */
   pinMaskeAngeboten = false; S.tokenFuer = null;
@@ -6725,6 +6754,9 @@ function renderActions(){
   if(curKind==="guide"){box.innerHTML="";return}
   const t=TASKS[cur], sd=(S.steps[taskKey(cur)]||[]);
   const all=sd.length===t.steps.length;
+  /* 142: Eine Kollegin hat die geteilte Liste schon fertig. Kein Rueckgaengig
+     (es ist nicht der eigene Haken), kein Fertig-Knopf. */
+  if(gedeckt(cur)){ box.innerHTML=`<p class="lverr">\u2713 ${gedecktText(cur)}</p>`; return; }
   if(isDone(cur)||isBlocked(cur)){
     box.innerHTML=`<button class="btn2" id="undo">${L().sopUndo}</button>`;return;
   }
@@ -7203,6 +7235,9 @@ document.addEventListener("click",e=>{
   const st=e.target.closest(".step");
   if(st && performance.now()-sopOffenAm<600) return;   /* Bruno 07g: monotone Uhr, 600 ms */
   if(st){
+    /* 142 (Bruno Fund 1): Bei einer von der Kollegin erledigten geteilten
+       Liste legt ein Tipp auf einen Schritt keinen neuen offenen Lauf an. */
+    if(curKind==="task" && gedeckt(cur)) return;
     /* Nur diesen einen Schritt anfassen, nicht die ganze Liste neu zeichnen.
        Sonst flackert es und die Scrollposition springt weg. */
     const j=+st.dataset.j, k=sopKey(curKind,cur), a=S.steps[k]||[];
@@ -7252,6 +7287,9 @@ document.addEventListener("click",e=>{
     const at=S.done.indexOf(taskKey(cur)); if(at>=0)S.done.splice(at,1);
     delete S.blocked[taskKey(cur)]; save();
     const q=list(curKind)[cur];
+    /* 142 (Bruno Fund 3): Der eigene Name steht noch in GETEILT. Sofort
+       herausnehmen, die naechste Abfrage holt den echten Stand. */
+    if(q && q.shared && GETEILT.m[q.doc]){ delete GETEILT.m[q.doc]; ladeGeteilt().catch(()=>{}); }
     if(q && q.id) melde("offen",{sop:q.id});
     renderActions(); renderGroups(); return}
 });
