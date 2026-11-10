@@ -1544,8 +1544,8 @@ const T={
   handover:"Note from the last shift",
   hoTxt:"",
   hoFrom:"",endDay:"End of shift",
-  moodQ:"How was your day?", moodGut:"Good", moodOkay:"Okay", moodSchwer:"Hard", moodSkip:"Skip",
-  ckMood:"Team mood: good · okay · hard", ckMoodFew:"answers: {n}",
+  moodQ:"How was your day?", moodGut:"Good", moodOkay:"Okay", moodSchwer:"Not good", moodSkip:"Skip",
+  ckMood:"Team mood: good · okay · not good", ckMoodFew:"answers: {n}",
   mdH:"Team mood", md7:"Last 7 days", mdToday:"Today", mdAns1:"1 answer", mdAnsN:"{n} answers", mdNone:"No answers yet.", mdOffline:"Offline. Try again later.", mdOhne:"Without name: {n}",
   guides:"Look up any time",
   sopVer:"Version 1.0",sopDone:"Mark as done",sopNeed:"Tick every step first",
@@ -1681,6 +1681,7 @@ const T={
   tbDraft:"Written automatically from today's data. Check it, add what you saw, then send.",
   tbDraftFail:"The automatic text failed today. Please write the report yourself.", tbOpenTasks:"Open tasks",
   tbAutoSent:"Sent automatically at 18:00, not checked by the manager.",
+  tbSeenBy:"Seen by", tbSeenBtn:"Mark as seen",
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
@@ -1747,7 +1748,7 @@ const T={
   pinEnter:"Enter your PIN",pinNew:"Choose your own 6-digit PIN",
   pinAgain:"Enter it once more",pinWrong:"Not correct. Try again.",
   pinMismatch:"The two did not match. Start again.",
-  pinHelp:"Locked? Nina, Michael or Hendra can reset it in 20 seconds: Your leave, team list, Reset PIN next to your name. After 5 wrong tries wait 10 minutes.",
+  pinHelp:"Locked? Nina, Michael or Hendra can reset it in 20 seconds: Your leave, list Everyone, Reset PIN next to your name. After 5 wrong tries wait 10 minutes.",
   depDental:"Dental",depDerma:"Derma",
   roomsH:"Rooms",roomsS:"Tap a patient to see how the room must look.",
   roomsQ:"The list comes from the appointment book. Nobody types it in here.",
@@ -1769,8 +1770,8 @@ const T={
   handover:"Catatan dari shift sebelumnya",
   hoTxt:"",
   hoFrom:"",endDay:"Akhiri shift",
-  moodQ:"Bagaimana hari ini?", moodGut:"Baik", moodOkay:"Biasa saja", moodSchwer:"Berat", moodSkip:"Lewati",
-  ckMood:"Suasana tim: baik · biasa · berat", ckMoodFew:"jawaban: {n}",
+  moodQ:"Bagaimana hari ini?", moodGut:"Baik", moodOkay:"Biasa saja", moodSchwer:"Kurang baik", moodSkip:"Lewati",
+  ckMood:"Suasana tim: baik · biasa · kurang baik", ckMoodFew:"jawaban: {n}",
   mdH:"Suasana tim", md7:"7 hari terakhir", mdToday:"Hari ini", mdAns1:"1 jawaban", mdAnsN:"{n} jawaban", mdNone:"Belum ada jawaban.", mdOffline:"Offline. Coba lagi nanti.", mdOhne:"Tanpa nama: {n}",
   guides:"Bisa dilihat kapan saja",
   sopVer:"Versi 1.0",sopDone:"Tandai selesai",sopNeed:"Centang semua langkah dulu",
@@ -1903,9 +1904,10 @@ const T={
   tbH:"Laporan harian", tbTileS:"Tulis laporan hari ini untuk Nina dan Michael", tbText:"Apa yang terjadi hari ini", tbProb:"Masalah, perlu keputusan", tbMorgen:"Besok",
   tbSave:"Kirim laporan", tbSaved:"Laporan terkirim. Nina dan Michael bisa membacanya sekarang.", tbEmpty:"Tulis minimal satu baris.", tbPrev:"Hari-hari terakhir", tbNone:"Belum ada laporan.",
   tbTileMissing:"Laporan hari ini belum ditulis", tbMissing:"Belum ada laporan", tbReminded:"pengingat dikirim",
-  tbDraft:"Ditulis otomatis dari data hari ini. Periksa, tambahkan yang kamu lihat, lalu kirim.",
+  tbDraft:"Ditulis otomatis dari data hari ini. Periksa, tambahkan yang Anda lihat, lalu kirim.",
   tbDraftFail:"Teks otomatis gagal hari ini. Tolong tulis laporannya sendiri.", tbOpenTasks:"Tugas terbuka",
   tbAutoSent:"Dikirim otomatis jam 18:00, belum diperiksa manajer.",
+  tbSeenBy:"Sudah dibaca oleh", tbSeenBtn:"Tandai sudah dibaca",
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
@@ -1972,7 +1974,7 @@ const T={
   pinEnter:"Masukkan PIN Anda",pinNew:"Pilih PIN 6 angka kamu sendiri",
   pinAgain:"Masukkan sekali lagi",pinWrong:"Belum benar. Coba lagi.",
   pinMismatch:"Keduanya tidak sama. Mulai lagi.",
-  pinHelp:"Terkunci? Nina, Michael atau Hendra bisa reset dalam 20 detik: Cuti Anda, daftar tim, Reset PIN di samping nama Anda. Setelah 5 kali salah, tunggu 10 menit.",
+  pinHelp:"Terkunci? Nina, Michael atau Hendra bisa reset dalam 20 detik: Cuti Anda, daftar Semua orang, Reset PIN di samping nama Anda. Setelah 5 kali salah, tunggu 10 menit.",
   depDental:"Gigi",depDerma:"Derma",
   roomsH:"Ruang",roomsS:"Ketuk nama pasien untuk melihat kondisi ruang yang benar.",
   roomsQ:"Daftar ini berasal dari buku janji temu. Tidak ada yang mengetiknya di sini.",
@@ -2141,7 +2143,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-10c";
+const APP_VERSION = "2026-11-10e";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2880,6 +2882,8 @@ function tbZeile(b, t){
     <small style="white-space:pre-wrap">${escHtml(b.text||"")}</small>
     ${b.probleme?`<small style="white-space:pre-wrap"><b>${t.tbProb}:</b> ${escHtml(b.probleme)}</small>`:""}
     ${b.morgen?`<small style="white-space:pre-wrap"><b>${t.tbMorgen}:</b> ${escHtml(b.morgen)}</small>`:""}
+    ${b.gesehen?`<small style="opacity:.8">\u2713 ${t.tbSeenBy} ${escHtml(b.gesehen)}</small>`:""}
+    ${me()&&me().lead&&b.id&&b.ich_gesehen===false?`<div class="rvfix"><button class="pinrst" data-tbseen="${escHtml(b.id)}">${t.tbSeenBtn}</button></div>`:""}
   </div></div>`;
 }
 /* Ein Laufzaehler je Liste: Nur die juengste Antwort darf zeichnen. Sonst
@@ -7027,6 +7031,13 @@ document.addEventListener("click",e=>{
     const item=dn.closest(".lvitem"); if(item) item.remove();
     return;
   }
+
+  /* 146 (Nina 10.11.): Die Leitung setzt "gesehen", Hendra sieht es. */
+  const tbs=e.target.closest("[data-tbseen]");
+  if(tbs){ tbs.disabled=true;
+    sbSend("rpc/tagesbericht_gesehen", {p_bericht:tbs.dataset.tbseen})
+      .then(()=>ladeTagesberichte("#tb-list2", 14)).catch(()=>{ tbs.disabled=false; });
+    return; }
 
   /* Nina pflegt Geburtstage */
   const bsv=e.target.closest("[data-bsave]");
