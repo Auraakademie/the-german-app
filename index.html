@@ -485,6 +485,15 @@
   .lvitem .d b{display:block;font-size:15px;color:var(--ink)}
   .lvitem .d small{font-size:13px;color:var(--ink-2)}
   .lvlater{opacity:.6} .rvlater-t{margin-top:18px}
+  /* Ampel (140): jede Tagesliste mit jeder Person, die sie heute machen muss. */
+  .amp-sum{font-size:14px;margin:4px 0 14px;color:var(--ink)}
+  .amp-dep{margin-top:18px;display:flex;justify-content:space-between}
+  .amp-l .d>small{display:block;margin-bottom:4px}
+  .amp-p{font-size:14px;padding:5px 0;border-top:1px solid var(--hair);color:var(--ink-2)}
+  .amp-p:first-of-type{border-top:0}
+  .lvitem .d .amp-p .amp-n{display:inline;font-size:14px;color:var(--ink)}
+  .amp-p small{display:block;margin-top:2px}
+  .amp-later,.amp-today,.amp-done,.amp-handled{opacity:.7}
   /* Der Zustand als Wort, nicht als Farbfleck. Ein gelber Punkt allein sagt
      niemandem, ob der Urlaub genehmigt ist. */
   .lvst{font-size:12px;letter-spacing:.04em;text-transform:uppercase;
@@ -853,8 +862,8 @@
            gebraucht wird und der Urlaub selten. -->
       <button class="glass next" id="rv-open" data-go="s-review" hidden style="margin-top:22px">
         <span class="rm" id="rv-badge">&mdash;</span>
-        <span style="flex:1"><span class="tt" data-t="rvSee"></span>
-          <span class="mt" data-t="rvToday"></span></span>
+        <span style="flex:1"><span class="tt" data-t="ampH"></span>
+          <span class="mt" data-t="ampTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
 
       <button class="glass next" id="att-open" data-go="s-attend" hidden style="margin-top:12px">
@@ -1112,7 +1121,7 @@
          Was hier NICHT steht: Quoten pro Person, Rangfolgen, Prozentwerte.
          Aufgaben und Gruende, nicht Leistung. -->
     <section class="screen" id="s-review">
-      <h1 data-t="rvH"></h1>
+      <h1 id="rv-h1" data-t="rvH"></h1>
       <p class="sub" id="rv-datum"></p>
 
       <p class="eyebrow" data-t="rvToday"></p>
@@ -1556,6 +1565,9 @@ const T={
   rvH:"What is stuck", rvToday:"Today", rvWeek:"This week, repeated",
   rvNothing:"Nothing stuck today. Good day.",
   rvLater:"Later today", rvFrom:"from",
+  ampH:"Daily lists", amp_done:"done", amp_handled:"handled", amp_started:"started",
+  amp_not_started:"not started", amp_blocked:"cannot be done", amp_today:"any time today",
+  amp_of:"of", ampNone:"No daily lists today.", ampTileS:"Who is done, who has not started",
   rvNoWeek:"Nothing repeated this week.",
   rvBday:"Birthdays", rvBdayNone:"No birthdays saved yet.",
   rvBdayToday:"today", rvBdayIn:"in", rvBdayDays:"days", rvBdayDay:"day",
@@ -1639,7 +1651,7 @@ const T={
   tkMonthly:"Monthly", tkDayLabel:"Which day of the month?", tkDayErr:"Enter a day from 1 to 31.",
   rvOpen:"not finished", rvBlocked:"could not do it", rvDone:"done",
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
-  rvNote:"note (optional)", rvHandled:"handled",
+  rvNote:"note (optional)", rvHandled:"Mark handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
   attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attBusy:"The previous change is still being sent. Wait a moment, then tap again.", attChanged:"NOT saved. This stamp changed while the form was open. The list will load again now. Check it, then change it again if needed.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
@@ -1775,6 +1787,9 @@ const T={
   rvH:"Apa yang tersendat", rvToday:"Hari ini", rvWeek:"Minggu ini, berulang",
   rvNothing:"Tidak ada yang tersendat hari ini. Hari yang baik.",
   rvLater:"Nanti hari ini", rvFrom:"mulai",
+  ampH:"Daftar harian", amp_done:"selesai", amp_handled:"sudah ditangani", amp_started:"sudah mulai",
+  amp_not_started:"belum mulai", amp_blocked:"tidak bisa dikerjakan", amp_today:"kapan saja hari ini",
+  amp_of:"dari", ampNone:"Tidak ada daftar harian hari ini.", ampTileS:"Siapa sudah selesai, siapa belum mulai",
   rvNoWeek:"Tidak ada yang berulang minggu ini.",
   rvBday:"Ulang tahun", rvBdayNone:"Belum ada ulang tahun tersimpan.",
   rvBdayToday:"hari ini", rvBdayIn:"dalam", rvBdayDays:"hari", rvBdayDay:"hari",
@@ -1858,7 +1873,7 @@ const T={
   tkMonthly:"Bulanan", tkDayLabel:"Tanggal berapa tiap bulan?", tkDayErr:"Masukkan tanggal 1 sampai 31.",
   rvOpen:"belum selesai", rvBlocked:"tidak bisa dikerjakan", rvDone:"selesai",
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
-  rvNote:"catatan (opsional)", rvHandled:"selesai",
+  rvNote:"catatan (opsional)", rvHandled:"Tandai ditangani",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
   attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attBusy:"Perubahan sebelumnya masih dikirim. Tunggu sebentar, lalu ketuk lagi.", attChanged:"BELUM tersimpan. Absen ini berubah saat formulir terbuka. Daftar akan dimuat ulang. Periksa dulu, lalu ubah lagi bila perlu.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
@@ -2044,7 +2059,6 @@ let TASKS=[
  {"id": "ae3402e8-2ed1-4611-a9a8-e9c235fcef2d", "doc": "520", "dep": "management", "nur": "Hendra", "weekday": 4, "g": 2, "when": {"en": "Thursday 16:00", "id": "Kamis 16:00"}, "t": {"en": "Stock meeting with the operational manager", "id": "Rapat stok dengan operational manager"}, "steps": [{"sid": "8716dcaa-69c8-4c1d-84d4-7fb166c92b79", "en": "FIRST: check last week's order arrived as ordered", "id": "PERTAMA: periksa pesanan minggu lalu sudah datang sesuai pesanan", "hint": {"en": "Quantity and price. Without this you reorder forever and never notice what is missing.", "id": "Jumlah dan harga. Tanpa ini Anda pesan terus dan tidak pernah sadar apa yang kurang."}}, {"sid": "e90dbc26-83be-4622-b03a-e23a456df2ec", "en": "Count what is in the store room, package by package", "id": "Hitung isi gudang, per kemasan", "hint": {"en": "Always count PACKAGES, never single pieces. One box of gloves is one package, not 50.", "id": "Selalu hitung KEMASAN, bukan satuan. Satu kotak sarung tangan adalah satu kemasan, bukan 50."}}, {"sid": "fc20dda3-8245-49bd-88a1-0d705233daa7", "en": "Enter the numbers in KumoDent in the same unit as printed on the box", "id": "Masukkan jumlahnya di KumoDent dalam satuan yang tertera di kotak"}, {"sid": "0c1fd242-28b7-40e7-bb21-7e02fbda6240", "en": "Go through the list with the operational manager", "id": "Bahas daftarnya bersama operational manager", "hint": {"en": "Only the two of you. Nobody else orders, and nothing is ordered on other days.", "id": "Hanya berdua. Tidak ada orang lain yang memesan, dan tidak ada pemesanan di hari lain."}}, {"sid": "2484d7bf-f163-4c07-9716-f8304ab61758", "en": "Order everything that is below the minimum", "id": "Pesan semua yang di bawah jumlah minimum"}, {"sid": "f98d583c-41a7-4308-a8dc-ef64482cb547", "en": "Go through what went wrong this week", "id": "Bahas apa yang tidak berjalan minggu ini", "hint": {"en": "The app has the list. Bring it, do not ask for it.", "id": "Aplikasi punya daftarnya. Bawa, jangan tanya."}}, {"sid": "5128113d-4784-420b-9959-0c5cd98216a4", "en": "Round: what held you up this week?", "id": "Giliran bicara: apa yang menghambat Anda minggu ini?", "hint": {"en": "Ask everyone. This question assumes there was something, so it is easy to answer.", "id": "Tanya semua orang. Pertanyaan ini mengandaikan ada sesuatu, jadi mudah dijawab."}}, {"sid": "b721b87d-28a6-4b1e-82b5-a2c71c0ad3a3", "en": "Round: what would you change if you could?", "id": "Giliran bicara: apa yang ingin Anda ubah?"}, {"sid": "9a17ffd1-b463-4423-9f6c-6fe6ee96a549", "en": "Pick ONE thing to make simpler by next Thursday", "id": "Pilih SATU hal untuk dipermudah sampai Kamis depan", "hint": {"en": "One, not three. Five improvements means none get done.", "id": "Satu, bukan tiga. Lima perbaikan berarti tidak ada yang selesai."}}]},
  {"id": "2e8ad680-40d1-47c3-92fa-db11b18ab862", "doc": "HR-PAY", "dep": "management", "nur": "Hendra", "weekday": null, "g": 2, "when": {"en": "21st to 20th", "id": "Tanggal 21 sampai 20"}, "t": {"en": "Close the payroll period", "id": "Tutup periode gaji"}, "steps": [{"sid": "32a4ac64-096f-4004-bb1a-aea7c5d88fc4", "en": "Total the working hours for the period", "id": "Hitung total jam kerja untuk periode ini", "hint": {"en": "The period runs from the 21st to the 20th, not calendar month.", "id": "Periode dari tanggal 21 sampai 20, bukan bulan kalender."}}, {"sid": "d2f8202b-b721-446b-9edb-f2c9ef10c3e8", "en": "Compare the timesheet against the roster and fix differences", "id": "Bandingkan daftar jam kerja dengan jadwal dan perbaiki selisihnya"}, {"sid": "3eee9efd-10f0-43cd-a061-07ebc37359d9", "en": "Add leave, sick days and shift swaps", "id": "Tambahkan cuti, hari sakit dan pertukaran shift"}, {"sid": "1b9b1988-dead-425a-be19-0acc4cd3a45f", "en": "Hand the figures over", "id": "Serahkan angkanya"}]},
  {"id": "16dd7c13-7264-4067-a298-1c609281b478", "doc": "HR-ROSTER", "dep": "management", "nur": "Hendra", "weekday": null, "g": 2, "when": {"en": "On the 25th", "id": "Tanggal 25"}, "t": {"en": "Publish next month roster", "id": "Terbitkan jadwal bulan depan"}, "steps": [{"sid": "dd27eeb1-cdc2-40b0-a386-893abf680836", "en": "Build the roster for next month", "id": "Susun jadwal untuk bulan depan", "hint": {"en": "Teams stay together: dentist, assistant, reception, security.", "id": "Tim tetap bersama: dokter, asisten, resepsionis, security."}}, {"sid": "bf057f2a-5a2a-48d2-89ce-7745f26a8916", "en": "Check approved leave is in it", "id": "Pastikan cuti yang disetujui sudah masuk"}, {"sid": "844e08a0-83f4-4774-975f-ebd5d3ae3146", "en": "Publish it so the team can see it", "id": "Terbitkan agar tim bisa melihatnya", "hint": {"en": "Same day every month. The 25th.", "id": "Tanggal yang sama setiap bulan. Tanggal 25."}}]},
- {"id": "606a6e25-fed9-4023-a92c-f297fdff8d2f", "doc": "HR-SICK", "dep": "management", "nur": "Hendra", "weekday": null, "g": 2, "when": {"en": "When it happens", "id": "Saat terjadi"}, "t": {"en": "Someone called in sick", "id": "Ada yang lapor sakit"}, "steps": [{"sid": "78ca0964-9a66-41b0-b7e4-a126e9fff83d", "en": "Take the message. Sick calls come to you", "id": "Terima pesannya. Laporan sakit masuk ke Anda"}, {"sid": "d1f79488-bbc8-4bdd-bf75-d0601087bf5b", "en": "Decide who covers the shift", "id": "Tentukan siapa yang menggantikan shift", "hint": {"en": "First option: a dental assistant or a doctor who is free on weekdays.", "id": "Pilihan pertama: asisten atau dokter yang kosong di hari kerja."}}, {"sid": "9b21f51f-dd9f-4f41-a26e-c8d60ba8fcd7", "en": "Tell the rest of the team", "id": "Beri tahu tim yang lain"}, {"sid": "75b498cb-0024-4bfd-a2c8-5fa11c138f44", "en": "Mark the person as Sick in the roster", "id": "Tandai orang tersebut sebagai Sick di jadwal"}]},
  {"id": "a4d5b0dd-ec7a-4025-94e0-13563a82325e", "doc": "REC-DAY", "dep": "reception", "nur": null, "weekday": null, "g": 2, "when": {"en": "During the day", "id": "Sepanjang hari"}, "t": {"en": "Hand over chat responsibilities", "id": "Serah terima tanggung jawab chat"}, "steps": [{"sid": "de2e884a-b4ce-4b24-a7c1-678b456085e9", "en": "Go through tomorrow's schedule", "id": "Periksa jadwal besok"}, {"sid": "e12df711-7caa-47c3-8e3c-05c349bc1731", "en": "Message everyone who has not confirmed yet", "id": "Kirim pesan ke semua yang belum konfirmasi", "hint": {"en": "Today, not tomorrow. A cancellation you hear today can still be filled.", "id": "Hari ini, bukan besok. Pembatalan yang diketahui hari ini masih bisa diisi."}}]},
  {"id": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7d01", "doc": "DOC-DAY", "dep": "dental", "nur": null, "weekday": null, "g": 2, "nurDoc": 1, "when": {"en": "Before you leave", "id": "Sebelum pulang"}, "t": {"en": "Doctor's daily tasks", "id": "Tugas harian dokter"}, "steps": [{"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e01", "en": "Send all treatment plan information.", "id": "Kirim semua informasi rencana perawatan."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e02", "en": "Send all information required for medical reports.", "id": "Kirim semua informasi untuk laporan medis."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e03", "en": "Complete all case notes for the day.", "id": "Lengkapi semua catatan kasus hari ini."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e04", "en": "Review the next day's patients and planned treatments.", "id": "Lihat daftar pasien besok dan rencana perawatannya."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e05", "en": "Check the lab order list.", "id": "Periksa lab order list."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7e06", "en": "Check the Klar list.", "id": "Periksa daftar Klar."}]},
  {"id": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7d02", "doc": "ORT-DAY", "dep": "ortho", "nur": null, "weekday": null, "g": 2, "when": {"en": "Before you leave", "id": "Sebelum pulang"}, "t": {"en": "Doctor's daily tasks", "id": "Tugas harian dokter"}, "steps": [{"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f01", "en": "Send all treatment plan information.", "id": "Kirim semua informasi rencana perawatan."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f02", "en": "Send all information required for medical reports.", "id": "Kirim semua informasi untuk laporan medis."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f03", "en": "Complete all case notes for the day.", "id": "Lengkapi semua catatan kasus hari ini."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f04", "en": "Review the next day's patients and planned treatments.", "id": "Lihat daftar pasien besok dan rencana perawatannya."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f05", "en": "Check the lab order list.", "id": "Periksa lab order list."}, {"sid": "b3d10a7e-1107-4e2a-9c3b-5e1f0d2a7f06", "en": "Check the Klar list.", "id": "Periksa daftar Klar."}]},
@@ -2119,7 +2133,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-09a";
+const APP_VERSION = "2026-11-10a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3611,12 +3625,17 @@ const GRUND = {
 /* Die Zahl auf der Kachel: wie viel haengt heute. Wenn nichts haengt, steht
    dort ein Haken statt einer Null - eine Null sieht aus wie ein Fehler. */
 async function zaehleHaengt(){
+  const lauf=rvLauf;
   try{
-    const heute=heuteISO();
-    const tag=await sbGet("app_day_review?select=*&on_day=eq."+heute);
-    const n=tag.filter(ablaufHaengt).length;
+    /* 140: rot in der Ampel (blockiert oder nicht angefangen). Ohne 140 wie
+       bisher: was haengt. */
+    const amp=await ampelHolen();
+    let n;
+    if(amp) n=amp.filter(ampelRot).length;
+    else { const tag=await sbGet("app_day_review?select=*&on_day=eq."+heuteISO()); n=tag.filter(ablaufHaengt).length; }
+    if(lauf!==rvLauf) return;
     const b=$("#rv-badge"); if(b) b.textContent = n ? n : "\u2713";
-  }catch(e){}
+  }catch(e){ const b=$("#rv-badge"); if(b && lauf===rvLauf) b.textContent="\u2014"; }
 }
 
 /* 138 (Nina 09.11.2026): Ein offener Ablauf haengt erst ab seiner Uhrzeit.
@@ -3630,6 +3649,51 @@ function ablaufSpaeter(r){
 }
 function ablaufHaengt(r){
   return r.status==="blocked" ? !r.handled_at : r.status==="done" ? false : !r.on_demand && !ablaufSpaeter(r);
+}
+/* 140 Ampel. null = Datenbank ohne 140 oder kein Netz, dann gilt die alte Anzeige. */
+async function ampelHolen(){
+  try{ const r=await sbGet("rpc/ampel_heute"); return Array.isArray(r) ? r : null; }catch(e){ return null; }
+}
+const ampelRot = r => r.zustand==="blocked" || r.zustand==="not_started";
+/* Reihenfolge der Personen in einer Liste: was Hendra tun muss, zuerst. */
+const AMP_RANG={blocked:0,not_started:1,started:2,today:3,later:4,handled:5,done:6};
+const AMP_ICON={blocked:"\u26d4",not_started:"\ud83d\udd34",started:"\ud83d\udfe1",today:"\u26aa",later:"\u26aa",handled:"\u2611\ufe0f",done:"\u2705"};
+function ampelHtml(rows, t){
+  if(!rows.length) return `<p class="lverr">${t.ampNone}</p>`;
+  const id = S.lang==="id";
+  const zahl = k => rows.filter(r=>r.zustand===k).length;
+  const sum = ["blocked","not_started","started","done"].filter(k=>zahl(k))
+    .map(k=>`<span style="white-space:nowrap">${AMP_ICON[k]} ${zahl(k)} ${t["amp_"+k]}</span>`).join(" &middot; ");
+  const reihe=[], grp={};
+  rows.forEach(r=>{
+    if(!grp[r.abteilung]){ grp[r.abteilung]={name:id?r.abteilung_id:r.abteilung_en, listen:{}, folge:[]}; reihe.push(r.abteilung); }
+    const g=grp[r.abteilung];
+    if(!g.listen[r.doc]){ g.listen[r.doc]={r, leute:[]}; g.folge.push(r.doc); }
+    g.listen[r.doc].leute.push(r);
+  });
+  return (sum?`<p class="amp-sum">${sum}</p>`:"") + reihe.map(k=>{
+    const g=grp[k], alle=g.folge.flatMap(d=>g.listen[d].leute);
+    const fertig=alle.filter(x=>x.zustand==="done"||x.zustand==="handled").length;
+    return `<p class="eyebrow amp-dep"><span>${escHtml(g.name)}</span><span>${fertig} ${t.amp_of} ${alle.length}</span></p>`
+      + g.folge.map(d=>{
+        const L1=g.listen[d], r=L1.r;
+        const leute=L1.leute.slice().sort((a,b)=>((AMP_RANG[a.zustand]??1)-(AMP_RANG[b.zustand]??1))||String(a.wer).localeCompare(String(b.wer)));
+        return `<div class="lvitem amp-l"><div class="d"><b>${escHtml(id?(r.titel_id||r.titel_en):r.titel_en)}</b>${r.faellig_um?`<small>${escHtml(r.faellig_um)}</small>`:""}${leute.map(p=>ampelPerson(p,t)).join("")}</div></div>`;
+      }).join("");
+  }).join("");
+}
+function ampelPerson(p, t){
+  const z=p.zustand;
+  /* Rosa: "3 of 7", nicht "3/7" (liest sich in Indonesien als Datum). */
+  const info = z==="done" ? t.amp_done+(p.fertig_um?" "+p.fertig_um:"")
+    : z==="started" ? p.gehakt+" "+t.amp_of+" "+p.schritte
+    : z==="later" ? t.rvFrom+" "+(p.faellig_um||"")
+    : z==="today" ? t.amp_today
+    : z==="handled" ? t.amp_handled
+    : z==="blocked" ? t.amp_blocked
+    : t.amp_not_started;
+  const grund = p.grund ? (t[p.grund] || GRUND[p.grund] || p.grund) : null;
+  return `<div class="amp-p amp-${escHtml(z)}">${AMP_ICON[z]||""} <b class="amp-n">${escHtml(p.wer)}</b> &middot; ${escHtml(info)}${z==="blocked"&&p.lauf_id?`${grund?`<small><b>${escHtml(grund)}</b></small>`:""}${p.notiz?`<small>${escHtml(p.notiz)}</small>`:""}<div class="rvfix"><input class="lvin" id="note-${escHtml(p.lauf_id)}" placeholder="${t.rvNote}"><button class="pinrst" data-done="${escHtml(p.lauf_id)}">${t.rvHandled}</button></div>`:""}</div>`;
 }
 function spaeterHtml(tag, t){
   const sp=tag.filter(ablaufSpaeter).sort((a,b)=>a.faellig_um<b.faellig_um?-1:a.faellig_um>b.faellig_um?1:0);
@@ -3697,6 +3761,10 @@ async function fuelleCockpit(){
      Personen ohne PIN (Security). */
   const ni2=$("#nichtich2"); if(ni2) ni2.hidden = brauchtPin(me());
   pushKnopf().catch(()=>{});
+  /* Bruno 10.11. (Nachpruefung, Fund 1): Hendras Kachel "Daily lists" zaehlte
+     nur beim Anmelden. fuelleCockpit laeuft auch beim Zurueckkehren und bei
+     der 5-Minuten-Auffrischung, also wird sie hier mit aufgefrischt. */
+  if(me() && me().mgr) zaehleHaengt().catch(()=>{});
   if(!lead) return;
   zaehleSchichtHeute().catch(()=>{});
   zaehleTagesbericht().catch(()=>{});
@@ -3716,6 +3784,24 @@ async function fuelleCockpit(){
     try{ const c=JSON.parse(localStorage.getItem("ck_stuck")||"null");
       if(c && c.d===heuteISO() && Array.isArray(c.r)) tag=c.r }catch(_){} }
   const haengt = tag.filter(ablaufHaengt);
+  /* 140 (Bruno 10.11., Fund 1): Die Kachel zaehlte nur angefangene Laeufe.
+     Um 09:00 stand "0" und "Good day", waehrend 23 Listen nicht angefangen
+     waren. Mit der Ampel zaehlt sie, was rot ist, und die Liste darunter
+     zeigt pro Ablauf, wer nicht angefangen hat oder nicht kann. */
+  const amp = offline ? null : await ampelHolen();
+  if(!(me() && me().lead && !me().mgr)) return;
+  if(amp){
+    const rot=amp.filter(ampelRot), ks2=$("#kpi-stuck");
+    if(ks2) ks2.textContent = rot.length;
+    if(cs){
+      const id=S.lang==="id", folge=[], grp={};
+      rot.forEach(r=>{ if(!grp[r.doc]){ grp[r.doc]={r, leute:[]}; folge.push(r.doc); } grp[r.doc].leute.push(r); });
+      cs.innerHTML = folge.length ? folge.map(d=>{ const g=grp[d], r=g.r;
+        return `<div class="lvitem"><div class="d"><b>${escHtml(id?(r.titel_id||r.titel_en):r.titel_en)}${r.faellig_um?" &middot; "+escHtml(r.faellig_um):""}</b>
+          <small>${g.leute.map(p=>AMP_ICON[p.zustand]+" "+escHtml(p.wer)).join(", ")}</small></div></div>`;
+      }).join("") : `<p class="lverr">${t.rvNothing}</p>`;
+    }
+  } else {
   const ks=$("#kpi-stuck"); if(ks){ ks.textContent = offline && !tag.length ? "—" : haengt.length; }
   if(cs){
     cs.innerHTML = haengt.length ? haengt.map(r=>{
@@ -3724,6 +3810,7 @@ async function fuelleCockpit(){
         <small>${escHtml(r.wer||"")}${grund?" &middot; "+escHtml(grund):""}</small></div></div>`;
     }).join("") : `<p class="lverr">${offline?t.tkOffline:t.rvNothing}</p>`;
     cs.innerHTML += spaeterHtml(tag, t);
+  }
   }
 
   /* Geburtstag diese Woche */
@@ -3947,9 +4034,12 @@ async function ladeReview(){
      darf nach dem Abmelden nicht mehr gezeichnet werden. */
   const lauf=rvLauf;
   let tag=[], woche=[];
+  /* Bruno 10.11.: alle drei gleichzeitig, nicht nacheinander. */
+  const ampelP = ampelHolen();
   try{
-    tag   = await sbGet("app_day_review?select=*&on_day=eq."+heute);
-    woche = await sbGet("app_week_blocked?select=*");
+    [tag, woche] = await Promise.all([
+      sbGet("app_day_review?select=*&on_day=eq."+heute),
+      sbGet("app_week_blocked?select=*")]);
   }catch(e){ return }
   if(lauf!==rvLauf) return;
 
@@ -3963,6 +4053,17 @@ async function ladeReview(){
      Nicht zeigen: fertig, erledigte Blockaden, und offene Ereignis-Ablaeufe
      (Notfall, Absage, Behandlung pro Patient) - die laufen nur bei
      Ausloesung und sind kein Versaeumnis (Bruno/Dennis, 08.09.2026). */
+  /* 140 Ampel (Nina 10.11.2026: "wir koennen ihn nur losschicken, das alles
+     zu ueberwachen, wenn er tatsaechlich auch alles sehen kann"). Liefert die
+     Datenbank die Ampel, zeigt dieser Bildschirm jede Tagesliste mit jeder
+     Person, auch die nie angefangenen. Ohne 140 (aeltere DB, Fehler) bleibt
+     es bei "was haengt" wie bisher. */
+  const ampel = await ampelP;
+  if(lauf!==rvLauf) return;
+  /* Rosa: Ueberschrift je nach Weg. Ampel = alle Listen, sonst "What is stuck". */
+  const h1=$("#rv-h1"); if(h1){ h1.dataset.t = Array.isArray(ampel) ? "ampH" : "rvH"; h1.textContent = Array.isArray(ampel) ? t.ampH : t.rvH; }
+  if(Array.isArray(ampel)) $("#rv-heute").innerHTML = ampelHtml(ampel, t);
+  else {
   /* 138: und offen erst ab seiner Uhrzeit (ablaufHaengt). */
   const haengt = tag.filter(ablaufHaengt);
   $("#rv-heute").innerHTML = haengt.length ? haengt.map(r=>{
@@ -3984,6 +4085,7 @@ async function ladeReview(){
     </div>`}).join("")
     : `<p class="lverr">${t.rvNothing}</p>`;
   $("#rv-heute").innerHTML += spaeterHtml(tag, t);
+  }
 
   /* Die Woche: nur was MEHR ALS EINMAL passiert ist, faellt auf. */
   $("#rv-woche").innerHTML = woche.length ? woche.map(r=>{
@@ -6274,7 +6376,7 @@ function sitzungZuruecksetzen(){
      (heute, Woche) wie unten (Aufgaben). Am geteilten Handy sah die Naechste
      sonst bei haengendem Netz, wer woran gescheitert ist. */
   /* 139, Elke Fund 5: Stimmungsliste mit Namen ebenso weg. */
-  try{ ["rv-tasks","rv-heute","rv-woche","md-liste"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; });
+  try{ ["rv-tasks","rv-heute","rv-woche","md-liste","cockpit-stuck"].forEach(id=>{ const el=$("#"+id); if(el) el.innerHTML=""; });
     const km=$("#kpi-mood"); if(km) km.textContent="—";
     tkOverMap={}; tkOverLauf++; rvLauf++; }catch(e){}
   /* Aufgaben-Zwischenspeicher der Vorperson weg (Bruno 3. Runde, Fund 13). */
@@ -6442,8 +6544,12 @@ function renderRooms(){
   }
   /* "What is stuck" stand frueher dreifach da (KPI-Zahl + Liste oben + eigene
      Kachel). Die Kachel faellt weg; die Zahl-Kachel und die Liste beim Oeffnen
-     reichen (Dennis 01.10.). */
-  const rvo=$("#rv-open"); if(rvo) rvo.hidden = true;
+     reichen (Dennis 01.10.).
+     140 (Bruno 10.11., Fund 1): Hendra hat kein Cockpit und damit keine
+     Zahl-Kachel. Er kam nur ueber "Tasks" zur Ampel. Fuer ihn ist die Kachel
+     wieder da, als "Daily lists" mit der Zahl der roten Zeilen. */
+  const rvo=$("#rv-open"); if(rvo) rvo.hidden = !(me() && me().mgr);
+  if(me() && me().mgr) zaehleHaengt();
   zaehleAufgaben();
   /* "Attendance today" als Kachel entfernt: steht oben schon als KPI
      "Present today", die aufs selbe Bild fuehrt (Dennis 01.10.). */
@@ -6872,6 +6978,11 @@ document.addEventListener("click",e=>{
        zieht nach. */
     const note=(document.getElementById("note-"+dn.dataset.done)||{}).value||null;
     melde("erledigt", {run:dn.dataset.done, note:note});
+    /* 140: In der Ampel ist die Zeile eine Person in einer Liste. Nur sie
+       wird "handled", die Liste mit den anderen bleibt stehen. */
+    const pz=dn.closest(".amp-p");
+    if(pz){ const t=L(); pz.className="amp-p amp-handled";
+      const n=pz.querySelector(".amp-n"); pz.innerHTML=AMP_ICON.handled+" "+(n?n.outerHTML:"")+" &middot; "+escHtml(t.amp_handled); return; }
     const item=dn.closest(".lvitem"); if(item) item.remove();
     return;
   }
