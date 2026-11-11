@@ -1654,7 +1654,7 @@ const T={
   rvTimes:"times", rvOnce:"once", rvSee:"What is stuck",
   rvNote:"note (optional)", rvHandled:"Mark handled",
   attTitle:"Attendance today", attSub:"who is in, since when",
-  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attBusy:"The previous change is still being sent. Wait a moment, then tap again.", attChanged:"NOT saved. This stamp changed while the form was open. The list will load again now. Check it, then change it again if needed.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
+  attHint:"Tap Change to add or correct a forgotten check-in or check-out. Times are Bali time. Hours count from 15 minutes before to 15 minutes after the shift.", attNoStamp:"no check-in", attNoOut:"no check-out", attEdit:"Change", attSave:"Save", attNeedIn:"Please enter the check-in time.", attOrder:"Check-out must be after check-in.", attBusy:"The previous change is still being sent. Wait a moment, then tap again.", attChanged:"NOT saved. This stamp changed while the form was open. The list will load again now. Check it, then change it again if needed.", attKam:"in", attGing:"out", attStd:"h", attNone:"Nobody checked in yet.", attDel:"Remove stamp", attDelAsk:"Remove the check-in and check-out of {name} on {day}? For a stamp made by mistake, for example from home on a sick day. It stays in the log.",
   leadTxt:"You have no checklist. Below you can look up every routine in the clinic, and see how the day is going.",
   lvH:"Your leave", lvLeft:"days left", lvAsk:"Request leave",
   lvAdminT:"Team & PINs", lvAdminS:"team leave and PIN reset",
@@ -1686,7 +1686,7 @@ const T={
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
   amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Hours count from 15 minutes before shift start to 15 minutes after shift end. Later than that is overtime, earlier does not count. Late = more than 5 minutes after the real start, which is 15 minutes before the shift (for a 09:00 shift: be there by 08:45, after 08:50 counts as late). Hendra is in charge, this is your second pair of eyes.",
-  amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in",
+  amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in", amNoOutDay:"day without check-out", amNoOut:"days without check-out",
   amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNotCounted:"not counted (before shift)", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
   lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
   pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.", pushOkStaff:"Notifications are on. You will hear about new tasks for you and when management has handled your message.",
@@ -1880,7 +1880,7 @@ const T={
   rvTimes:"kali", rvOnce:"sekali", rvSee:"Apa yang tersendat",
   rvNote:"catatan (opsional)", rvHandled:"Tandai ditangani",
   attTitle:"Kehadiran hari ini", attSub:"siapa masuk, sejak kapan",
-  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attBusy:"Perubahan sebelumnya masih dikirim. Tunggu sebentar, lalu ketuk lagi.", attChanged:"BELUM tersimpan. Absen ini berubah saat formulir terbuka. Daftar akan dimuat ulang. Periksa dulu, lalu ubah lagi bila perlu.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
+  attHint:"Ketuk Ubah untuk menambah atau memperbaiki jam masuk/keluar yang lupa. Waktu Bali. Jam dihitung dari 15 menit sebelum sampai 15 menit setelah shift.", attNoStamp:"belum absen", attNoOut:"belum absen keluar", attEdit:"Ubah", attSave:"Simpan", attNeedIn:"Isi jam masuk.", attOrder:"Jam keluar harus setelah jam masuk.", attBusy:"Perubahan sebelumnya masih dikirim. Tunggu sebentar, lalu ketuk lagi.", attChanged:"BELUM tersimpan. Absen ini berubah saat formulir terbuka. Daftar akan dimuat ulang. Periksa dulu, lalu ubah lagi bila perlu.", attKam:"masuk", attGing:"keluar", attStd:"jam", attNone:"Belum ada yang check-in.", attDel:"Hapus absen", attDelAsk:"Hapus jam masuk dan keluar {name} pada {day}? Untuk absen yang salah, misalnya dari rumah saat sakit. Tetap tercatat di log.",
   leadTxt:"Anda tidak punya daftar tugas. Di bawah Anda bisa melihat semua prosedur klinik dan bagaimana hari ini berjalan.",
   lvH:"Cuti Anda", lvLeft:"hari tersisa", lvAsk:"Ajukan cuti",
   lvAdminT:"Tim & PIN", lvAdminS:"cuti tim dan atur ulang PIN",
@@ -1912,7 +1912,7 @@ const T={
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
   amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Jam dihitung dari 15 menit sebelum shift mulai sampai 15 menit setelah shift selesai. Lebih dari itu lembur, lebih awal tidak dihitung. Terlambat = lebih dari 5 menit setelah mulai kerja sebenarnya, yaitu 15 menit sebelum shift (untuk shift 09:00: hadir paling lambat 08:45, setelah 08:50 dihitung terlambat). Hendra yang bertanggung jawab, ini pandangan kedua.",
-  amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk",
+  amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk", amNoOutDay:"hari tanpa absen keluar", amNoOut:"hari tanpa absen keluar",
   amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNotCounted:"tidak dihitung (sebelum shift)", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
   lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
   pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.", pushOkStaff:"Notifikasi aktif. Kamu akan tahu tugas baru untukmu dan saat pesanmu sudah ditangani manajemen.",
@@ -2143,7 +2143,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-10e";
+const APP_VERSION = "2026-11-12a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2585,6 +2585,9 @@ async function ladeAnwesenheitMonat(){
          verschwiegen (Bruno 31a, Fund 1). Keine haengenden Punkte (Fund 4). */
       const z1=[tagWort(r.tage,t.amDay,t.amDays), r.stunden+" h"];
       if(r.ohne_stempel) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_stempel,t.amNoStampDay,t.amNoStamp)}</span>`);
+      /* 147: Tage mit "in", aber ohne "out" zaehlen null Stunden. Rot, damit
+         Hendra sie mit "Change" nachtraegt (Hendra 12.11.2026). */
+      if(r.ohne_ging) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_ging,t.amNoOutDay,t.amNoOut)}</span>`);
       if(r.ohne_plan) z1.push(`${tagWort(r.ohne_plan,t.amNoPlanDay,t.amNoPlan)}`);
       const bewertet = r.tage - r.ohne_plan;   /* Stempeltage mit Dienstplan */
       const z2=[];
@@ -2625,7 +2628,7 @@ async function ladeAnwesenheit(still){
   box.innerHTML = rows.length ? rows.map(r=>`
     <div class="lvitem" style="flex-wrap:wrap">
       <div class="d"><b>${escHtml(r.name)}</b>
-        <small>${r.kam ? t.attKam+" "+r.kam+ortText(r.in_m,r.in_lat,r.in_lng)+(r.ging?" \u00b7 "+t.attGing+" "+r.ging+ortText(r.out_m,r.out_lat,r.out_lng):"")+(r.stunden!=null?" \u00b7 "+r.stunden+" "+t.attStd:"")+(r.ueber_min?" \u00b7 +"+minText(r.ueber_min)+" "+t.amOver:"") : t.attNoStamp}${r.korrigiert_von?`<br><span class="warn">${t.attCorrected} ${escHtml(r.korrigiert_von)}${r.orig_kam?" ("+t.attWas+" "+r.orig_kam+(r.orig_ging?"\u2013"+r.orig_ging:"")+")":""}</span>`:""}</small>
+        <small>${r.kam ? t.attKam+" "+r.kam+ortText(r.in_m,r.in_lat,r.in_lng)+(r.ging?" \u00b7 "+t.attGing+" "+r.ging+ortText(r.out_m,r.out_lat,r.out_lng):(r.ohne_ging?` \u00b7 <span class="warn" style="display:inline">${t.attNoOut}</span>`:""))+(r.stunden!=null?" \u00b7 "+r.stunden+" "+t.attStd:"")+(r.ueber_min?" \u00b7 +"+minText(r.ueber_min)+" "+t.amOver:"") : t.attNoStamp}${r.korrigiert_von?`<br><span class="warn">${t.attCorrected} ${escHtml(r.korrigiert_von)}${r.orig_kam?" ("+t.attWas+" "+r.orig_kam+(r.orig_ging?"\u2013"+r.orig_ging:"")+")":""}</span>`:""}</small>
       </div>
       ${darf?`<button class="pinrst" data-attedit="${r.person_id}">${t.attEdit}</button>
       <div class="rvfix" id="attedit-${r.person_id}" hidden style="width:100%;margin-top:6px;gap:6px;flex-wrap:wrap">
