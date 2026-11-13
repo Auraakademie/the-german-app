@@ -2143,7 +2143,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-12a";
+const APP_VERSION = "2026-11-13a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2587,7 +2587,7 @@ async function ladeAnwesenheitMonat(){
       if(r.ohne_stempel) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_stempel,t.amNoStampDay,t.amNoStamp)}</span>`);
       /* 147: Tage mit "in", aber ohne "out" zaehlen null Stunden. Rot, damit
          Hendra sie mit "Change" nachtraegt (Hendra 12.11.2026). */
-      if(r.ohne_ging) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_ging,t.amNoOutDay,t.amNoOut)}</span>`);
+      if(r.ohne_ging) z1.push(`<span class="warn" style="display:inline">${tagWort(r.ohne_ging,t.amNoOutDay,t.amNoOut)}${r.ohne_ging_tage?" ("+escHtml(r.ohne_ging_tage)+")":""}</span>`);
       if(r.ohne_plan) z1.push(`${tagWort(r.ohne_plan,t.amNoPlanDay,t.amNoPlan)}`);
       const bewertet = r.tage - r.ohne_plan;   /* Stempeltage mit Dienstplan */
       const z2=[];
@@ -3138,7 +3138,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -3300,10 +3300,16 @@ async function sendeEinen(e){
   }
   if(e.art==="erledigt"){ await sbSend("rpc/haengt_erledigt",{p_run:d.run, p_note:d.note}); return; }
   if(e.art==="aufgabe"){ await sbSend("rpc/aufgabe_erledigen",{p_task:d.task, p_on_day:d.tag||null}); return; }
-  if(e.art==="einchecken"){ await sbSend("rpc/einchecken", {p_lat:null, p_lng:null}); return; }
-  if(e.art==="auschecken"){ await sbSend("rpc/auschecken", {p_lat:null, p_lng:null}); return; }
+  /* Bruno 13.11., H2: Hat der Stempel offline gewartet, zaehlt der Moment des
+     Tippens, nicht die Ankunft beim Server. Sonst wird "End of shift" von
+     21:29, gesendet am Morgen, zu einem falschen Folgetag mit 0 Stunden. */
+  const gewartet = d && d.at && (Date.now() - Date.parse(d.at) > 120000);
+  /* p_jetzt aus derselben Handy-Uhr: der Server rechnet nur die Wartezeit, eine
+     falsch gestellte Uhr hebt sich auf (Bruno 13.11. abends, M4). */
+  if(e.art==="einchecken"){ await sbSend("rpc/einchecken", gewartet ? {p_lat:null, p_lng:null, p_at:d.at, p_jetzt:new Date().toISOString()} : {p_lat:null, p_lng:null}); return; }
+  if(e.art==="auschecken"){ await sbSend("rpc/auschecken", gewartet ? {p_lat:null, p_lng:null, p_at:d.at, p_jetzt:new Date().toISOString()} : {p_lat:null, p_lng:null}); return; }
   if(e.art==="stimmung"){ await sbSend("rpc/stimmung_abgeben", {p_wert:d.wert, p_tag:d.tag||null}); return; }
-  if(e.art==="standort"){ await sbSend("rpc/stempel_ort", {p_art:d.art, p_lat:d.lat, p_lng:d.lng}); return; }
+  if(e.art==="standort"){ await sbSend("rpc/stempel_ort", d.tag ? {p_art:d.art, p_lat:d.lat, p_lng:d.lng, p_tag:d.tag} : {p_art:d.art, p_lat:d.lat, p_lng:d.lng}); return; }
   if(e.art==="zimmer"){
     await sbSend("rpc/zimmer_melden", {p_appt:d.termin, p_was:d.was});
     return;
@@ -6980,9 +6986,9 @@ function tagStarten(){
       /* Bruno 23b, Fund 2: Der Stempel geht SOFORT in den Postausgang wie
          frueher. Der Ort kommt als zweite Meldung hinterher, wenn er da ist,
          und nur, wenn noch dieselbe Person angemeldet ist. */
-      melde("einchecken", {});
-      const wer = me() && me().id;
-      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"in", lat:pos.lat, lng:pos.lng}); });
+      melde("einchecken", {at:S.startedAt});
+      const wer = me() && me().id, tag = heuteISO();
+      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"in", lat:pos.lat, lng:pos.lng, tag}); });
     }
 }
 
@@ -7195,9 +7201,9 @@ document.addEventListener("click",e=>{
     /* Feierabend = Auschecken. Landet ueber den Postausgang in der Datenbank
        (offline-sicher). Danach S.started leeren, damit morgen frisch
        eingecheckt wird. */
-    melde("auschecken", {});
-    { const wer = me() && me().id;
-      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"out", lat:pos.lat, lng:pos.lng}); }); }
+    melde("auschecken", {at:new Date().toISOString()});
+    { const wer = me() && me().id, tag = heuteISO();
+      mitStandort(pos=>{ if(pos && pos.lat!=null && me() && me().id===wer) melde("standort", {art:"out", lat:pos.lat, lng:pos.lng, tag}); }); }
     S.started=null; S.startedAt=null; save();
     if(!istLeitung() && !demoAktiv() && !stimmungSchonHeute()){
       $$("#s-mood .mood").forEach(b=>b.classList.remove("on"));
