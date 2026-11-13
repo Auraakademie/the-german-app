@@ -315,6 +315,14 @@
        font-size:13px;font-weight:700;margin-top:1px;transition:.18s;font-variant-numeric:tabular-nums}
   .step.done .num{background:var(--ok);border-color:var(--ok);color:var(--on-ok)}
   .step.done .st{color:var(--ink-2);text-decoration:line-through}
+  /* 151: Schritt ging nicht. Erledigt, aber nicht gemacht: Kreuz statt Haken. */
+  .step.nope .num{background:#c98a2e;border-color:#c98a2e;color:#fff}
+  .step.nope .st{text-decoration:none}
+  .nopewhy{font-size:13px;color:#c98a2e;font-weight:600;margin-top:6px}
+  .stepno{margin-top:8px;padding:8px 12px;min-height:40px;border:1px solid var(--hair);border-radius:10px;
+          background:transparent;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
+  .nopebox{margin-top:8px;display:flex;flex-direction:column;gap:6px;cursor:default}
+  .nopebox .reason{margin:0}
   .st{font-size:16px;line-height:1.5}
   .hint{font-size:13px;color:var(--ink-2);margin-top:7px;line-height:1.5;
         border-left:2px solid var(--gold-ink);padding-left:10px}
@@ -1550,7 +1558,7 @@ const T={
   guides:"Look up any time",
   sopVer:"Version 1.0",sopDone:"Mark as done",sopNeed:"Tick every step first",
   shDoneBy:"Done by {name} at {time}",
-  sopUndo:"Not done after all",sopBlock:"I cannot do this today",
+  sopUndo:"Not done after all",sopBlock:"I cannot do this today",nopeBtn:"Not possible",nopeH:"Why not?",nope_person:"Person not here or late",nope_broken:"Broken or missing",nope_no_time:"No time",nope_other:"Other",nopeOtherPh:"What happened? No health or sick details.",nopeSave:"Save",nopeIs:"Not possible:",
   whyH:"What is stopping you?",
   r1:"Equipment is broken",r2:"Material is missing",r3:"No time today",r4:"Someone else did it",
   r5:"Something else",whyMore:"Type what happened",whySend:"Report this",
@@ -1776,7 +1784,7 @@ const T={
   guides:"Bisa dilihat kapan saja",
   sopVer:"Versi 1.0",sopDone:"Tandai selesai",sopNeed:"Centang semua langkah dulu",
   shDoneBy:"Sudah dikerjakan {name} pukul {time}",
-  sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",
+  sopUndo:"Ternyata belum selesai",sopBlock:"Hari ini tidak bisa dikerjakan",nopeBtn:"Tidak bisa",nopeH:"Kenapa?",nope_person:"Orangnya tidak ada atau terlambat",nope_broken:"Rusak atau tidak ada",nope_no_time:"Tidak sempat",nope_other:"Lainnya",nopeOtherPh:"Apa yang terjadi? Tanpa info sakit atau kesehatan.",nopeSave:"Simpan",nopeIs:"Tidak bisa:",
   whyH:"Apa kendalanya?",
   r1:"Alat rusak",r2:"Bahan habis",r3:"Tidak ada waktu hari ini",r4:"Sudah dikerjakan orang lain",
   r5:"Hal lain",whyMore:"Tulis apa yang terjadi",whySend:"Laporkan ini",
@@ -2134,7 +2142,7 @@ let APPTS=[];
    Handy sperrt sich, Tab wird verworfen, alle Haken weg. Genau daran ist die
    alte Tabelle im Juni gestorben.                                              */
 const KEY="tg-state";
-let S={lang:"en",mode:null,me:null,started:null,done:[],blocked:{},steps:{},rooms:[],raum:null,dep:null,pins:{},token:null,refresh:null,geraet:null,geraetName:null,geteilt:false};
+let S={lang:"en",mode:null,me:null,started:null,done:[],blocked:{},steps:{},nope:{},rooms:[],raum:null,dep:null,pins:{},token:null,refresh:null,geraet:null,geraetName:null,geteilt:false};
 try{const r=localStorage.getItem(KEY); if(r)S=Object.assign(S,JSON.parse(r));}catch(e){}
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
@@ -2143,7 +2151,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-13a";
+const APP_VERSION = "2026-11-13b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3264,8 +3272,10 @@ async function sendeEinen(e){
     /* merge-duplicates: Wird derselbe Haken zweimal geschickt, weil die erste
        Antwort im Netz verlorenging, ueberschreibt er sich selbst statt einen
        Fehler zu werfen. Auf Bali ist das kein Sonderfall. */
+    /* 151: geht_nicht immer mitschicken (auch null), sonst behielte ein spaeterer
+       normaler Haken den alten Grund (merge-duplicates aendert nur Gesendetes). */
     if(d.an) await sbSend("sop_step_check",
-      {sop_run_id:lauf, sop_step_id:d.schritt, checked_at:d.zeit},
+      {sop_run_id:lauf, sop_step_id:d.schritt, checked_at:d.zeit, geht_nicht:d.nicht||null, geht_nicht_note:d.note||null},
       "POST", {Prefer:"resolution=merge-duplicates"});
     else     await sbSend("sop_step_check?sop_run_id=eq."+lauf+"&sop_step_id=eq."+d.schritt,
       undefined, "DELETE");
@@ -5985,7 +5995,7 @@ function tagesgrenze(){
      Tageswechsel geleert. Was gestern gesendet wurde, steht laengst in der
      Datenbank; was noch im Postausgang liegt, bleibt dort (er traegt den Tag). */
   if(S.hakenTag && S.hakenTag !== heute){
-    S.done=[]; S.blocked={}; S.steps={};
+    S.done=[]; S.blocked={}; S.steps={}; S.nope={};
     for(const k in LAUF) delete LAUF[k];
     save();
   }
@@ -6416,7 +6426,7 @@ function geteiltUmschalten(){
    Lauf-Cache. */
 function sitzungZuruecksetzen(){
   try{ umsatzWeg(); }catch(e){}
-  S.done=[]; S.blocked={}; S.steps={};
+  S.done=[]; S.blocked={}; S.steps={}; S.nope={};
   for(const k in LAUF) delete LAUF[k];
   /* Die Urlaubsliste der ganzen Klinik lag nach dem Abmelden weiter im
      Speicher (Bruno-Fund 4). Heute kam niemand dran, weil der Bildschirm
@@ -6725,15 +6735,39 @@ function openSop(i,kind,keep){
   $("#sop-title").textContent=t.t[S.lang];
   $("#sop-sub").textContent=(me()?me().r[S.lang]:"")+" · "+L().sopVer;
   $("#foot-doc").textContent="DOC "+t.doc;
+  /* 151 (Nina 13.11.): Hendra kann einen einzelnen Schritt als "Not possible"
+     mit Grund abschliessen. Zuerst nur fuer den Manager. */
+  const nope=(S.nope&&S.nope[sopKey(curKind,i)])||{}, darfNope=curKind==="task" && !!(me() && me().mgr) && !!t.id && !gedeckt(i);   /* Bruno N1: fertige geteilte Liste ohne Knopf */
   $("#steps").innerHTML=t.steps.map((s,j)=>{
-    const on=sd.indexOf(j)>=0;
-    return `<div class="step ${on?"done":""}" data-j="${j}">
-     <div class="num">${on?"✓":j+1}</div>
-     <div><div class="st">${s[S.lang]}</div>${s.hint?`<div class="hint">${s.hint[S.lang]}</div>`:""}</div>
+    const on=sd.indexOf(j)>=0, nj=on && nope[j];
+    return `<div class="step ${on?"done":""} ${nj?"nope":""}" data-j="${j}">
+     <div class="num">${nj?"\u2715":on?"✓":j+1}</div>
+     <div style="flex:1"><div class="st">${s[S.lang]}</div>${s.hint?`<div class="hint">${s.hint[S.lang]}</div>`:""}
+       ${nj?`<div class="nopewhy">${L().nopeIs} ${escHtml(L()["nope_"+nj.g]||nj.g)}${nj.note?" ("+escHtml(nj.note)+")":""}</div>`:""}
+       ${darfNope && !on?`<button class="stepno" data-nope="${j}">${L().nopeBtn}</button>
+       <div class="nopebox" id="nopebox-${j}" hidden><p class="eyebrow" style="margin:0">${L().nopeH}</p>
+         ${["person","broken","no_time","other"].map(g=>`<button class="reason" data-nopeg="${g}" data-nj="${j}">${L()["nope_"+g]}</button>`).join("")}
+         <div id="nopeother-${j}" hidden><input class="lvin" id="nopenote-${j}" maxlength="300" placeholder="${L().nopeOtherPh}">
+           <button class="cta" data-nopesend="${j}" style="margin-top:6px">${L().nopeSave}</button></div>
+       </div>`:""}</div>
    </div>`}).join("");
   renderActions();
   $("#reasons").classList.remove("on");
   if(!keep){ sopOffenAm=performance.now(); go("s-sop"); }
+}
+
+/* 151: Schritt als "Not possible" abschliessen. Zaehlt wie ein Haken (die Liste
+   kann fertig werden), traegt aber den Grund in die Datenbank und den Abendbericht. */
+function schrittGehtNicht(j, g, note){
+  if(curKind!=="task" || cur===null) return;
+  if(gedeckt(cur)) return;
+  const q=TASKS[cur]; if(!q || !q.id || !q.steps[j] || !q.steps[j].sid) return;
+  const k=sopKey(curKind,cur), a=S.steps[k]||[];
+  if(a.indexOf(j)<0) a.push(j);
+  S.steps[k]=a; S.nope=S.nope||{}; S.nope[k]=S.nope[k]||{}; S.nope[k][j]={g, note:note||null};
+  save();
+  melde("schritt",{sop:q.id, schritt:q.steps[j].sid, an:true, zeit:new Date().toISOString(), nicht:g, note:note||null});
+  openSop(cur, curKind, true);
 }
 
 /* Nachschlagewerke haben keinen Abschluss. Aufgaben schon, aber erst wenn alle
@@ -7261,6 +7295,20 @@ document.addEventListener("click",e=>{
   const s=e.target.closest("[data-s]"); if(s){openSop(+s.dataset.s,"task");return}
   const gd=e.target.closest("[data-g]"); if(gd){openSop(+gd.dataset.g,"guide");return}
 
+  /* 151: "Not possible" pro Schritt. Vor dem Schritt-Tipp, sonst hakt der Knopf ab. */
+  const nb=e.target.closest("[data-nope]");
+  if(nb){ const bx=$("#nopebox-"+nb.dataset.nope); if(bx) bx.hidden=!bx.hidden; return; }
+  const ng=e.target.closest("[data-nopeg]");
+  if(ng){
+    if(ng.dataset.nopeg==="other"){ const o=$("#nopeother-"+ng.dataset.nj); if(o){ o.hidden=false; const f=$("#nopenote-"+ng.dataset.nj); if(f) f.focus(); } return; }
+    schrittGehtNicht(+ng.dataset.nj, ng.dataset.nopeg, null); return;
+  }
+  const ns=e.target.closest("[data-nopesend]");
+  if(ns){ const f=$("#nopenote-"+ns.dataset.nopesend), note=f?f.value.trim().slice(0,300):"";
+    if(!note){ if(f) f.focus(); return; }
+    schrittGehtNicht(+ns.dataset.nopesend, "other", note); return; }
+  if(e.target.closest(".nopebox")) return;
+
   const st=e.target.closest(".step");
   if(st && performance.now()-sopOffenAm<600) return;   /* Bruno 07g: monotone Uhr, 600 ms */
   if(st){
@@ -7271,8 +7319,12 @@ document.addEventListener("click",e=>{
        Sonst flackert es und die Scrollposition springt weg. */
     const j=+st.dataset.j, k=sopKey(curKind,cur), a=S.steps[k]||[];
     const at=a.indexOf(j); at>=0?a.splice(at,1):a.push(j);
-    S.steps[k]=a; save();
+    S.steps[k]=a;
+    const warNope=!!(S.nope && S.nope[k] && S.nope[k][j]);
+    if(warNope) delete S.nope[k][j];
+    save();
     const on=at<0;
+    if(warNope){ openSop(cur, curKind, true); }
     st.classList.toggle("done",on);
     st.querySelector(".num").textContent=on?"\u2713":(j+1);
     /* Bruno 07f Fund 1: Die Now-Karte zeigte ohne Netz den alten Stand. */
