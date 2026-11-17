@@ -373,6 +373,9 @@
           border:1px solid var(--hair);border-radius:14px;padding:15px;min-height:56px;
           font:500 14.5px/1.35 var(--sans);cursor:pointer}
   .reason:active{transform:scale(.985)}
+  .reason.on{border-color:var(--gold-ink);background:var(--glow);font-weight:600}
+  .ho .seen{font-size:12px;color:var(--ink-3);margin-top:6px;padding-left:22px}
+  .ho .pinrst{margin:8px 0 0 22px}
 
   /* Nachschlagewerke: kein Haken, keine Zaehlung. Man braucht sie 30 mal am Tag. */
   .guide{display:flex;gap:12px;align-items:center;padding:15px;margin-bottom:8px;
@@ -743,6 +746,19 @@
         <div data-t="briefNotStarted" style="margin-bottom:12px"></div>
         <button class="cta" id="btn-clock-brief" data-t="clockIn"></button>
       </div>
+
+      <!-- 156 (Nina 16.11.2026): Zwischenfaelle. Hendra meldet, nur Nina und Micha lesen.
+           Ganz oben, "direkt am Eingang". -->
+      <button class="glass next" id="zf-send" data-go="s-zfneu" hidden style="margin-bottom:12px">
+        <span class="rm">!</span>
+        <span style="flex:1"><span class="tt" data-t="zfSendTile"></span>
+          <span class="mt" data-t="zfSendTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+      <button class="glass next" id="zf-open" data-go="s-zfliste" hidden style="margin-bottom:12px">
+        <span class="rm" id="zf-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="zfListTile"></span>
+          <span class="mt" data-t="zfListTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
 
       <!-- COCKPIT: nur fuer die Leitung (Nina, Micha). Kacheln mit echten
            Zahlen + was heute hakt. Der Mitarbeiter-Teil darunter (Ring, SOPs,
@@ -1378,6 +1394,32 @@
       <div id="rn-list" style="margin-top:14px"></div>
     </section>
 
+    <!-- 156: Zwischenfall melden (Hendra) -->
+    <section class="screen" id="s-zfneu">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="zfNewH"></h1>
+      <p class="sub" data-t="zfNewS"></p>
+      <p class="eyebrow" data-t="zfArtH" style="margin-top:16px"></p>
+      <div id="zf-arten" style="display:flex;flex-direction:column;gap:8px"></div>
+      <label class="lvlab" data-t="zfText" style="margin-top:16px"></label>
+      <textarea class="lvin" id="zf-text" rows="5" style="resize:none"></textarea>
+      <p class="lverr" id="zf-hurt" hidden style="color:var(--ink)"></p>
+      <button class="bigcheck" id="zf-save" style="margin-top:20px"><span class="bx"></span><span data-t="zfSave"></span></button>
+      <p class="lverr" id="zf-msg"></p>
+      <div id="zf-mine-wrap" hidden>
+        <p class="eyebrow" data-t="zfMineH" style="margin-top:24px"></p>
+        <div id="zf-mine"></div>
+      </div>
+    </section>
+
+    <!-- 156: Zwischenfaelle lesen (Nina, Micha) -->
+    <section class="screen" id="s-zfliste">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="zfListH"></h1>
+      <p class="sub" data-t="zfListS"></p>
+      <div id="zf-list" style="margin-top:14px"></div>
+    </section>
+
     <!-- An den Empfang senden (oben im Behandlungszimmer). -->
     <section class="screen" id="s-notizneu">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
@@ -1633,12 +1675,22 @@ const T={
   chName:"Patient name", chCat:"Waiting for...", chDoc:"Which doctor? (optional)", chNote:"Note (what is it about?)",
   chSave:"Add to list", chDone:"Resolved", chNone:"Nothing open. All answered.",
   chNameErr:"Enter a patient name.", chErr:"Could not save. Try again.",
-  rnSendTile:"Message to Nina, Michael & Hendra", rnSendTileS:"anything they should know",
+  rnSendTile:"Message to Nina, Michael & Hendra", rnSendTileS:"patient problem, emergency, anything else",
   rnBoardTile:"Messages from the team", rnBoardTileS:"open, with sender",
   rnBoardH:"Messages from the team",
   rnBoardS:"What the team sent you. You see who wrote it. Tick when handled. Handled ones stay for 7 days in grey, so all three of you see them.",
-  rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name. When they tick it as done, you see it below.",
+  rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name. When they tick it as done, you see it below. Emergency right now? Call first, then write here.",
   rnMineH:"Your messages", rnMineNone:"Nothing sent in the last 14 days.", rnOpen:"Open", rnDoneBy:"Done by",
+  hoSeenBtn:"Mark as seen", hoSeenBy:"\u2713 Seen by",
+  zfSendTile:"Report an incident", zfSendTileS:"not paid, complaint, voucher, someone hurt",
+  zfListTile:"Incidents", zfListTileS:"from Hendra: not paid, complaints, vouchers, someone hurt",
+  zfNewH:"Report an incident", zfNewS:"Something went wrong today? Write it here. Only Nina and Dr. Michael read it. It does not go into the daily report.",
+  zfArtH:"What happened?", zf_not_paid:"Patient did not pay", zf_complaint:"Complaint", zf_voucher:"We gave a voucher", zf_injury:"Someone was hurt", zf_other:"Something else",
+  zfText:"What happened? Who? What did you do next?", zfPh:"Example: Mrs X did not pay for her filling. She will pay on Monday.", zfHurt:"A colleague was hurt? Write what happened, where, and what you did. No diagnosis, no injury details, no medicine, no sick days.",
+  zfSave:"Send to Nina and Dr. Michael", zfArtErr:"Please choose what happened.", zfTextErr:"Please write what happened.",
+  zfErr:"NOT sent. Check the internet and tap Send again. Your text is still here.", zfSent:"Sent. Below you see when they have read it.",
+  zfMineH:"Your reports", zfMineNone:"No reports yet.", zfNotSeen:"Not seen yet", zfSeenBy:"Seen by",
+  zfListH:"Incidents", zfListS:"Reports from Hendra. Tap \"Mark as seen\", so Hendra knows you read it.", zfNone:"No reports.", zfOffline:"Offline. Cannot load the reports now.", zfDel:"Delete", zfDelAsk:"Delete this report for good? Only do this if it was a mistake or has health details about a colleague.",
   clockLook:"Just have a look, I'm not at work yet",
   briefNotStarted:"<b>You have not started your day yet.</b> Looking is fine. When you are at work, start your day here.",
   rnPatient:"Patient (short, optional)", rnTask:"Your message",
@@ -1859,12 +1911,22 @@ const T={
   chName:"Nama pasien", chCat:"Menunggu...", chDoc:"Dokter mana? (opsional)", chNote:"Catatan (tentang apa?)",
   chSave:"Tambah ke daftar", chDone:"Selesai", chNone:"Tidak ada yang terbuka. Semua terjawab.",
   chNameErr:"Masukkan nama pasien.", chErr:"Gagal menyimpan. Coba lagi.",
-  rnSendTile:"Pesan ke Nina, Michael & Hendra", rnSendTileS:"apa pun yang perlu mereka tahu",
+  rnSendTile:"Pesan ke Nina, Michael & Hendra", rnSendTileS:"masalah pasien, darurat, atau hal lain",
   rnBoardTile:"Pesan dari tim", rnBoardTileS:"terbuka, dengan pengirim",
   rnBoardH:"Pesan dari tim",
   rnBoardS:"Yang dikirim tim ke Anda. Anda lihat siapa yang menulis. Centang bila sudah ditangani. Yang sudah ditangani tetap tampil 7 hari dalam warna abu-abu, supaya kalian bertiga melihatnya.",
-  rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil. Saat mereka mencentang selesai, Anda melihatnya di bawah.",
+  rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil. Saat mereka mencentang selesai, Anda melihatnya di bawah. Darurat sekarang? Telepon dulu, lalu tulis di sini.",
   rnMineH:"Pesan Anda", rnMineNone:"Tidak ada pesan dalam 14 hari terakhir.", rnOpen:"Terbuka", rnDoneBy:"Selesai oleh",
+  hoSeenBtn:"Tandai sudah dibaca", hoSeenBy:"\u2713 Sudah dibaca oleh",
+  zfSendTile:"Laporkan kejadian", zfSendTileS:"belum bayar, keluhan, voucher, ada yang terluka",
+  zfListTile:"Laporan kejadian", zfListTileS:"dari Hendra: belum bayar, keluhan, voucher, ada yang terluka",
+  zfNewH:"Laporkan kejadian", zfNewS:"Ada yang tidak beres hari ini? Tulis di sini. Hanya Nina dan Dr. Michael yang membaca. Tidak masuk ke laporan harian.",
+  zfArtH:"Apa yang terjadi?", zf_not_paid:"Pasien belum bayar", zf_complaint:"Keluhan", zf_voucher:"Kami memberi voucher", zf_injury:"Ada yang terluka", zf_other:"Hal lain",
+  zfText:"Apa yang terjadi? Siapa? Apa yang sudah Anda lakukan?", zfPh:"Contoh: Ibu X belum bayar tambalannya. Dia akan bayar hari Senin.", zfHurt:"Rekan kerja terluka? Tulis apa yang terjadi, di mana, dan apa yang Anda lakukan. Tanpa diagnosis, tanpa detail luka, tanpa obat, tanpa jumlah hari sakit.",
+  zfSave:"Kirim ke Nina dan Dr. Michael", zfArtErr:"Silakan pilih apa yang terjadi.", zfTextErr:"Silakan tulis apa yang terjadi.",
+  zfErr:"BELUM terkirim. Cek internet lalu ketuk Kirim lagi. Teks Anda masih di sini.", zfSent:"Terkirim. Di bawah Anda lihat kalau mereka sudah membacanya.",
+  zfMineH:"Laporan Anda", zfMineNone:"Belum ada laporan.", zfNotSeen:"Belum dibaca", zfSeenBy:"Sudah dibaca oleh",
+  zfListH:"Laporan kejadian", zfListS:"Laporan dari Hendra. Ketuk \"Tandai sudah dibaca\", supaya Hendra tahu Anda sudah membacanya.", zfNone:"Tidak ada laporan.", zfOffline:"Offline. Laporan tidak bisa dimuat sekarang.", zfDel:"Hapus", zfDelAsk:"Hapus laporan ini untuk selamanya? Lakukan hanya kalau laporan ini salah atau berisi detail kesehatan rekan kerja.",
   clockLook:"Hanya lihat dulu, saya belum mulai kerja",
   briefNotStarted:"<b>Anda belum memulai hari kerja.</b> Melihat saja tidak apa-apa. Saat sudah di tempat kerja, mulai hari kerja di sini.",
   rnPatient:"Pasien (singkat, opsional)", rnTask:"Pesan Anda",
@@ -2157,7 +2219,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-15b";
+const APP_VERSION = "2026-11-17a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3706,8 +3768,13 @@ async function ladeUebergabe(){
   const zeit = iso => { const d=new Date(new Date(iso).getTime()+8*3600000);
     const hm=String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0");
     return d.toISOString().slice(0,10)===heuteISO() ? hm : d.toISOString().slice(8,10)+"."+d.toISOString().slice(5,7)+". "+hm; };
+  /* 156 (Nina 16.11.): Hendra und Leitung tippen "Mark as seen", der Empfang sieht
+     "Seen by Hendra 08:05". Ohne 156 auf dem Server fehlen die Felder: kein Knopf. */
+  const darfSehen = !!(me() && (me().lead || me().mgr));
   if(liste) liste.innerHTML = rows.map(r=>`<div class="eintrag"><span class="q">&ldquo;</span>
-      <div class="txt">${escHtml(r.text)}</div><div class="who">${escHtml(r.wer)} \u00b7 ${zeit(r.created_at)}</div></div>`).join("");
+      <div class="txt">${escHtml(r.text)}</div><div class="who">${escHtml(r.wer)} \u00b7 ${zeit(r.created_at)}</div>
+      ${r.gesehen ? `<div class="seen">${escHtml(L().hoSeenBy)} ${escHtml(r.gesehen)}</div>` : ""}
+      ${darfSehen && r.ich_gesehen===false && !r.von_mir ? `<button class="pinrst" data-hoseen="${escHtml(r.id)}">${escHtml(L().hoSeenBtn)}</button>` : ""}</div>`).join("");
   if(tit) tit.hidden=false; if(box) box.hidden=false;
 }
 /* Bruno 15.11., H1: direkt an den Server, nicht ueber den Postausgang. "Saved" erst,
@@ -3735,6 +3802,115 @@ async function uebergabeSpeichern(){
   }catch(e){
     if(msg && me() && me().id===wer){ msg.hidden=false; msg.className="lverr bad"; msg.textContent=L().hoFail; }
   }finally{ hoSendet=false; if(btn) btn.disabled=false; }
+}
+
+let hoSeenLauf=false;
+async function uebergabeGesehen(id, btn){
+  if(hoSeenLauf) return; hoSeenLauf=true; if(btn) btn.disabled=true;
+  try{ await mitZeitlimit(sbSend("rpc/uebergabe_gesehen", {p_id:id}), 15000); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; hoSeenLauf=false; return; }
+  hoSeenLauf=false;
+  ladeUebergabe().catch(()=>{});
+}
+
+/* ================= 156 Zwischenfaelle (Nina 16.11.2026) =================
+   Hendra (mgr) meldet, nur Nina und Micha (lead) lesen und tippen "Mark as seen".
+   Gibt es die Funktion auf dem Server nicht, bleiben beide Kacheln weg. */
+const ZF_ARTEN=["not_paid","complaint","voucher","injury","other"];
+const istNurLeitung = () => !!(me() && me().lead && !me().mgr);
+let zfArt=null, zfSendet=false, zfLauf=0;
+async function zeigeZwischenfall(){
+  const s=$("#zf-send"), o=$("#zf-open");
+  if(s) s.hidden=true; if(o) o.hidden=true;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()) return;
+  if(!(me().mgr || istNurLeitung())) return;
+  const lauf=++zfLauf;
+  let n=null;
+  try{ n = await sbGet("rpc/zwischenfall_offen"); }catch(e){ n=null; }
+  if(lauf!==zfLauf || n===null) return;
+  if(me().mgr){ if(s) s.hidden=false; return; }
+  if(o) o.hidden=false;
+  const b=$("#zf-badge"); if(b) b.textContent = n ? n : "\u2713";
+}
+function zeichneZfNeu(){
+  const t=L(), box=$("#zf-arten"), ta=$("#zf-text"), msg=$("#zf-msg");
+  if(box) box.innerHTML = ZF_ARTEN.map(a=>`<button class="reason${zfArt===a?" on":""}" data-zfart="${a}">${escHtml(t["zf_"+a])}</button>`).join("");
+  if(ta) ta.placeholder=t.zfPh;
+  zfHinweis();
+  if(msg){ msg.textContent=""; msg.className="lverr"; }
+  ladeZfMeine().catch(()=>{});
+}
+function zfHinweis(){
+  const h=$("#zf-hurt"); if(!h) return;
+  h.textContent=L().zfHurt; h.hidden = zfArt!=="injury";
+}
+function zfArtWaehlen(a){
+  zfArt=a; zfHinweis();
+  document.querySelectorAll("#zf-arten [data-zfart]").forEach(b=>b.classList.toggle("on", b.dataset.zfart===a));
+}
+async function zfSenden(){
+  const t=L(), ta=$("#zf-text"), msg=$("#zf-msg"), btn=$("#zf-save"); if(!ta || zfSendet) return;
+  msg.className="lverr"; msg.textContent="";
+  if(!zfArt){ msg.textContent=t.zfArtErr; return; }
+  const text=ta.value.trim().slice(0,2000); if(!text){ msg.textContent=t.zfTextErr; ta.focus(); return; }
+  const sig=zfArt+"|"+text;
+  if(ta.dataset.zfsig!==sig){ ta.dataset.zfsig=sig; ta.dataset.zfid=neueKennung(); }
+  const wer = me() && me().id;
+  zfSendet=true; if(btn) btn.disabled=true;
+  try{
+    await mitZeitlimit(sbSend("rpc/zwischenfall_melden", {p_art:zfArt, p_text:text, p_id:ta.dataset.zfid}), 15000);
+    if(!(me() && me().id===wer)) return;
+    ta.value=""; delete ta.dataset.zfsig; delete ta.dataset.zfid; zfArt=null;
+    zeichneZfNeu();
+    msg.className="lverr"; msg.textContent=t.zfSent;
+  }catch(e){
+    if(me() && me().id===wer){ msg.className="lverr bad"; msg.textContent=t.zfErr; }
+  }finally{ zfSendet=false; if(btn) btn.disabled=false; }
+}
+function zfZeile(z, mitKnopf){
+  const t=L(), wann=nachrichtZeit(z.created_at);
+  /* Gesehen je Person (Bruno M2): "Seen by Nina 17.11. 09:12, Dr. Michael 17.11. 10:00" */
+  const status = z.gesehen ? `<b>${escHtml(t.zfSeenBy)} ${escHtml(z.gesehen)}</b>` : escHtml(t.zfNotSeen);
+  const offen = mitKnopf && z.ich_gesehen===false && !z.von_mir;
+  return `<div class="lvitem" data-zfrow="${escHtml(z.id)}" style="flex-wrap:wrap${offen||!mitKnopf?"":";opacity:.7"}">
+    <div class="d" style="flex:1 1 100%"><b>${escHtml(t["zf_"+z.art]||z.art)}</b>${mitKnopf?" &middot; "+escHtml(z.wer||""):""}<br><span>${escHtml(z.text)}</span>
+      <small><br>${wann} &middot; ${status}</small></div>
+    ${mitKnopf ? `<div style="display:flex;gap:16px;align-items:center;margin-top:8px">
+      ${offen ? `<button class="pinrst" data-zfseen="${escHtml(z.id)}">${escHtml(t.hoSeenBtn)}</button>` : ""}
+      <button data-zfdel="${escHtml(z.id)}" style="background:none;border:0;padding:6px 0;color:var(--ink-3);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer">${escHtml(t.zfDel)}</button></div>` : ""}
+  </div>`;
+}
+async function ladeZfMeine(){
+  const t=L(), wrap=$("#zf-mine-wrap"), box=$("#zf-mine"); if(!wrap||!box) return;
+  let liste=null;
+  try{ liste = await sbGet("rpc/zwischenfall_liste"); }catch(e){ liste=null; }
+  if(!Array.isArray(liste)){ wrap.hidden=true; return; }
+  wrap.hidden=false;
+  const meine=liste.filter(z=>z.von_mir).slice(0,20);
+  box.innerHTML = meine.length ? meine.map(z=>zfZeile(z,false)).join("") : `<p class="lverr">${escHtml(t.zfMineNone)}</p>`;
+}
+async function ladeZfListe(){
+  const t=L(), box=$("#zf-list"); if(!box) return;
+  let liste=[];
+  try{ liste = await sbGet("rpc/zwischenfall_liste"); }catch(e){ box.innerHTML=`<p class="lverr">${escHtml(t.zfOffline)}</p>`; return; }
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${escHtml(t.zfNone)}</p>`; return; }
+  /* Ungesehen zuerst, dann neueste */
+  liste.sort((a,b)=> (!!a.ich_gesehen - !!b.ich_gesehen) || (a.created_at<b.created_at?1:-1));
+  box.innerHTML = liste.map(z=>zfZeile(z,true)).join("");
+}
+async function zfGesehen(id, btn){
+  if(btn) btn.disabled=true;
+  try{ await sbSend("rpc/zwischenfall_gesehen", {p_id:id}); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
+  ladeZfListe().catch(()=>{});
+}
+
+async function zfLoeschen(id, btn){
+  try{ if(!confirm(L().zfDelAsk)) return; }catch(e){ return; }
+  if(btn) btn.disabled=true;
+  try{ await sbSend("rpc/zwischenfall_loeschen", {p_id:id}); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
+  ladeZfListe().catch(()=>{});
 }
 
 async function zaehleHaengt(){
@@ -6487,6 +6663,12 @@ function sitzungZuruecksetzen(){
   try{ hoLauf++; hoSendet=false; const hs=$("#ho-send"); if(hs) hs.disabled=false;   /* Bruno N1 */
        const hl=$("#ho-liste"), ht=$("#ho-text"), hb=$("#ho-box"), hti=$("#ho-titel"), hm=$("#ho-msg");
        if(hl) hl.innerHTML=""; if(ht){ ht.value=""; delete ht.dataset.hotext; delete ht.dataset.hoid; } if(hb) hb.hidden=true; if(hti) hti.hidden=true; if(hm) hm.hidden=true; }catch(e){}
+  /* 156 (Elke Fund 5): Zwischenfall-Entwurf und Listen gehen nicht an die naechste Person. */
+  try{ zfLauf++; zfArt=null; zfSendet=false;
+       const zt=$("#zf-text"); if(zt){ zt.value=""; delete zt.dataset.zfsig; delete zt.dataset.zfid; }
+       for(const k of ["#zf-mine","#zf-list","#zf-arten"]){ const el=$(k); if(el) el.innerHTML=""; }
+       const zm=$("#zf-msg"); if(zm) zm.textContent=""; const zh=$("#zf-hurt"); if(zh) zh.hidden=true;
+       const zs=$("#zf-send"), zo=$("#zf-open"); if(zs) zs.hidden=true; if(zo) zo.hidden=true; }catch(e){}
   S.done=[]; S.blocked={}; S.steps={}; S.nope={};
   for(const k in LAUF) delete LAUF[k];
   /* Die Urlaubsliste der ganzen Klinik lag nach dem Abmelden weiter im
@@ -7018,7 +7200,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -7026,6 +7208,8 @@ function go(id, push){
   if(id==="s-chatneu"){ zeichneChatNeu().catch(()=>{}); }
   if(id==="s-raumnotiz"){ ladeNotiz().catch(()=>{}); }
   if(id==="s-notizneu"){ zeichneNotizNeu(); }
+  if(id==="s-zfneu"){ zeichneZfNeu(); }
+  if(id==="s-zfliste"){ ladeZfListe().catch(()=>{}); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
   if(id==="s-weneu"){ zeichneWeNeu(); }
   showBack();
@@ -7191,6 +7375,11 @@ document.addEventListener("click",e=>{
   const chd=e.target.closest("[data-chdone]"); if(chd){ chatErledigt(chd.dataset.chdone); return; }
   if(e.target.closest("#rn-save")){ notizSpeichern(); return; }
   const rnd=e.target.closest("[data-rndone]"); if(rnd){ notizErledigt(rnd.dataset.rndone); return; }
+  const hos=e.target.closest("[data-hoseen]"); if(hos){ uebergabeGesehen(hos.dataset.hoseen, hos); return; }
+  const zfa=e.target.closest("[data-zfart]"); if(zfa){ zfArtWaehlen(zfa.dataset.zfart); return; }
+  if(e.target.closest("#zf-save")){ zfSenden(); return; }
+  const zfs=e.target.closest("[data-zfseen]"); if(zfs){ zfGesehen(zfs.dataset.zfseen, zfs); return; }
+  const zfd=e.target.closest("[data-zfdel]"); if(zfd){ zfLoeschen(zfd.dataset.zfdel, zfd); return; }
   /* Wareneingang */
   if(e.target.closest("#we-photo-btn")){ const pi=$("#we-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#we-neu-btn")){ weNeuToggle(); return; }
