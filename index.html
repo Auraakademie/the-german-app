@@ -747,6 +747,8 @@
         <button class="cta" id="btn-clock-brief" data-t="clockIn"></button>
       </div>
 
+      <!-- 158 (Dennis 19.11.2026): "Neu in der App". Kommt mit einem Push, ein Tipp fuehrt hin. -->
+      <div class="glass ho" id="neu-box" hidden style="margin-bottom:12px"></div>
       <!-- 156 (Nina 16.11.2026): Zwischenfaelle. Hendra meldet, nur Nina und Micha lesen.
            Ganz oben, "direkt am Eingang". -->
       <button class="glass next" id="zf-send" data-go="s-zfneu" hidden style="margin-bottom:12px">
@@ -1073,6 +1075,14 @@
            Hendra zuerst sein eigener Mitarbeiter ist und dann erst der,
            der entscheidet. -->
       <div id="lv-chef" hidden>
+        <!-- 157 (Dennis 19.11.2026): Nina, Micha und Hendra legen neue Leute selbst an
+             und nehmen Leute raus, die gehen. Eigener Bildschirm, damit "Remove" nicht
+             neben "Reset PIN" liegt und niemand aus Versehen jemanden aussperrt. -->
+        <button class="glass next" id="tm-tile" data-go="s-team" hidden style="margin-bottom:14px">
+          <span class="rm">+</span>
+          <span style="flex:1"><span class="tt" data-t="tmTile"></span>
+            <span class="mt" data-t="tmTileS"></span></span>
+          <span class="chev">&rsaquo;</span></button>
         <p class="eyebrow" data-t="lvToDecide"></p>
         <div id="lv-offen"></div>
 
@@ -1412,6 +1422,34 @@
       </div>
     </section>
 
+    <!-- 157: Team selbst pflegen (Nina, Micha, Hendra) -->
+    <section class="screen" id="s-team">
+      <button class="back" data-go="s-leave">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="tmH"></h1>
+      <p class="sub" data-t="tmS"></p>
+      <p class="eyebrow" data-t="tmNewH" style="margin-top:18px"></p>
+      <label class="lvlab" data-t="tmName"></label>
+      <input class="lvin" id="tm-name" maxlength="40" autocomplete="off">
+      <p class="sub" data-t="tmNameHint" style="margin-top:6px"></p>
+      <p class="eyebrow" data-t="tmDepH" style="margin-top:16px"></p>
+      <div id="tm-deps" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div id="tm-job-wrap" hidden>
+        <p class="eyebrow" data-t="tmJobH" style="margin-top:16px"></p>
+        <div id="tm-jobs" style="display:flex;flex-direction:column;gap:8px"></div>
+        <p class="sub" data-t="tmJobHint" style="margin-top:6px"></p>
+      </div>
+      <button class="bigcheck" id="tm-save" style="margin-top:20px"><span class="bx"></span><span data-t="tmSave"></span></button>
+      <p class="lverr" id="tm-msg"></p>
+      <div class="glass ho" id="tm-pin" hidden></div>
+      <p class="eyebrow" data-t="tmAllH" style="margin-top:28px"></p>
+      <div id="tm-alle"></div>
+      <div id="tm-weg-wrap" hidden>
+        <p class="eyebrow" data-t="tmGoneH" style="margin-top:24px"></p>
+        <p class="sub" data-t="tmGoneS"></p>
+        <div id="tm-weg"></div>
+      </div>
+    </section>
+
     <!-- 156: Zwischenfaelle lesen (Nina, Micha) -->
     <section class="screen" id="s-zfliste">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
@@ -1682,6 +1720,18 @@ const T={
   rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name. When they tick it as done, you see it below. Emergency right now? Call first, then write here.",
   rnMineH:"Your messages", rnMineNone:"Nothing sent in the last 14 days.", rnOpen:"Open", rnDoneBy:"Done by",
   hoSeenBtn:"Mark as seen", hoSeenBy:"\u2713 Seen by",
+  neuH:"New in the app", neuShow:"Show me", neuOk:"OK",
+  tmTile:"Staff: add or remove", tmTileS:"new people, people who left",
+  tmH:"Staff", tmS:"Add new people. Remove people who left. Only Nina, Dr. Michael and Hendra see this page.",
+  tmNewH:"New person", tmName:"Name, as the team calls this person", tmNameHint:"For doctors, write \"Dr.\" first. Example: Dr. Cindy. Use the same name as in the roster.",
+  tmDepH:"Department", tmJobH:"Job", tmJobHint:"Job not in the list? Choose the closest one.",
+  tmSave:"Add to the app",
+  tmErrName:"Use at least 2 letters. Spaces are OK, numbers are not.", tmErrDep:"Choose the department.", tmErrJob:"Choose the job.",
+  tmErrExists:"%s is already in the app. Forgot the PIN? Go back to Team & PINs and tap Reset PIN.", tmErrRoster:"Another person already has this name in the roster. Add a letter, for example \"%s S\", and write the new name the same way in the roster.", tmLoading:"Loading…", tmErrRemoved:"%s was removed earlier. Scroll down to \"Removed\" and tap \"Bring back\".",
+  tmErr:"NOT saved. Check the internet and tap again.", tmOffline:"Offline. Cannot load the list now.",
+  tmDone:"%s is in the app now.", tmPinIs:"Start PIN for %s: %p. Say it in person, never in a chat. At the first sign-in, %s chooses a new PIN.", tmNoPin:"Security signs in without a PIN.",
+  tmAllH:"Everyone in the app", tmRemove:"Remove", tmRemoveAsk:"Remove %s from the app? After this, %s cannot sign in. Work hours and leave days stay saved. You can undo this under \"Removed\".",
+  tmGoneH:"Removed", tmGoneS:"These people cannot sign in. Removed by mistake? Tap \"Bring back\".", tmBack:"Bring back", tmBackAsk:"Bring %s back into the app?", tmBackDone:"%s can sign in again. PIN forgotten? Use Reset PIN.", tmBackRoster:"Careful: another person now has this name in the roster. Shifts from the roster do not reach %s. Remove %s again and add with a letter, for example \"%s S\".", tmBy:"removed by", tmNotAllowed:"Only Nina or Dr. Michael can do this.",
   zfSendTile:"Report an incident", zfSendTileS:"not paid, complaint, voucher, someone hurt",
   zfListTile:"Incidents", zfListTileS:"from Hendra: not paid, complaints, vouchers, someone hurt",
   zfNewH:"Report an incident", zfNewS:"Something went wrong today? Write it here. Only Nina and Dr. Michael read it. It does not go into the daily report.",
@@ -1777,8 +1827,8 @@ const T={
   lvToDecide:"To decide", lvNoneOpen:"Nothing waiting.",
   lvKrankH:"Sick reports", lvKrankNone:"No sick reports in this year.", lvKrankReports:"reports", lvKrankReport:"report", lvKrankSickDays:"sick days", lvKrankRule:"A report counts in the year it starts. Letters are deleted automatically 60 days after the last sick day.", lvKrankSeenBy:"letter seen by", lvKrankNotedBy:"noted by", lvKrankDeleted:"doctor's letter deleted automatically (60 days)", awAll:"All sick reports",
   pinReset:"Reset PIN", pinDone:"reset",
-  pinAsk:"Reset the PIN for %s? She chooses a new one next time she signs in.",
-  pinResetNew:"New start PIN for %s:  %p\n\nTell her this number now. She will be asked to choose her own PIN when she signs in.\n\nThis number is shown only once.",
+  pinAsk:"Reset the PIN for %s? At the next sign-in, %s chooses a new PIN.",
+  pinResetNew:"New start PIN for %s:  %p\n\nSay this number now, in person. At the next sign-in, %s chooses an own PIN.\n\nThis number is shown only once.",
   lvSheet:"Your sheet",
   lvSheetTxt:"The full leave list for everyone, exactly as you keep it. Download it any time, print it, keep it. It always matches what is in the app.",
   lvGet:"Download the list", lvTeam:"Everyone",
@@ -1918,6 +1968,18 @@ const T={
   rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil. Saat mereka mencentang selesai, Anda melihatnya di bawah. Darurat sekarang? Telepon dulu, lalu tulis di sini.",
   rnMineH:"Pesan Anda", rnMineNone:"Tidak ada pesan dalam 14 hari terakhir.", rnOpen:"Terbuka", rnDoneBy:"Selesai oleh",
   hoSeenBtn:"Tandai sudah dibaca", hoSeenBy:"\u2713 Sudah dibaca oleh",
+  neuH:"Baru di aplikasi", neuShow:"Tunjukkan", neuOk:"OK",
+  tmTile:"Staf: tambah atau nonaktifkan", tmTileS:"staf baru, staf yang sudah berhenti kerja",
+  tmH:"Staf", tmS:"Tambah staf baru. Nonaktifkan staf yang sudah berhenti kerja. Hanya Nina, Dr. Michael, dan Hendra yang melihat halaman ini.",
+  tmNewH:"Staf baru", tmName:"Nama panggilan di tim", tmNameHint:"Untuk dokter, tulis \"Dr.\" di depan. Contoh: Dr. Cindy. Pakai nama yang sama seperti di jadwal kerja.",
+  tmDepH:"Bagian", tmJobH:"Posisi", tmJobHint:"Posisi belum ada di daftar? Pilih yang paling mirip.",
+  tmSave:"Tambahkan ke aplikasi",
+  tmErrName:"Minimal 2 huruf. Boleh pakai spasi, tidak boleh pakai angka.", tmErrDep:"Pilih bagiannya.", tmErrJob:"Pilih posisinya.",
+  tmErrExists:"%s sudah ada di aplikasi. Lupa PIN? Kembali ke Tim & PIN, lalu ketuk Reset PIN.", tmErrRoster:"Nama ini sudah dipakai orang lain di jadwal kerja. Tambahkan satu huruf, misalnya \"%s S\", dan tulis nama baru itu sama persis di jadwal kerja.", tmLoading:"Memuat…", tmErrRemoved:"%s sudah dinonaktifkan. Gulir ke bawah ke \"Nonaktif\", lalu ketuk \"Aktifkan lagi\".",
+  tmErr:"BELUM tersimpan. Cek internet lalu ketuk lagi.", tmOffline:"Offline. Daftar tidak bisa dimuat sekarang.",
+  tmDone:"%s sekarang ada di aplikasi.", tmPinIs:"PIN awal untuk %s: %p. Sampaikan langsung, jangan lewat chat. Saat pertama kali masuk ke aplikasi, %s memilih PIN sendiri.", tmNoPin:"Security masuk ke aplikasi tanpa PIN.",
+  tmAllH:"Semua orang di aplikasi", tmRemove:"Nonaktifkan", tmRemoveAsk:"Nonaktifkan %s? Setelah ini, %s tidak bisa masuk ke aplikasi. Jam kerja dan cuti tetap tersimpan. Bisa diaktifkan lagi di bawah, di \"Nonaktif\".",
+  tmGoneH:"Nonaktif", tmGoneS:"Orang-orang ini tidak bisa masuk ke aplikasi. Salah pilih? Ketuk \"Aktifkan lagi\".", tmBack:"Aktifkan lagi", tmBackAsk:"Aktifkan %s lagi?", tmBackDone:"%s bisa masuk ke aplikasi lagi. Lupa PIN? Pakai Reset PIN.", tmBackRoster:"Perhatian: nama ini sekarang dipakai orang lain di jadwal kerja. Jadwal dari roster tidak sampai ke %s. Nonaktifkan %s lagi, lalu tambahkan dengan satu huruf, misalnya \"%s S\".", tmBy:"dinonaktifkan oleh", tmNotAllowed:"Hanya Nina atau Dr. Michael yang bisa melakukan ini.",
   zfSendTile:"Laporkan kejadian", zfSendTileS:"belum bayar, keluhan, voucher, ada yang terluka",
   zfListTile:"Laporan kejadian", zfListTileS:"dari Hendra: belum bayar, keluhan, voucher, ada yang terluka",
   zfNewH:"Laporkan kejadian", zfNewS:"Ada yang tidak beres hari ini? Tulis di sini. Hanya Nina dan Dr. Michael yang membaca. Tidak masuk ke laporan harian.",
@@ -2013,8 +2075,8 @@ const T={
   lvToDecide:"Perlu keputusan", lvNoneOpen:"Tidak ada yang menunggu.",
   lvKrankH:"Laporan sakit", lvKrankNone:"Tidak ada laporan sakit di tahun ini.", lvKrankReports:"laporan", lvKrankReport:"laporan", lvKrankSickDays:"hari sakit", lvKrankRule:"Laporan dihitung di tahun saat mulai. Surat dokter dihapus otomatis 60 hari setelah hari sakit terakhir.", lvKrankSeenBy:"surat dilihat oleh", lvKrankNotedBy:"dicatat oleh", lvKrankDeleted:"surat dokter sudah dihapus otomatis (60 hari)", awAll:"Semua laporan sakit",
   pinReset:"Reset PIN", pinDone:"direset",
-  pinAsk:"Reset PIN untuk %s? Dia akan memilih PIN baru saat masuk berikutnya.",
-  pinResetNew:"PIN awal baru untuk %s:  %p\n\nBeri tahu dia sekarang. Saat masuk, dia akan diminta memilih PIN sendiri.\n\nNomor ini hanya ditampilkan sekali.",
+  pinAsk:"Reset PIN untuk %s? Saat masuk ke aplikasi berikutnya, %s memilih PIN baru.",
+  pinResetNew:"PIN awal baru untuk %s:  %p\n\nSampaikan nomor ini sekarang, secara langsung. Saat masuk ke aplikasi berikutnya, %s memilih PIN sendiri.\n\nNomor ini hanya ditampilkan sekali.",
   lvSheet:"Daftar Anda",
   lvSheetTxt:"Daftar cuti lengkap semua orang, persis seperti yang Anda buat. Bisa diunduh kapan saja, dicetak, disimpan. Selalu sama dengan yang ada di aplikasi.",
   lvGet:"Unduh daftar", lvTeam:"Semua orang",
@@ -2219,7 +2281,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-17a";
+const APP_VERSION = "2026-11-19a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2310,7 +2372,7 @@ function renderPeople(){
   $("#people").innerHTML=PEOPLE.map((p,i)=>`
    <button class="glass card" data-p="${i}"><div class="row">
      <div class="avatar">${avatarHtml(p)}</div>
-     <div><div class="name">${p.n}</div><div class="role">${p.r[S.lang]}</div></div>
+     <div><div class="name">${escHtml(p.n)}</div><div class="role">${escHtml(p.r[S.lang]||"")}</div></div>
      <div class="chev">&rsaquo;</div></div></button>`).join("");
   zeichneGeteilt();
 }
@@ -2902,6 +2964,7 @@ async function ladeAbwesend(bildschirm){
 /* ================= Mitteilungen (Web Push) ================= */
 function pushMoeglich(){ return !!(navigator.serviceWorker && window.PushManager && window.Notification); }
 function pushStandalone(){ return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone===true; }
+let pushGemeldetFuer=null;
 async function pushKnopf(){
   const t=L(); const b=$("#push-on"), h=$("#push-hint"); if(!b) return;
   b.hidden=true; if(h) h.hidden=true;
@@ -2920,9 +2983,13 @@ async function pushKnopf(){
          kamen hier an, die neue Person bekam nie etwas (Bruno 131, Fund 1).
          Darum still auf die angemeldete Person umschreiben (push_abonnieren
          ueberschreibt person_id je Endpunkt). Nur einmal je Person. */
+      /* Bruno 157 M2: Entfernen loescht das Abo auf dem Server. Nach dem Zurueckholen
+         kam bisher nie wieder etwas an, weil "push_fuer" schon stimmte. Jetzt einmal je
+         App-Start neu melden; der Server ueberschreibt je Endpunkt, doppelt schadet nicht. */
       const wer = me() && me().id; let alt=null;
       try{ alt=localStorage.getItem("push_fuer") }catch(_){}
-      if(wer && alt!==wer){
+      if(wer && (alt!==wer || pushGemeldetFuer!==wer)){
+        pushGemeldetFuer=wer;
         const j=sub.toJSON();
         await sbSend("rpc/push_abonnieren", {p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth});
         try{ localStorage.setItem("push_fuer", wer) }catch(_){}
@@ -3179,6 +3246,9 @@ async function ladePersonen(){
     try{ localStorage.setItem("tg-people", JSON.stringify(PEOPLE.map(p=>Object.assign({}, p, {img:undefined})))) }catch(e){}
     /* Nach dem Nachladen die angemeldete Person an ihrer Kennung geradeziehen. */
     if(S.meId){ const i=PEOPLE.findIndex(p=>p.id===S.meId); if(i>=0 && S.me!==i){ S.me=i; rolleMerken(i); save(); } }
+    /* 157: In der App entfernt? Dann steht die Kennung nicht mehr in der Liste. Ohne
+       Abmelden zeigte me() ueber den alten Platz S.me eine Kollegin an. */
+    if(S.meId && !PEOPLE.some(p=>p.id===S.meId)){ vergissGeraet(); NAV=[]; go("s-login", false); showBack(); }
     renderPeople();
     setState("db");
   }catch(e){
@@ -3214,7 +3284,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -3913,6 +3983,169 @@ async function zfLoeschen(id, btn){
   ladeZfListe().catch(()=>{});
 }
 
+/* ================= 158 Neu in der App (Dennis 19.11.2026) =================
+   Jede Neuerung kommt als Zeile in app_neuigkeit (mit der Migration), der Server
+   schickt den Push an die, fuer die sie gilt. Hier steht sie oben auf der Startseite,
+   bis man "OK" oder "Show me" tippt. Gilt je Person. */
+let neuLauf=0;
+async function zeigeNeuigkeiten(){
+  const box=$("#neu-box"); if(!box) return;
+  const lauf=++neuLauf;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()){ box.hidden=true; box.innerHTML=""; return; }
+  let rows; try{ rows=await sbGet("rpc/neuigkeiten"); }catch(e){ return; }
+  if(lauf!==neuLauf) return;
+  rows=rows||[];
+  if(!rows.length){ box.hidden=true; box.innerHTML=""; return; }
+  const t=L(), id=S.lang==="id";
+  box.innerHTML = `<p class="eyebrow" style="margin:0 0 6px">${escHtml(t.neuH)}</p>` + rows.map(r=>{
+    const ziel = r.ziel && document.getElementById(r.ziel) && document.getElementById(r.ziel).classList.contains("screen") ? r.ziel : "";
+    return `<div class="eintrag"><div class="txt"><b>${escHtml(id?r.titel_id:r.titel_en)}</b><br>${escHtml(id?r.text_id:r.text_en)}</div>
+      ${ziel ? `<button class="pinrst" data-neugo="${escHtml(r.id)}" data-neuziel="${escHtml(ziel)}">${escHtml(t.neuShow)}</button>` : ""}
+      <button class="pinrst" data-neuok="${escHtml(r.id)}">${escHtml(t.neuOk)}</button></div>`;
+  }).join("");
+  box.hidden=false;
+}
+async function neuigkeitGelesen(id, ziel, btn){
+  if(btn) btn.disabled=true;
+  if(ziel) go(ziel);
+  try{ await mitZeitlimit(sbSend("rpc/neuigkeit_gelesen", {p_id:id}), 15000); }catch(e){ if(btn) btn.disabled=false; return; }
+  zeigeNeuigkeiten().catch(()=>{});
+}
+
+/* ================= 157 Team selbst pflegen (Dennis 19.11.2026) =================
+   "So bin ich nicht immer da gefangen." Nina, Micha (lead) und Hendra (mgr) legen
+   neue Leute an und nehmen Leute raus. Der Server prueft alles noch einmal (157):
+   Hendra entfernt weder Leitung noch Manager, niemand sich selbst, niemand Demo. */
+let TMJOBS=null, tmDep=null, tmJob=null, tmSendet=false, tmLauf=0;
+const darfTeam = () => !!(me() && (me().lead || me().mgr) && !demoAktiv());
+const tmTag = iso => { const d=new Date(new Date(iso).getTime()+8*3600000).toISOString(); return d.slice(8,10)+"."+d.slice(5,7)+"."; };
+function tmFehler(e, name){
+  const t=L(), m=String(e && e.message || "");
+  if(/name_exists/.test(m)) return t.tmErrExists.replace("%s", name||"");
+  if(/name_removed/.test(m)) return t.tmErrRemoved.replace("%s", name||"");
+  if(/roster_taken/.test(m)) return t.tmErrRoster.replace("%s", name||"");
+  if(/not_allowed|not_yourself/.test(m)) return t.tmNotAllowed;
+  if(/name_bad/.test(m)) return t.tmErrName;
+  if(/job_bad/.test(m)) return t.tmErrJob;
+  if(/department_bad/.test(m)) return t.tmErrDep;
+  return t.tmErr;
+}
+async function zeichneTeam(){
+  const t=L(), lauf=++tmLauf, msg=$("#tm-msg");
+  if(msg){ msg.textContent=""; msg.className="lverr"; }
+  { const tn=$("#tm-name"); if(tn){ delete tn.dataset.tmid; delete tn.dataset.tmv; delete tn.dataset.tmt; } }
+  zeichneTmAlle();
+  if(!darfTeam() || !tokenGueltig()) return;
+  if(!TMJOBS && msg) msg.textContent=t.tmLoading;
+  try{ const rows=await mitZeitlimit(sbGet("rpc/team_jobs"), 15000); if(lauf!==tmLauf) return; TMJOBS=rows||[]; if(msg && msg.textContent===t.tmLoading) msg.textContent=""; }
+  catch(e){ if(lauf!==tmLauf) return; if(!TMJOBS && msg){ msg.className="lverr bad"; msg.textContent=t.tmOffline; } }
+  zeichneTmDeps();
+  ladeTmWeg().catch(()=>{});
+}
+function zeichneTmDeps(){
+  const box=$("#tm-deps"); if(!box) return;
+  const deps=[]; (TMJOBS||[]).forEach(r=>{ if(!deps.some(d=>d.abteilung===r.abteilung)) deps.push(r); });
+  box.innerHTML = deps.map(d=>`<button class="reason${tmDep===d.abteilung?" on":""}" data-tmdep="${escHtml(d.abteilung)}">${escHtml(S.lang==="id"?(d.abteilung_id||d.abteilung_en):d.abteilung_en)}</button>`).join("");
+  zeichneTmJobs();
+}
+function zeichneTmJobs(){
+  /* Nur Berufe, die es in der Abteilung schon gibt (Elke 19.11.: Rechte haengen
+     teils am Beruf). Ein ganz neuer Beruf kommt ueber Dennis. */
+  const wrap=$("#tm-job-wrap"), box=$("#tm-jobs"); if(!wrap || !box) return;
+  wrap.hidden = !tmDep;
+  if(!tmDep){ box.innerHTML=""; return; }
+  const jobs=(TMJOBS||[]).filter(r=>r.abteilung===tmDep && r.beruf_en);
+  box.innerHTML = jobs.map(j=>`<button class="reason${tmJob===j.beruf_en?" on":""}" data-tmjob="${escHtml(j.beruf_en)}">${escHtml(S.lang==="id"?(j.beruf_id||j.beruf_en):j.beruf_en)}</button>`).join("");
+}
+async function tmSpeichern(){
+  const t=L(), msg=$("#tm-msg"), btn=$("#tm-save"), inp=$("#tm-name"), pinBox=$("#tm-pin");
+  if(!inp || !msg || tmSendet || !darfTeam()) return;
+  msg.className="lverr"; msg.textContent="";
+  const name=inp.value.trim().replace(/\s+/g," ");
+  if(name.length<2){ msg.textContent=t.tmErrName; inp.focus(); return; }
+  if(!tmDep){ msg.textContent=t.tmErrDep; return; }
+  const j=(TMJOBS||[]).find(r=>r.abteilung===tmDep && r.beruf_en===tmJob);
+  if(!j){ msg.textContent=t.tmErrJob; return; }
+  const jobEn=j.beruf_en, jobId=j.beruf_id;
+  /* Eine Kennung bis zum Erfolg, auch wenn der Name nach "NOT saved" korrigiert wird:
+     dann benennt der Server die frische Person um, statt eine zweite anzulegen (Bruno M4).
+     Jeder Versuch zaehlt hoch: ein alter, spaet ankommender Versuch setzt den PIN nicht
+     mehr neu, der angezeigte PIN gilt (Bruno M3). */
+  /* Bruno Runde 2, R2: Die Kennung gilt nur fuer DIESEN Anlauf. Neu beim Oeffnen der
+     Seite (zeichneTeam) und nach 10 Minuten. Sonst benennt eine aufgegebene Eingabe
+     spaeter eine ganz andere Person um. */
+  if(!inp.dataset.tmid || Date.now()-(+inp.dataset.tmt||0) > 600000){
+    inp.dataset.tmid=neueKennung(); inp.dataset.tmv="0"; inp.dataset.tmt=String(Date.now()); }
+  inp.dataset.tmv=String((+inp.dataset.tmv||0)+1);
+  const wer=me() && me().id;
+  tmSendet=true; if(btn) btn.disabled=true;
+  if(pinBox){ pinBox.hidden=true; pinBox.innerHTML=""; }
+  try{
+    const r=await mitZeitlimit(sbSend("rpc/person_anlegen",
+      {p_name:name, p_abteilung:tmDep, p_beruf_en:jobEn, p_beruf_id:jobId, p_id:inp.dataset.tmid, p_versuch:+inp.dataset.tmv}), 15000);
+    if(!(me() && me().id===wer)) return;
+    const row=(Array.isArray(r) ? r[0] : r) || {name:name};
+    inp.value=""; delete inp.dataset.tmid; delete inp.dataset.tmv; delete inp.dataset.tmt;
+    tmDep=null; tmJob=null; zeichneTmDeps();
+    msg.className="lverr good"; msg.textContent=t.tmDone.replace("%s", row.name);
+    /* Der Start-PIN steht gross da UND als Hinweisfenster, wie bei Reset PIN (Bruno 27.08.):
+       wer ihn nicht sieht, hat eine Person, die nicht reinkommt. */
+    const pinText = row.pin ? t.tmPinIs.split("%s").join(row.name).replace("%p", row.pin) : t.tmNoPin;
+    if(pinBox){ pinBox.hidden=false;
+      pinBox.innerHTML=(row.pin?`<b style="display:block;font-size:30px;letter-spacing:5px;margin-bottom:6px">${escHtml(row.pin)}</b>`:"")+`<div class="sub">${escHtml(pinText)}</div>`; }
+    if(row.pin){ if(row.person_id) PINGEZEIGT[row.person_id]=row.pin; try{ alert(pinText) }catch(_){} }
+    await ladePersonen().catch(()=>{});
+    zeichneTmAlle();
+  }catch(e){
+    if(me() && me().id===wer){ msg.className="lverr bad"; msg.textContent=tmFehler(e, name); }
+  }finally{ tmSendet=false; if(btn) btn.disabled=false; }
+}
+function zeichneTmAlle(){
+  const t=L(), box=$("#tm-alle"); if(!box) return;
+  if(!darfTeam()){ box.innerHTML=""; return; }
+  if(!online){ box.innerHTML=`<p class="sub">${escHtml(t.tmOffline)}</p>`; return; }
+  const ich=me();
+  box.innerHTML = PEOPLE.filter(p=>p.id && !p.demo).map(p=>{
+    /* Leitung nie in der App entfernbar (Elke H2), Manager nur durch die Leitung. */
+    const darf = p.id!==ich.id && !p.lead && (ich.lead || !p.mgr);
+    return `<div class="lvitem"><div class="d"><b>${escHtml(p.n)}</b>
+      <small>${escHtml(S.lang==="id" ? ((p.r && p.r.id) || "") : ((p.r && p.r.en) || ""))}</small></div>
+      ${darf ? `<button data-tmweg="${escHtml(p.id)}" style="background:none;border:0;padding:6px 0;color:var(--ink-3);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer">${escHtml(t.tmRemove)}</button>` : ""}</div>`;
+  }).join("");
+}
+async function tmEntfernen(id, btn){
+  const t=L(), p=PEOPLE.find(x=>x.id===id); if(!p || !darfTeam()) return;
+  try{ if(!confirm(t.tmRemoveAsk.split("%s").join(p.n))) return; }catch(e){ return; }
+  if(btn) btn.disabled=true;
+  try{ await mitZeitlimit(sbSend("rpc/person_entfernen", {p_person:id}), 15000); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(tmFehler(e, p.n)) }catch(_){}; return; }
+  await ladePersonen().catch(()=>{});
+  zeichneTmAlle(); ladeTmWeg().catch(()=>{});
+}
+async function ladeTmWeg(){
+  const t=L(), wrap=$("#tm-weg-wrap"), box=$("#tm-weg"); if(!wrap || !box) return;
+  if(!darfTeam() || !tokenGueltig()){ wrap.hidden=true; box.innerHTML=""; return; }
+  const lauf=tmLauf;
+  let rows; try{ rows=await sbGet("rpc/team_entfernt"); }catch(e){ return; }
+  if(lauf!==tmLauf) return;
+  rows=rows||[];
+  wrap.hidden=!rows.length;
+  box.innerHTML = rows.map(r=>`<div class="lvitem"><div class="d"><b>${escHtml(r.name)}</b>
+      <small>${escHtml(r.beruf||"")}${r.entfernt_am ? " · "+escHtml(t.tmBy)+" "+escHtml(r.von||"?")+" "+tmTag(r.entfernt_am) : ""}</small></div>
+      <button class="pinrst" data-tmback="${escHtml(r.person_id)}" data-tmname="${escHtml(r.name)}">${escHtml(t.tmBack)}</button></div>`).join("");
+}
+async function tmZurueck(id, name, btn){
+  const t=L(); if(!darfTeam()) return;
+  try{ if(!confirm(t.tmBackAsk.replace("%s", name))) return; }catch(e){ return; }
+  if(btn) btn.disabled=true;
+  let erg;
+  try{ erg=await mitZeitlimit(sbSend("rpc/person_zurueckholen", {p_person:id}), 15000); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(tmFehler(e, name)) }catch(_){}; return; }
+  try{ alert(t.tmBackDone.replace("%s", name) + (erg==="roster_taken" ? "\n\n"+t.tmBackRoster.split("%s").join(name) : "")) }catch(_){}
+  await ladePersonen().catch(()=>{});
+  zeichneTmAlle(); ladeTmWeg().catch(()=>{});
+}
+
 async function zaehleHaengt(){
   const lauf=rvLauf;
   try{
@@ -4364,11 +4597,11 @@ async function ladeReview(){
     const blockiert = r.status==="blocked";
     return `<div class="lvitem">
       <div class="d">
-        <b>${r.titel}</b>
-        <small>${r.wer} &middot; ${r.gehakt}/${r.schritte}
+        <b>${escHtml(r.titel)}</b>
+        <small>${escHtml(r.wer)} &middot; ${r.gehakt}/${r.schritte}
           &middot; ${blockiert ? t.rvBlocked : t.rvOpen}
           ${grund ? "<br><b>"+grund+"</b>" : ""}
-          ${r.blocked_note ? "<br>"+r.blocked_note : ""}</small>
+          ${r.blocked_note ? "<br>"+escHtml(r.blocked_note) : ""}</small>
         ${blockiert ? `<div class="rvfix">
             <input class="lvin" id="note-${r.id}" placeholder="${t.rvNote}">
             <button class="pinrst" data-done="${r.id}">${t.rvHandled}</button>
@@ -4385,8 +4618,8 @@ async function ladeReview(){
     const grund = t[r.grund] || GRUND[r.grund] || r.grund || "";
     return `<div class="lvitem">
       <div class="d">
-        <b>${r.titel}</b>
-        <small><b>${grund}</b> &middot; ${r.betroffen}</small>
+        <b>${escHtml(r.titel)}</b>
+        <small><b>${grund}</b> &middot; ${escHtml(r.betroffen)}</small>
       </div>
       <span class="lvst ${r.wie_oft>1?"requested":""}">${r.wie_oft}&times;</span>
     </div>`}).join("")
@@ -4443,7 +4676,7 @@ async function ladeGeburtstagEdit(){
     const gesetzt = p.bday_day && p.bday_month;
     return `<div class="lvitem" data-row="${p.person_id}">
       <div class="d">
-        <b>${p.name}</b>
+        <b>${escHtml(p.name)}</b>
         <small>${p.role_en}${gesetzt?"":" &middot; "+t.beNone}</small>
         <div class="rvfix">
           <input class="lvin" style="width:64px" type="number" inputmode="numeric" min="1" max="31"
@@ -5561,12 +5794,12 @@ async function ladeOffene(){
   $("#lv-offen").innerHTML = liste.length ? liste.map(r=>`
     <div class="lvitem" data-antrag="${r.id}" style="flex-wrap:wrap">
       <div class="d">
-        <b>${r.name}</b>
+        <b>${escHtml(r.name)}</b>
         <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
           &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
           &middot; ${artText(r.kind)}
           ${r.kind!=="sick"?"&middot; "+Number(r.frei)+" "+t.lvLeft2:""}</small>
-        ${r.team_kollision?`<small class="warn">${t.lvClash} ${r.team_kollision}</small>`:""}
+        ${r.team_kollision?`<small class="warn">${t.lvClash} ${escHtml(r.team_kollision)}</small>`:""}
         ${r.kurzfristig&&r.kind!=="sick"?`<small class="warn">${t.lvShort}</small>`:""}
         ${r.kind!=="sick"&&me()&&me().mgr&&!me().lead&&r.name!==me().n?`<small class="warn">${t.lvAskFirst}</small>`:""}
         ${r.kind==="sick"?`<label class="lvcert">
@@ -5605,7 +5838,7 @@ async function ladeNeuigkeiten(){
   kasten.innerHTML = liste.length ? liste.map(r=>`
     <div class="lvitem">
       <div class="d">
-        <b>${r.name}</b>
+        <b>${escHtml(r.name)}</b>
         <small>${datumKurz(r.from_day)}${r.to_day!==r.from_day?" \u2013 "+datumKurz(r.to_day):""}
           &middot; ${Number(r.days)} ${Number(r.days)===1?t.lvDay:t.lvDays}
           &middot; ${artText(r.kind)}</small>
@@ -5733,12 +5966,15 @@ async function ladeTeamUrlaub(){
   const t=L();
   kasten.innerHTML = `<p class="eyebrow">${t.lvTeam}</p>` + alle.map(r=>`
     <div class="lvitem">
-      <div class="d"><b>${r.name}</b>
+      <div class="d"><b>${escHtml(r.name)}</b>
         <small>${Number(r.genommen)} ${t.lvUsed}
           &middot; ${Number(r.frei)} ${t.lvLeft2}
           ${Number(r.beantragt)?" &middot; "+Number(r.beantragt)+" "+t.lvPlanned:""}</small></div>
-      <button class="pinrst ${PINGEZEIGT[r.person_id]?"pinneu":""}" data-pin="${r.person_id}"
-              title="${t.pinReset}">${PINGEZEIGT[r.person_id]||t.pinReset}</button>
+      ${(()=>{ const z=PEOPLE.find(p=>p.id===r.person_id), ich=me();
+        /* Bruno 157 N8: Hendra sah bei Nina und Micha nur "!". Der Server erlaubt das nur der Leitung. */
+        if(z && (z.lead || z.mgr || z.demo) && !(ich && ich.lead && !z.demo)) return "";
+        return `<button class="pinrst ${PINGEZEIGT[r.person_id]?"pinneu":""}" data-pin="${r.person_id}"
+              title="${t.pinReset}">${PINGEZEIGT[r.person_id]||t.pinReset}</button>`; })()}
       <span class="lvst ${Number(r.frei)<=2?"requested":""}">${Number(r.frei)}</span>
     </div>`).join("");
   return alle;
@@ -6669,6 +6905,14 @@ function sitzungZuruecksetzen(){
        for(const k of ["#zf-mine","#zf-list","#zf-arten"]){ const el=$(k); if(el) el.innerHTML=""; }
        const zm=$("#zf-msg"); if(zm) zm.textContent=""; const zh=$("#zf-hurt"); if(zh) zh.hidden=true;
        const zs=$("#zf-send"), zo=$("#zf-open"); if(zs) zs.hidden=true; if(zo) zo.hidden=true; }catch(e){}
+  /* 157: Team-Eingabe, Start-PIN und Listen gehen nicht an die naechste Person. */
+  try{ for(const k in PINGEZEIGT) delete PINGEZEIGT[k]; }catch(e){}
+  try{ neuLauf++; const nb=$("#neu-box"); if(nb){ nb.hidden=true; nb.innerHTML=""; } }catch(e){}
+  try{ tmLauf++; TMJOBS=null; tmDep=null; tmJob=null; tmSendet=false;
+       const tn=$("#tm-name"); if(tn){ tn.value=""; delete tn.dataset.tmid; delete tn.dataset.tmv; delete tn.dataset.tmt; }
+       for(const k of ["#tm-deps","#tm-jobs","#tm-alle","#tm-weg","#tm-pin"]){ const el=$(k); if(el) el.innerHTML=""; }
+       const tp=$("#tm-pin"), tw=$("#tm-weg-wrap"), tm=$("#tm-msg"), tt=$("#tm-tile");
+       if(tp) tp.hidden=true; if(tw) tw.hidden=true; if(tm) tm.textContent=""; if(tt) tt.hidden=true; }catch(e){}
   S.done=[]; S.blocked={}; S.steps={}; S.nope={};
   for(const k in LAUF) delete LAUF[k];
   /* Die Urlaubsliste der ganzen Klinik lag nach dem Abmelden weiter im
@@ -7161,6 +7405,7 @@ function go(id, push){
      sich selten, und ein Aufruf beim Anmelden waere einer zu viel auf einem
      Handy im indonesischen Mobilfunknetz. */
   if(id==="s-leave"){
+    { const tt=$("#tm-tile"); if(tt) tt.hidden=!darfTeam(); }
     /* Nina 26.10.2026: "Wenn man etwas anklickt, sieht man erstmal ganz viele
        andere Sachen und muss scrollen." Fuer den Manager steht die Team-Arbeit
        (To decide, Decided, Sheet) oben, der eigene Urlaub darunter. Fuer das
@@ -7200,7 +7445,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -7209,6 +7454,7 @@ function go(id, push){
   if(id==="s-raumnotiz"){ ladeNotiz().catch(()=>{}); }
   if(id==="s-notizneu"){ zeichneNotizNeu(); }
   if(id==="s-zfneu"){ zeichneZfNeu(); }
+  if(id==="s-team"){ zeichneTeam().catch(()=>{}); }
   if(id==="s-zfliste"){ ladeZfListe().catch(()=>{}); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
   if(id==="s-weneu"){ zeichneWeNeu(); }
@@ -7380,6 +7626,15 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#zf-save")){ zfSenden(); return; }
   const zfs=e.target.closest("[data-zfseen]"); if(zfs){ zfGesehen(zfs.dataset.zfseen, zfs); return; }
   const zfd=e.target.closest("[data-zfdel]"); if(zfd){ zfLoeschen(zfd.dataset.zfdel, zfd); return; }
+  /* 158 Neu in der App */
+  const nug=e.target.closest("[data-neugo]"); if(nug){ neuigkeitGelesen(nug.dataset.neugo, nug.dataset.neuziel, nug); return; }
+  const nuo=e.target.closest("[data-neuok]"); if(nuo){ neuigkeitGelesen(nuo.dataset.neuok, null, nuo); return; }
+  /* 157 Team */
+  const tmd=e.target.closest("[data-tmdep]"); if(tmd){ tmDep=tmd.dataset.tmdep; tmJob=null; zeichneTmDeps(); return; }
+  const tmj=e.target.closest("[data-tmjob]"); if(tmj){ tmJob=tmj.dataset.tmjob; zeichneTmJobs(); return; }
+  if(e.target.closest("#tm-save")){ tmSpeichern(); return; }
+  const tmw=e.target.closest("[data-tmweg]"); if(tmw){ tmEntfernen(tmw.dataset.tmweg, tmw); return; }
+  const tmb=e.target.closest("[data-tmback]"); if(tmb){ tmZurueck(tmb.dataset.tmback, tmb.dataset.tmname, tmb); return; }
   /* Wareneingang */
   if(e.target.closest("#we-photo-btn")){ const pi=$("#we-photo-input"); if(pi) pi.click(); return; }
   if(e.target.closest("#we-neu-btn")){ weNeuToggle(); return; }
@@ -7406,7 +7661,7 @@ document.addEventListener("click",e=>{
   const pr = e.target.closest("[data-pin]");
   if(pr){
     const t=L(), name = pr.closest(".lvitem").querySelector("b").textContent;
-    if(!confirm(t.pinAsk.replace("%s", name))) return;
+    if(!confirm(t.pinAsk.split("%s").join(name))) return;
     /* Bruno, Fund B: Zwei Tipps erzeugten zwei Start-PINs, und nur der
        zweite galt. Hendra las den ersten vor, die Person kam nicht rein,
        und beide hielten das Werkzeug fuer kaputt. */
@@ -7428,7 +7683,7 @@ document.addEventListener("click",e=>{
         pr.textContent = pin;
         pr.classList.add("pinneu");
         PINGEZEIGT[pr.dataset.pin] = pin;
-        alert(t.pinResetNew.replace("%s", name).replace("%p", pin));
+        alert(t.pinResetNew.split("%s").join(name).replace("%p", pin));
       })
       .catch(()=>{ pr.textContent = "!" })
       .finally(()=>{ delete pr.dataset.laeuft });
@@ -7710,6 +7965,27 @@ function cockpitAuffrischen(){
   fuelleCockpit().catch(()=>{});
 }
 document.addEventListener("visibilitychange", cockpitAuffrischen);
+/* 158: Neue Fassung auch holen, wenn die App aus dem Hintergrund zurueckkommt. Nur auf der
+   Start- oder Anmeldeseite und ohne offenes Eingabefeld: ein Neuladen mitten im Tippen
+   wuerde den Text verwerfen. */
+function darfNeuLaden(){
+  if(document.visibilityState!=="visible") return false;
+  const h=here(); if(h!=="s-brief" && h!=="s-login") return false;
+  const a=document.activeElement; if(a && (a.tagName==="TEXTAREA" || a.tagName==="INPUT")) return false;
+  /* Elke 158 Fund 1: halbe Uebergabe-Notiz, laufendes Senden oder Profilfoto nie verwerfen.
+     Das iPhone nimmt den Fokus beim App-Wechsel weg, deshalb zaehlt auch der Inhalt. */
+  const ho=$("#ho-text"); if(ho && ho.value.trim()) return false;
+  if(hoSendet || fotoLaeuft) return false;
+  return true;
+}
+document.addEventListener("visibilitychange", ()=>{
+  /* Bruno 157 N7: Personenliste auffrischen, damit eine entfernte Person auch ohne
+     Neustart abgemeldet wird (ladePersonen -> vergissGeraet). */
+  if(document.visibilityState==="visible" && S.meId && navigator.onLine!==false) ladePersonen().catch(()=>{});
+  if(!darfNeuLaden()) return;
+  /* 3 Sekunden warten: Nach der Kamera kommt die Fotoauswahl erst kurz nach dem Zurueckkommen. */
+  setTimeout(()=>{ if(darfNeuLaden()) pruefeAktualitaet(); }, 3000);
+});
 setInterval(cockpitAuffrischen, 300000);
 
 /* Der Vorhang geht nach 1,2 Sekunden auf und wird danach aus dem Weg geraeumt. */
