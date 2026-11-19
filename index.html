@@ -749,6 +749,17 @@
 
       <!-- 158 (Dennis 19.11.2026): "Neu in der App". Kommt mit einem Push, ein Tipp fuehrt hin. -->
       <div class="glass ho" id="neu-box" hidden style="margin-bottom:12px"></div>
+      <!-- 159 (Nina 19.11.2026): Dilla berichtet Hendra, was ausserhalb der Aufgaben anstand. -->
+      <button class="glass next" id="hb-send" data-go="s-hbneu" hidden style="margin-bottom:12px">
+        <span class="rm">&#9998;</span>
+        <span style="flex:1"><span class="tt" data-t="hbSendTile"></span>
+          <span class="mt" data-t="hbSendTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+      <button class="glass next" id="hb-open" data-go="s-hbliste" hidden style="margin-bottom:12px">
+        <span class="rm" id="hb-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="hbOpenTile"></span>
+          <span class="mt" data-t="hbOpenTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
       <!-- 156 (Nina 16.11.2026): Zwischenfaelle. Hendra meldet, nur Nina und Micha lesen.
            Ganz oben, "direkt am Eingang". -->
       <button class="glass next" id="zf-send" data-go="s-zfneu" hidden style="margin-bottom:12px">
@@ -945,6 +956,12 @@
         <span class="rm" id="lv-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="lvH"></span>
           <span class="mt" data-t="lvLeft"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+      <!-- 161 (Dennis 19.11.2026): Hilfe in der App statt PDF, waechst mit jeder Neuerung. -->
+      <button class="glass next" id="hilfe-open" data-go="s-hilfe" style="margin-top:12px">
+        <span class="rm">?</span>
+        <span style="flex:1"><span class="tt" data-t="hiTile"></span>
+          <span class="mt" data-t="hiTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
       <button class="ghost" id="btn-endday" data-t="endDay"></button>
     </section>
@@ -1422,6 +1439,39 @@
       </div>
     </section>
 
+    <!-- 161: Hilfe. Inhalt aus der Datenbank (hilfe_abschnitt), je Person gefiltert. -->
+    <section class="screen" id="s-hilfe">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="hiH"></h1>
+      <p class="sub" data-t="hiS"></p>
+      <div class="glass ho" id="hf-box" hidden style="margin-top:14px"></div>
+      <input class="lvin" id="hi-such" autocomplete="off" style="margin-top:14px">
+      <div id="hi-liste" style="margin-top:12px"></div>
+      <p class="sub" data-t="hiFoot" style="margin-top:18px"></p>
+      <div id="hf-offen-wrap" hidden style="margin-top:24px">
+        <p class="eyebrow" id="hf-offen-h"></p>
+        <div id="hf-offen"></div>
+      </div>
+    </section>
+
+    <!-- 159: Bericht an Hendra (Dilla schreibt, Hendra liest) -->
+    <section class="screen" id="s-hbneu">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="hbNewH"></h1>
+      <p class="sub" data-t="hbNewS"></p>
+      <textarea class="lvin" id="hb-text" rows="6" maxlength="2000" style="resize:none;margin-top:16px"></textarea>
+      <button class="bigcheck" id="hb-save" style="margin-top:16px"><span class="bx"></span><span data-t="hbSave"></span></button>
+      <p class="lverr" id="hb-msg"></p>
+      <p class="eyebrow" data-t="hbMineH" style="margin-top:24px"></p>
+      <div id="hb-mine"></div>
+    </section>
+    <section class="screen" id="s-hbliste">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="hbListH"></h1>
+      <p class="sub" data-t="hbListS"></p>
+      <div id="hb-list" style="margin-top:14px"></div>
+    </section>
+
     <!-- 157: Team selbst pflegen (Nina, Micha, Hendra) -->
     <section class="screen" id="s-team">
       <button class="back" data-go="s-leave">&#8249; <span data-t="back"></span></button>
@@ -1720,6 +1770,21 @@ const T={
   rnNewH:"Message to management", rnNewS:"Goes to Nina, Michael and Hendra. It shows your name. When they tick it as done, you see it below. Emergency right now? Call first, then write here.",
   rnMineH:"Your messages", rnMineNone:"Nothing sent in the last 14 days.", rnOpen:"Open", rnDoneBy:"Done by",
   hoSeenBtn:"Mark as seen", hoSeenBy:"\u2713 Seen by",
+  hfAsk:"Ask %s", hfPh:"Only questions about the app. No names, no health. Example: How do I report sick?", hfBtn:"Ask", hfWait:"%s is thinking…",
+  hfLimit:"No more questions today. Please ask Hendra.", hfOff:"%s is switched off right now. Please ask Hendra.",
+  hfErr:"%s cannot answer right now. Please try again later or ask Hendra.", hfNoAnswer:"Not in Help yet. Please ask Hendra. Your question is saved, so Help gets better.",
+  hfOpenH:"Questions %s could not answer (30 days)", hfOpenNone:"None. Good.",
+  hiTile:"Help: how does it work?", hiTileS:"your buttons, step by step",
+  hiH:"Help", hiS:"Only what you need for your work. It is always up to date.", hiSuch:"Search, for example PIN or sick",
+  hiNone:"Nothing found. Try another word.", hiOffline:"Offline. Help cannot be loaded now.", hiShow:"Show me",
+  hiFoot:"A button is not where this page says? Tell Hendra.",
+  hbSendTile:"Report to Hendra", hbSendTileS:"work that was not in your tasks, open problems",
+  hbOpenTile:"Reports for you", hbOpenTileS:"from the team, tap Mark as seen",
+  hbNewH:"Report to Hendra", hbNewS:"What did you do today that was not in your tasks? What is still open or a problem? Hendra gets a notification and can help. Hendra, Nina and Dr. Michael can read it.",
+  hbPh:"Example: Patient X called twice, please call back. The suction in room 2 is weak. Do not write about a colleague's health.",
+  hbSave:"Send to Hendra", hbSent:"Sent. Hendra gets a notification.", hbErr:"NOT sent. Check the internet and tap again. Your text is still here.", hbTextErr:"Write a few words first.",
+  hbMineH:"Your reports (14 days)", hbMineNone:"No reports yet.",
+  hbListH:"Reports for you", hbListS:"Tap \"Mark as seen\", so the sender knows you read it.", hbNone:"No reports.", hbOffline:"Offline. Cannot load the reports now.",
   neuH:"New in the app", neuShow:"Show me", neuOk:"OK",
   tmTile:"Staff: add or remove", tmTileS:"new people, people who left",
   tmH:"Staff", tmS:"Add new people. Remove people who left. Only Nina, Dr. Michael and Hendra see this page.",
@@ -1802,7 +1867,7 @@ const T={
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
   amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Hours count from 15 minutes before shift start to 15 minutes after shift end. Later than that is overtime, earlier does not count. On days over 6 hours, 1 hour lunch break is not counted (except Security). Late = more than 5 minutes after the real start, which is 15 minutes before the shift (for a 09:00 shift: be there by 08:45, after 08:50 counts as late). Hendra is in charge, this is your second pair of eyes.",
-  amDay:"day", amDays:"days", amLate:"late", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in", amNoOutDay:"day without check-out", amNoOut:"days without check-out",
+  amDay:"day", amDays:"days", amLate:"late", amFlex:"Flexible time: only the total hours count", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in", amNoOutDay:"day without check-out", amNoOut:"days without check-out",
   amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNotCounted:"not counted (before shift)", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
   lvChangeOverlap:"These dates overlap another request of this person.", blTooBig:"The file is too big (max 10 MB).", lvCertPending:"A doctor's letter is still waiting to be uploaded. It will go out as soon as there is a connection.",
   pushOn:"Turn on notifications on this phone", pushOk:"Notifications are on. You will hear about new sick reports, leave requests and reports.", pushOkStaff:"Notifications are on. You will hear about new tasks for you and when management has handled your message.",
@@ -1968,6 +2033,21 @@ const T={
   rnNewH:"Pesan ke manajemen", rnNewS:"Dikirim ke Nina, Michael dan Hendra. Nama Anda ikut tampil. Saat mereka mencentang selesai, Anda melihatnya di bawah. Darurat sekarang? Telepon dulu, lalu tulis di sini.",
   rnMineH:"Pesan Anda", rnMineNone:"Tidak ada pesan dalam 14 hari terakhir.", rnOpen:"Terbuka", rnDoneBy:"Selesai oleh",
   hoSeenBtn:"Tandai sudah dibaca", hoSeenBy:"\u2713 Sudah dibaca oleh",
+  hfAsk:"Tanya %s", hfPh:"Hanya pertanyaan tentang aplikasi. Tanpa nama, tanpa info kesehatan. Contoh: Bagaimana cara lapor sakit?", hfBtn:"Tanya", hfWait:"%s sedang berpikir…",
+  hfLimit:"Batas pertanyaan hari ini sudah habis. Silakan tanya Hendra.", hfOff:"%s sedang tidak aktif. Silakan tanya Hendra.",
+  hfErr:"%s tidak bisa menjawab sekarang. Coba lagi nanti atau tanya Hendra.", hfNoAnswer:"Belum ada di Bantuan. Silakan tanya Hendra. Pertanyaan Anda disimpan, supaya Bantuan makin baik.",
+  hfOpenH:"Pertanyaan yang belum bisa dijawab %s (30 hari)", hfOpenNone:"Tidak ada. Bagus.",
+  hiTile:"Bantuan: bagaimana caranya?", hiTileS:"tombol Anda, langkah demi langkah",
+  hiH:"Bantuan", hiS:"Hanya yang Anda perlukan untuk pekerjaan Anda. Selalu terbaru.", hiSuch:"Cari, misalnya PIN atau sakit",
+  hiNone:"Tidak ditemukan. Coba kata lain.", hiOffline:"Offline. Bantuan tidak bisa dimuat sekarang.", hiShow:"Tunjukkan",
+  hiFoot:"Tombol tidak ada di tempat yang ditulis di sini? Beri tahu Hendra.",
+  hbSendTile:"Laporan ke Hendra", hbSendTileS:"hal di luar tugas, masalah yang belum selesai",
+  hbOpenTile:"Laporan untuk Anda", hbOpenTileS:"dari tim, ketuk Tandai sudah dibaca",
+  hbNewH:"Laporan ke Hendra", hbNewS:"Apa yang Anda kerjakan hari ini di luar tugas Anda? Apa yang masih terbuka atau bermasalah? Hendra mendapat notifikasi dan bisa membantu. Hendra, Nina, dan Dr. Michael bisa membacanya.",
+  hbPh:"Contoh: Pasien X menelepon dua kali, tolong telepon balik. Suction di ruang 2 lemah. Jangan menulis tentang kesehatan rekan kerja.",
+  hbSave:"Kirim ke Hendra", hbSent:"Terkirim. Hendra mendapat notifikasi.", hbErr:"BELUM terkirim. Cek internet lalu ketuk lagi. Teks Anda masih di sini.", hbTextErr:"Tulis beberapa kata dulu.",
+  hbMineH:"Laporan Anda (14 hari)", hbMineNone:"Belum ada laporan.",
+  hbListH:"Laporan untuk Anda", hbListS:"Ketuk \"Tandai sudah dibaca\", supaya pengirim tahu Anda sudah membacanya.", hbNone:"Tidak ada laporan.", hbOffline:"Offline. Laporan tidak bisa dimuat sekarang.",
   neuH:"Baru di aplikasi", neuShow:"Tunjukkan", neuOk:"OK",
   tmTile:"Staf: tambah atau nonaktifkan", tmTileS:"staf baru, staf yang sudah berhenti kerja",
   tmH:"Staf", tmS:"Tambah staf baru. Nonaktifkan staf yang sudah berhenti kerja. Hanya Nina, Dr. Michael, dan Hendra yang melihat halaman ini.",
@@ -2050,7 +2130,7 @@ const T={
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
   amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Jam dihitung dari 15 menit sebelum shift mulai sampai 15 menit setelah shift selesai. Lebih dari itu lembur, lebih awal tidak dihitung. Pada hari kerja lebih dari 6 jam, istirahat makan siang 1 jam tidak dihitung (kecuali Security). Terlambat = lebih dari 5 menit setelah mulai kerja sebenarnya, yaitu 15 menit sebelum shift (untuk shift 09:00: hadir paling lambat 08:45, setelah 08:50 dihitung terlambat). Hendra yang bertanggung jawab, ini pandangan kedua.",
-  amDay:"hari", amDays:"hari", amLate:"terlambat", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk", amNoOutDay:"hari tanpa absen keluar", amNoOut:"hari tanpa absen keluar",
+  amDay:"hari", amDays:"hari", amLate:"terlambat", amFlex:"Jam kerja fleksibel: hanya total jam yang dihitung", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk", amNoOutDay:"hari tanpa absen keluar", amNoOut:"hari tanpa absen keluar",
   amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNotCounted:"tidak dihitung (sebelum shift)", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
   lvChangeOverlap:"Tanggal ini bertabrakan dengan pengajuan lain orang ini.", blTooBig:"File terlalu besar (maks 10 MB).", lvCertPending:"Surat dokter masih menunggu diunggah. Akan terkirim begitu ada koneksi.",
   pushOn:"Nyalakan notifikasi di HP ini", pushOk:"Notifikasi aktif. Kamu akan tahu laporan sakit, cuti dan laporan baru.", pushOkStaff:"Notifikasi aktif. Kamu akan tahu tugas baru untukmu dan saat pesanmu sudah ditangani manajemen.",
@@ -2281,7 +2361,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-19a";
+const APP_VERSION = "2026-11-19b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2715,6 +2795,11 @@ async function ladeAnwesenheitMonat(){
   let rows; try{ rows=await sbGet("rpc/anwesenheit_monat?p_monat="+monat); }
   catch(e){ if(amMonat!==monat) return; const code=parseInt(e&&e.message,10); box.innerHTML=`<p class="lverr">${code>=400?t.rsErr.replace("{code}",code):t.rsOffline}</p>`; return; }
   if(amMonat!==monat) return;
+  /* 160 (Dennis/Nina 19.11.): Hendra und Dilla haben flexible Zeit, nur die Gesamtzeit zaehlt.
+     Fehlt die Funktion (alte DB), bleibt alles wie bisher. */
+  let flex=new Set();
+  try{ const f=await mitZeitlimit(sbGet("rpc/flexible_personen"), 8000); flex=new Set((f||[]).map(x=>typeof x==="string"?x:(x && (x.flexible_personen||x.id)))); }catch(e){}
+  if(amMonat!==monat) return;
   const mitDaten=(rows||[]).filter(r=>r.tage>0||r.ohne_stempel>0);
   const tagWort=(n,eins,viele)=>n+" "+(n===1?eins:viele);
   box.innerHTML = mitDaten.length ? mitDaten.map(r=>{
@@ -2729,7 +2814,8 @@ async function ladeAnwesenheitMonat(){
       if(r.ohne_plan) z1.push(`${tagWort(r.ohne_plan,t.amNoPlanDay,t.amNoPlan)}`);
       const bewertet = r.tage - r.ohne_plan;   /* Stempeltage mit Dienstplan */
       const z2=[];
-      if(r.zu_spaet) z2.push(`<span class="warn" style="display:inline">${r.zu_spaet}\u00d7 ${t.amLate} (${minText(r.spaet_min)})</span>`);
+      if(flex.has(r.person_id)) z2.push(t.amFlex);
+      else if(r.zu_spaet) z2.push(`<span class="warn" style="display:inline">${r.zu_spaet}\u00d7 ${t.amLate} (${minText(r.spaet_min)})</span>`);
       else if(bewertet>0) z2.push(t.amOnTime);
       if(r.ueber_min) z2.push(`${t.amOver} ${minText(r.ueber_min)}`);
       if(r.vor_fenster_min) z2.push(`${minText(r.vor_fenster_min)} ${t.amNotCounted}`);
@@ -3284,7 +3370,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen|bericht_schreiben|bericht_gesehen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -3981,6 +4067,180 @@ async function zfLoeschen(id, btn){
   try{ await sbSend("rpc/zwischenfall_loeschen", {p_id:id}); }
   catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
   ladeZfListe().catch(()=>{});
+}
+
+/* ================= 162 Der Helfer (Dennis 19.11.2026) =================
+   "Ich kriege die 100.000. Mal dieselbe Frage: Wie setze ich meinen PIN zurueck?"
+   Er antwortet nur aus der Hilfe der Person und aendert nichts. "Show me" kommt vom Server
+   (Abschnitt.ziel), nie aus der KI. Name stellt die Praxis ein (Einstellung helfer_name). */
+let HELFER=null, hfLauf=0, hfSendet=false;
+async function zeigeHelfer(){
+  const box=$("#hf-box"); if(!box) return;
+  const lauf=++hfLauf;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()){ box.hidden=true; box.innerHTML=""; return; }
+  let info=null;
+  try{ const r=await mitZeitlimit(sbGet("rpc/helfer_info"), 8000); info=Array.isArray(r)?r[0]:r; }catch(e){ info=null; }
+  if(lauf!==hfLauf) return;
+  if(!info || !info.an){ box.hidden=true; box.innerHTML=""; return; }
+  HELFER=info.name||"Helper";
+  const t=L();
+  box.innerHTML=`<p class="eyebrow" style="margin:0 0 6px">${escHtml(t.hfAsk.replace("%s",HELFER))}</p>
+    <textarea class="lvin" id="hf-frage" rows="2" maxlength="500" style="resize:none" placeholder="${escHtml(t.hfPh)}"></textarea>
+    <button class="pinrst" id="hf-ask" style="margin-top:8px">${escHtml(t.hfBtn)}</button>
+    <div id="hf-antwort" style="margin-top:10px"></div>`;
+  box.hidden=false;
+  ladeHfOffen().catch(()=>{});
+}
+async function helferFragen(){
+  const t=L(), ta=$("#hf-frage"), out=$("#hf-antwort"), btn=$("#hf-ask"); if(!ta || !out || hfSendet) return;
+  const frage=ta.value.trim().slice(0,500); if(frage.length<2){ ta.focus(); return; }
+  const wer=me() && me().id, lauf=hfLauf, name=HELFER||"Helper";
+  hfSendet=true; if(btn) btn.disabled=true;
+  out.innerHTML=`<p class="sub">${escHtml(t.hfWait.replace("%s",name))}</p>`;
+  let d=null, st=0;
+  try{
+    const r=await mitZeitlimit(fetch(SB.url+"/functions/v1/helfer", {method:"POST",
+      headers:{apikey:SB.key, Authorization:"Bearer "+S.token, "Content-Type":"application/json"},
+      body:JSON.stringify({frage, sprache:S.lang==="id"?"id":"en"})}), 30000);
+    st=r.status; try{ d=await r.json(); }catch(_){ d=null; }
+  }catch(e){ d=null; }
+  hfSendet=false; if(btn) btn.disabled=false;
+  if(lauf!==hfLauf || !(me() && me().id===wer)) return;
+  if(!d || st>=400){
+    const fehl = d && d.error==="limit" ? t.hfLimit : d && d.error==="aus" ? t.hfOff.replace("%s",name) : t.hfErr.replace("%s",name);
+    out.innerHTML=`<p class="lverr bad">${escHtml(fehl)}</p>`; return;
+  }
+  const ziel = d.ziel && document.getElementById(d.ziel) && document.getElementById(d.ziel).classList.contains("screen") ? d.ziel : "";
+  /* Rosa 19.11.: nicht beantwortet = nur der feste Hinweis, einmal. */
+  const txt = d.beantwortet===false || !d.antwort ? t.hfNoAnswer : d.antwort;
+  out.innerHTML=`<div class="eintrag"><div class="txt">${escHtml(txt)}</div>
+    ${ziel ? `<button class="pinrst" data-higo="${escHtml(ziel)}" style="margin-top:8px">${escHtml(t.hiShow)}</button>` : ""}</div>`;
+  ta.value="";
+}
+async function ladeHfOffen(){
+  const t=L(), wrap=$("#hf-offen-wrap"), box=$("#hf-offen"), h=$("#hf-offen-h"); if(!wrap || !box) return;
+  if(!(me() && (me().lead || me().mgr)) || demoAktiv()){ wrap.hidden=true; box.innerHTML=""; return; }
+  const lauf=hfLauf;
+  let rows; try{ rows=await mitZeitlimit(sbGet("rpc/helfer_offen"), 8000); }catch(e){ return; }
+  if(lauf!==hfLauf) return;
+  if(h) h.textContent=t.hfOpenH.replace("%s",HELFER||"Helper");
+  rows=rows||[];
+  box.innerHTML = rows.length ? rows.map(r=>`<div class="lvitem"><div class="d"><span>${escHtml(r.frage)}</span>
+      <small><br>${nachrichtZeit(r.created_at)}</small></div></div>`).join("") : `<p class="sub">${escHtml(t.hfOpenNone)}</p>`;
+  wrap.hidden=false;
+}
+
+/* ================= 161 Hilfe (Dennis 19.11.2026) =================
+   "Wenn wir naechste Woche wieder was Neues aktualisieren, dann ist die PDF wieder veraltet."
+   Der Inhalt kommt aus hilfe_abschnitt, der Server filtert je Person. Suche nur im Geraet. */
+let HILFE=null, hiLauf=0;
+const hiTreffer = (h, q) => { if(!q) return true; const t=(S.lang==="id" ? h.titel_id+" "+h.text_id : h.titel_en+" "+h.text_en).toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>t.includes(w)); };
+async function ladeHilfe(){
+  const t=L(), box=$("#hi-liste"), su=$("#hi-such"); if(!box) return;
+  if(su) su.placeholder=t.hiSuch;
+  const lauf=++hiLauf;
+  if(!me() || !tokenGueltig()){ box.innerHTML=`<p class="lverr">${escHtml(t.hiOffline)}</p>`; return; }
+  try{ const r=await mitZeitlimit(sbGet("rpc/hilfe"), 15000); if(lauf!==hiLauf) return; HILFE=r||[]; }
+  catch(e){ if(lauf!==hiLauf) return; if(!HILFE){ box.innerHTML=`<p class="lverr">${escHtml(t.hiOffline)}</p>`; return; } }
+  zeichneHilfe();
+  if(typeof zeigeHelfer==="function") zeigeHelfer();
+}
+function zeichneHilfe(){
+  const t=L(), box=$("#hi-liste"), su=$("#hi-such"); if(!box) return;
+  const q=su ? su.value.trim() : "", id=S.lang==="id";
+  const rows=(HILFE||[]).filter(h=>hiTreffer(h,q));
+  if(!rows.length){ box.innerHTML=`<p class="lverr">${escHtml(t.hiNone)}</p>`; return; }
+  box.innerHTML = rows.map(h=>{
+    const ziel = h.ziel && document.getElementById(h.ziel) && document.getElementById(h.ziel).classList.contains("screen") ? h.ziel : "";
+    return `<div class="lvitem" data-hikey="${escHtml(h.key)}" style="flex-wrap:wrap">
+      <div class="d" style="flex:1 1 100%"><b>${escHtml(id?h.titel_id:h.titel_en)}</b><br><span>${escHtml(id?h.text_id:h.text_en)}</span></div>
+      ${ziel ? `<div style="margin-top:8px"><button class="pinrst" data-higo="${escHtml(ziel)}">${escHtml(t.hiShow)}</button></div>` : ""}</div>`;
+  }).join("");
+}
+
+/* ================= 159 Bericht an Hendra (Nina 19.11.2026) =================
+   "Dilla berichtet, was ausserhalb der Aufgaben noch anstand oder als Problem offen ist,
+   so kann Hendra unterstuetzen." Wer schreibt, entscheidet der Server (person.schreibt_bericht),
+   Hendra liest und tippt "Mark as seen", die Schreiberin sieht "Seen by Hendra 08:05". */
+let hbLauf=0, hbSendet=false, hbRolle=null;
+async function zeigeBericht(){
+  const s=$("#hb-send"), o=$("#hb-open");
+  if(s) s.hidden=true; if(o) o.hidden=true;
+  hbRolle=null;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()) return;
+  const lauf=++hbLauf;
+  let st=null;
+  try{ const r=await sbGet("rpc/bericht_status"); st=Array.isArray(r)?r[0]:r; }catch(e){ st=null; }
+  if(lauf!==hbLauf || !st) return;
+  hbRolle=st.rolle||null;
+  if(hbRolle==="schreibt"){ if(s) s.hidden=false; return; }
+  /* Lesen auf der Startseite nur fuer Hendra (Nina: "so kann Hendra unterstuetzen").
+     Die Leitung darf auf dem Server mitlesen, bekommt aber keine Kachel (Nina 26.10.: nicht zu voll). */
+  if(hbRolle==="liest" && me().mgr){
+    if(o) o.hidden=false;
+    const b=$("#hb-badge"); if(b) b.textContent = st.offen ? st.offen : "✓";
+  }
+}
+function hbZeile(z, mitKnopf){
+  const t=L(), wann=nachrichtZeit(z.created_at);
+  const status = z.gesehen ? `<b>${escHtml(t.zfSeenBy)} ${escHtml(z.gesehen)}</b>` : escHtml(t.zfNotSeen);
+  const offen = mitKnopf && z.ich_gesehen===false && !z.von_mir;
+  return `<div class="lvitem" style="flex-wrap:wrap${offen||!mitKnopf?"":";opacity:.7"}">
+    <div class="d" style="flex:1 1 100%">${mitKnopf?"<b>"+escHtml(z.wer||"")+"</b><br>":""}<span>${escHtml(z.text)}</span>
+      <small><br>${wann} &middot; ${status}</small></div>
+    ${offen ? `<div style="margin-top:8px"><button class="pinrst" data-hbseen="${escHtml(z.id)}">${escHtml(t.hoSeenBtn)}</button></div>` : ""}
+  </div>`;
+}
+function zeichneHbNeu(){
+  const t=L(), ta=$("#hb-text"), msg=$("#hb-msg");
+  if(ta) ta.placeholder=t.hbPh;
+  if(msg){ msg.textContent=""; msg.className="lverr"; }
+  ladeHbMeine().catch(()=>{});
+}
+async function ladeHbMeine(){
+  const t=L(), box=$("#hb-mine"); if(!box) return;
+  const lauf=hbLauf;
+  let liste=null;
+  try{ liste=await sbGet("rpc/bericht_liste"); }catch(e){ liste=null; }
+  if(lauf!==hbLauf) return;
+  if(!Array.isArray(liste)){ box.innerHTML=`<p class="lverr">${escHtml(t.hbOffline)}</p>`; return; }
+  const meine=liste.filter(z=>z.von_mir).slice(0,20);
+  box.innerHTML = meine.length ? meine.map(z=>hbZeile(z,false)).join("") : `<p class="lverr">${escHtml(t.hbMineNone)}</p>`;
+}
+async function hbSenden(){
+  const t=L(), ta=$("#hb-text"), msg=$("#hb-msg"), btn=$("#hb-save"); if(!ta || !msg || hbSendet) return;
+  msg.className="lverr"; msg.textContent="";
+  const text=ta.value.trim().slice(0,2000); if(!text){ msg.textContent=t.hbTextErr; ta.focus(); return; }
+  /* Gleicher Text, gleiche Kennung: zweimal gesendet zaehlt einmal (Muster 154). */
+  if(ta.dataset.hbsig!==text){ ta.dataset.hbsig=text; ta.dataset.hbid=neueKennung(); }
+  const wer=me() && me().id;
+  hbSendet=true; if(btn) btn.disabled=true;
+  try{
+    await mitZeitlimit(sbSend("rpc/bericht_schreiben", {p_text:text, p_id:ta.dataset.hbid}), 15000);
+    if(!(me() && me().id===wer)) return;
+    ta.value=""; delete ta.dataset.hbsig; delete ta.dataset.hbid;
+    msg.textContent=t.hbSent;
+    ladeHbMeine().catch(()=>{});
+  }catch(e){
+    if(me() && me().id===wer){ msg.className="lverr bad"; msg.textContent=t.hbErr; }
+  }finally{ hbSendet=false; if(btn) btn.disabled=false; }
+}
+async function ladeHbListe(){
+  const t=L(), box=$("#hb-list"); if(!box) return;
+  const lauf=hbLauf;
+  let liste=[];
+  try{ liste=await sbGet("rpc/bericht_liste"); }catch(e){ if(lauf===hbLauf) box.innerHTML=`<p class="lverr">${escHtml(t.hbOffline)}</p>`; return; }
+  if(lauf!==hbLauf) return;
+  liste=(liste||[]).filter(z=>!z.von_mir);
+  if(!liste.length){ box.innerHTML=`<p class="lverr">${escHtml(t.hbNone)}</p>`; return; }
+  box.innerHTML = liste.map(z=>hbZeile(z,true)).join("");
+}
+async function hbGesehen(id, btn){
+  if(btn) btn.disabled=true;
+  try{ await mitZeitlimit(sbSend("rpc/bericht_gesehen", {p_id:id}), 15000); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
+  ladeHbListe().catch(()=>{});
 }
 
 /* ================= 158 Neu in der App (Dennis 19.11.2026) =================
@@ -6908,6 +7168,16 @@ function sitzungZuruecksetzen(){
   /* 157: Team-Eingabe, Start-PIN und Listen gehen nicht an die naechste Person. */
   try{ for(const k in PINGEZEIGT) delete PINGEZEIGT[k]; }catch(e){}
   try{ neuLauf++; const nb=$("#neu-box"); if(nb){ nb.hidden=true; nb.innerHTML=""; } }catch(e){}
+  /* 161: Hilfe ist je Person gefiltert, also mit abmelden. */
+  try{ hiLauf++; HILFE=null; const hl=$("#hi-liste"), hs=$("#hi-such"); if(hl) hl.innerHTML=""; if(hs) hs.value=""; }catch(e){}
+  /* 162: Frage, Antwort und offene Fragen gehen nicht an die naechste Person. */
+  try{ hfLauf++; hfSendet=false; HELFER=null; for(const k of ["#hf-box","#hf-offen"]){ const el=$(k); if(el) el.innerHTML=""; }
+       const hb=$("#hf-box"), hw=$("#hf-offen-wrap"); if(hb) hb.hidden=true; if(hw) hw.hidden=true; }catch(e){}
+  /* 159: Entwurf und Listen des Berichts gehen nicht an die naechste Person. */
+  try{ hbLauf++; hbSendet=false; hbRolle=null; const ht=$("#hb-text"); if(ht){ ht.value=""; delete ht.dataset.hbsig; delete ht.dataset.hbid; }
+       for(const k of ["#hb-mine","#hb-list"]){ const el=$(k); if(el) el.innerHTML=""; }
+       const hm=$("#hb-msg"); if(hm) hm.textContent="";
+       const hs=$("#hb-send"), ho=$("#hb-open"); if(hs) hs.hidden=true; if(ho) ho.hidden=true; }catch(e){}
   try{ tmLauf++; TMJOBS=null; tmDep=null; tmJob=null; tmSendet=false;
        const tn=$("#tm-name"); if(tn){ tn.value=""; delete tn.dataset.tmid; delete tn.dataset.tmv; delete tn.dataset.tmt; }
        for(const k of ["#tm-deps","#tm-jobs","#tm-alle","#tm-weg","#tm-pin"]){ const el=$(k); if(el) el.innerHTML=""; }
@@ -7445,7 +7715,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeBericht().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -7455,6 +7725,9 @@ function go(id, push){
   if(id==="s-notizneu"){ zeichneNotizNeu(); }
   if(id==="s-zfneu"){ zeichneZfNeu(); }
   if(id==="s-team"){ zeichneTeam().catch(()=>{}); }
+  if(id==="s-hbneu"){ zeichneHbNeu(); }
+  if(id==="s-hilfe"){ ladeHilfe().catch(()=>{}); }
+  if(id==="s-hbliste"){ ladeHbListe().catch(()=>{}); }
   if(id==="s-zfliste"){ ladeZfListe().catch(()=>{}); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
   if(id==="s-weneu"){ zeichneWeNeu(); }
@@ -7484,6 +7757,7 @@ document.addEventListener("change",e=>{
 /* Live-Suche in der Artikel-Liste beim Wareneingang. */
 document.addEventListener("input",e=>{
   if(e.target && e.target.id==="we-search"){ renderWeList(e.target.value); }
+  if(e.target && e.target.id==="hi-such"){ zeichneHilfe(); }
 });
 
 /* Die Leiste "noch nicht gestartet" auf der Uebersicht: nur Personal, nur
@@ -7626,6 +7900,13 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#zf-save")){ zfSenden(); return; }
   const zfs=e.target.closest("[data-zfseen]"); if(zfs){ zfGesehen(zfs.dataset.zfseen, zfs); return; }
   const zfd=e.target.closest("[data-zfdel]"); if(zfd){ zfLoeschen(zfd.dataset.zfdel, zfd); return; }
+  /* 162 Helfer */
+  if(e.target.closest("#hf-ask")){ helferFragen(); return; }
+  /* 161 Hilfe */
+  const hig=e.target.closest("[data-higo]"); if(hig){ go(hig.dataset.higo); return; }
+  /* 159 Bericht an Hendra */
+  if(e.target.closest("#hb-save")){ hbSenden(); return; }
+  const hbs=e.target.closest("[data-hbseen]"); if(hbs){ hbGesehen(hbs.dataset.hbseen, hbs); return; }
   /* 158 Neu in der App */
   const nug=e.target.closest("[data-neugo]"); if(nug){ neuigkeitGelesen(nug.dataset.neugo, nug.dataset.neuziel, nug); return; }
   const nuo=e.target.closest("[data-neuok]"); if(nuo){ neuigkeitGelesen(nuo.dataset.neuok, null, nuo); return; }
@@ -7975,6 +8256,7 @@ function darfNeuLaden(){
   /* Elke 158 Fund 1: halbe Uebergabe-Notiz, laufendes Senden oder Profilfoto nie verwerfen.
      Das iPhone nimmt den Fokus beim App-Wechsel weg, deshalb zaehlt auch der Inhalt. */
   const ho=$("#ho-text"); if(ho && ho.value.trim()) return false;
+  const hbt=$("#hb-text"); if(hbt && hbt.value.trim()) return false;
   if(hoSendet || fotoLaeuft) return false;
   return true;
 }
