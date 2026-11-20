@@ -498,6 +498,19 @@
   .lvitem .d b{display:block;font-size:15px;color:var(--ink)}
   .lvitem .d small{font-size:13px;color:var(--ink-2)}
   .lvlater{opacity:.6} .rvlater-t{margin-top:18px}
+  /* 165 Tagescheck */
+  .tcsec{border:1px solid var(--hair);border-radius:14px;padding:12px 14px;margin:12px 0;background:var(--bg-lift)}
+  .tcsec>summary{cursor:pointer;font:700 16px/1.3 "TG Text",system-ui,sans-serif;color:var(--ink);list-style:none;min-height:32px}
+  .tcsec>summary::-webkit-details-marker{display:none}
+  .tcsec>summary small{display:block;font-weight:500;font-size:13px;color:var(--ink-2);margin-top:2px}
+  .tcopt{display:flex;gap:6px;flex-wrap:wrap}
+  .tcopt .reason{width:auto;flex:1 1 28%;min-height:52px;padding:10px;text-align:center}
+  .tcst{display:inline-block;font-size:12px;border:1px solid var(--hair);border-radius:999px;padding:3px 9px;margin-top:6px;color:var(--ink-2)}
+  .tcst.ok{color:var(--ok);border-color:var(--ok)} .tcst.bad{color:#C4553B;border-color:#C4553B}
+  .tcdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#C4553B;margin-left:6px;vertical-align:middle}
+  .tcsend{position:sticky;bottom:0;padding:12px 0 6px;background:var(--bg)}
+  button.lvitem{font:inherit;color:inherit;cursor:pointer;width:100%;text-align:left}
+  .pinrst.tcadd{border-color:var(--gold-ink);color:var(--gold-ink);font-size:14px;font-weight:600;padding:10px 14px;margin:6px 0 12px}
   /* Ampel (140): jede Tagesliste mit jeder Person, die sie heute machen muss. */
   .amp-sum{font-size:14px;margin:4px 0 14px;color:var(--ink)}
   .amp-dep{margin-top:18px;display:flex;justify-content:space-between}
@@ -759,6 +772,12 @@
         <span class="rm" id="hb-badge">&mdash;</span>
         <span style="flex:1"><span class="tt" data-t="hbOpenTile"></span>
           <span class="mt" data-t="hbOpenTileS"></span></span>
+        <span class="chev">&rsaquo;</span></button>
+      <!-- 165 (Micha 19.11.2026): Dillas Tagescheck. Ersetzt bei Dilla die Kachel "Report to Hendra" (Hilde T3). -->
+      <button class="glass next" id="tc-open" data-go="s-tc" hidden style="margin-bottom:12px">
+        <span class="rm" id="tc-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="tcTile"></span>
+          <span class="mt" id="tc-tile-s"></span></span>
         <span class="chev">&rsaquo;</span></button>
       <!-- 156 (Nina 16.11.2026): Zwischenfaelle. Hendra meldet, nur Nina und Micha lesen.
            Ganz oben, "direkt am Eingang". -->
@@ -1472,6 +1491,44 @@
       <div id="hb-list" style="margin-top:14px"></div>
     </section>
 
+    <!-- 165: Dillas Tagescheck (Dilla schreibt, Hendra und Leitung lesen) -->
+    <section class="screen" id="s-tc">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="tcH"></h1>
+      <p class="sub" id="tc-sub"></p>
+      <div id="tc-kopf" style="margin-top:12px"></div>
+      <details class="tcsec" id="tc-sec-morgen" open><summary id="tc-sum-morgen"></summary><div id="tc-morgen"></div></details>
+      <details class="tcsec" id="tc-sec-offen" open><summary id="tc-sum-offen"></summary><div id="tc-offen"></div></details>
+      <details class="tcsec" id="tc-sec-geraet" open><summary id="tc-sum-geraet"></summary><div id="tc-geraet"></div></details>
+      <div id="tc-schreiben" hidden>
+        <div id="tc-rest-wrap" hidden>
+          <label class="lvlab" for="tc-rest" data-t="tcRestH"></label>
+          <textarea class="lvin" id="tc-rest" rows="4" maxlength="2000" style="resize:none"></textarea>
+          <button class="pinrst" id="tc-rest-send" data-t="tcRestOnly" style="margin-top:8px"></button>
+          <p class="lverr" id="tc-rest-msg"></p>
+        </div>
+        <div class="tcsend">
+          <button class="bigcheck" id="tc-send"><span class="bx"></span><span data-t="tcSend"></span></button>
+          <p class="lverr" id="tc-msg"></p>
+        </div>
+        <button class="pinrst" id="tc-ausfall-btn" data-t="tcAusfallBtn" style="margin-top:10px"></button>
+        <div id="tc-ausfall-wrap" hidden style="margin-top:10px">
+          <textarea class="lvin" id="tc-ausfall" rows="2" maxlength="300" style="resize:none"></textarea>
+          <button class="pinrst" id="tc-ausfall-send" data-t="tcAusfallSend" style="margin-top:8px"></button>
+        </div>
+      </div>
+    </section>
+    <section class="screen" id="s-tcform">
+      <button class="back" data-go="s-tc">&#8249; <span data-t="back"></span></button>
+      <h1 id="tcf-h"></h1>
+      <div id="tcf"></div>
+      <p class="lverr bad" id="tcf-warn" hidden></p>
+      <button class="bigcheck" id="tcf-save" style="margin-top:16px"><span class="bx"></span><span data-t="tcSave"></span></button>
+      <button class="pinrst" id="tcf-next" data-t="tcSaveNext" hidden style="margin-top:12px"></button>
+      <p class="lverr" id="tcf-msg"></p>
+      <button class="pinrst" id="tcf-del" data-t="tcDel" hidden style="margin-top:18px"></button>
+    </section>
+
     <!-- 157: Team selbst pflegen (Nina, Micha, Hendra) -->
     <section class="screen" id="s-team">
       <button class="back" data-go="s-leave">&#8249; <span data-t="back"></span></button>
@@ -1785,6 +1842,43 @@ const T={
   hbSave:"Send to Hendra", hbSent:"Sent. Hendra gets a notification.", hbErr:"NOT sent. Check the internet and tap again. Your text is still here.", hbTextErr:"Write a few words first.",
   hbMineH:"Your reports (14 days)", hbMineNone:"No reports yet.",
   hbListH:"Reports for you", hbListS:"Tap \"Mark as seen\", so the sender knows you read it.", hbNone:"No reports.", hbOffline:"Offline. Cannot load the reports now.",
+  tcTile:"Daily check", tcTileS:"tomorrow's treatments, equipment, open issues", tcTileSR:"from Dilla, tap Mark as seen",
+  tcS:"Check tomorrow's treatments before 16:00. Write down equipment problems and open issues when they happen. Send before 16:45. Hendra, Nina and Dr. Michael can read it.",
+  tcSR:"What Dilla checked. Equipment that works again: open it and tap \"Approved for use\".",
+  tcH:"Daily check", tcMorgenH:"Tomorrow", tcOffenH:"Open issues", tcGeraetH:"Equipment",
+  tcAddMorgen:"+ Add treatment", tcAddOffen:"+ Add issue", tcAddGeraet:"+ Add equipment",
+  tcMorgenHint:"Only treatments that need lab work, a model or special material.",
+  tcEmptyMorgen:"No treatments for tomorrow yet. Tap + to add one.", tcEmptyOffen:"No open issues.", tcEmptyGeraet:"No equipment problems.",
+  tcSumMorgen:"{b} ready \u00b7 {n} not ready \u00b7 {u} not checked", tcSumOffen:"{o} open", tcSumGeraet:"{o} with a problem \u00b7 {a} not usable",
+  tcReady:"Ready", tcNotReady:"Not ready", tcNotChecked:"Not checked",
+  tcC_c_material:"Material", tcC_c_instrumente:"Instruments", tcC_c_labor:"Lab work / temporary", tcC_c_modell:"Latest model / plan",
+  tcOk:"OK", tcMissing:"Missing", tcNa:"Not needed",
+  tcFor:"Date", tcPatient:"Patient", tcTime:"Time", tcTreat:"Treatment", tcRoom:"Room", tcAssist:"Assistant", tcWorking:"Working that day", tcOthers:"Others",
+  tcWhatMissing:"What is missing?",
+  tcWhatG:"What? (for example: Autoclave, room 2)", tcUse:"Can we use it?", tcImp_keine:"Yes, normal", tcImp_eingeschraenkt:"Yes, but limited", tcImp_nicht_nutzbar:"No",
+  tcWrong:"What is wrong?", tcDidNow:"What did you already do?", tcWho:"Who takes care of it?", tcWhoHint:"This person gets no notification. Tell them yourself.", tcBy:"By when?", tcDue:"By",
+  tcStatus:"Status", tcStG_offen:"Not fixed yet", tcStG_in_arbeit:"Being fixed", tcStG_funktioniert:"Works, needs check", tcStG_freigegeben:"Approved for use",
+  tcHowTest:"How did you test it?", tcHowSolved:"How was it solved?", tcApproveHint:"Only Dilla, Hendra, Nina and Dr. Michael can choose \"Approved for use\".",
+  tcProblem:"Problem", tcUrgent:"How urgent?", tcPrio_normal:"Normal", tcPrio_hoch:"Urgent", tcPrio_kritisch:"Critical",
+  tcCritDef:"Critical: a patient cannot be treated, or someone can get hurt.", tcMichael:"Needs Dr. Michael's decision", tcNext:"Next step", tcDetails:"Details",
+  tcStO_offen:"Open", tcStO_in_arbeit:"Being worked on", tcStO_geloest:"Solved",
+  tcMore:"More: who, by when", tcAgain:"Again",
+  tcWarnPush:"When you save, Nina and Dr. Michael get a notification.",
+  tcHealthHint:"Never write why a colleague is absent. Write \"not available\".",
+  tcHealthWarn:"Is this about a colleague's health? Then delete it and write \"not available\". About a patient: tap again to save.",
+  tcSaveNext:"Save and add another", tcDel:"Delete", tcDelAsk:"Delete this entry?", tcSave:"Save",
+  tcNewMorgen:"Treatment tomorrow", tcNewOffen:"Open issue", tcNewGeraet:"Equipment",
+  tcErrTitle_morgen:"Write the patient name.", tcErrTitle_geraet:"Write which equipment.", tcErrTitle_offen:"Write the problem.", tcErrMissing:"Write what is missing.", tcErrImpact:"Choose: can we use it?", tcErrCheck_geraet:"Write how you tested it.", tcErrCheck_offen:"Write how it was solved.",
+  tcErrSave:"NOT saved. Check the internet and tap again. Your text is still here.",
+  tcErrChanged:"This entry changed since you opened it. Tap Back and open it again to see what is saved.", tcErrDate:"Choose a date after today.",
+  tcRestOnly:"Send only this to Hendra", tcRestSent:"Sent to Hendra.", tcNoAccess:"Only Dilla, Hendra, Nina and Dr. Michael can see this page.",
+  tcRestH:"Anything else?", tcRestPh:"Work that was not in your tasks, or something Hendra should know. Do not write about a colleague's health.",
+  tcSend:"Send today's check", tcSent:"Sent. Hendra, Nina and Dr. Michael can read it.", tcSentAt:"Sent at {zeit}. Hendra, Nina and Dr. Michael can read it.",
+  tcErrSend:"NOT sent. Check the internet and tap again.",
+  tcAusfallBtn:"I could not do the check today", tcAusfallPh:"Reason (one sentence)", tcAusfallSend:"Send", tcAusfallErr:"Write one sentence first.", tcAusfallL:"Check not done",
+  tcLastH:"{tag} \u00b7 from {wer}", tcNoneYet:"No daily check sent yet.", tcOffline:"Offline. Cannot load the daily check now.",
+  tcZMorgen:"{tag}: ready {b} \u00b7 not ready {n} \u00b7 not checked {u}", tcZGeraet:"Equipment: with a problem {o} \u00b7 not usable {a} \u00b7 to check {p}",
+  tcZOffen:"Open issues: {o} \u00b7 critical {k} \u00b7 for Dr. Michael {m} \u00b7 late {f}", tcZHeute:"Today: new {n} \u00b7 solved {g}",
   neuH:"New in the app", neuShow:"Show me", neuOk:"OK",
   tmTile:"Staff: add or remove", tmTileS:"new people, people who left",
   tmH:"Staff", tmS:"Add new people. Remove people who left. Only Nina, Dr. Michael and Hendra see this page.",
@@ -2048,6 +2142,43 @@ const T={
   hbSave:"Kirim ke Hendra", hbSent:"Terkirim. Hendra mendapat notifikasi.", hbErr:"BELUM terkirim. Cek internet lalu ketuk lagi. Teks Anda masih di sini.", hbTextErr:"Tulis beberapa kata dulu.",
   hbMineH:"Laporan Anda (14 hari)", hbMineNone:"Belum ada laporan.",
   hbListH:"Laporan untuk Anda", hbListS:"Ketuk \"Tandai sudah dibaca\", supaya pengirim tahu Anda sudah membacanya.", hbNone:"Tidak ada laporan.", hbOffline:"Offline. Laporan tidak bisa dimuat sekarang.",
+  tcTile:"Cek harian", tcTileS:"perawatan besok, alat, masalah belum selesai", tcTileSR:"dari Dilla, ketuk Tandai sudah dibaca",
+  tcS:"Cek perawatan besok sebelum jam 16:00. Catat masalah alat dan masalah terbuka saat terjadi. Kirim sebelum jam 16:45. Hendra, Nina, dan Dr. Michael bisa membacanya.",
+  tcSR:"Yang sudah dicek Dilla. Alat yang sudah jalan lagi: buka, lalu ketuk \"Boleh dipakai lagi\".",
+  tcH:"Cek harian", tcMorgenH:"Besok", tcOffenH:"Masalah belum selesai", tcGeraetH:"Alat",
+  tcAddMorgen:"+ Tambah perawatan", tcAddOffen:"+ Tambah masalah", tcAddGeraet:"+ Tambah alat",
+  tcMorgenHint:"Hanya perawatan yang perlu hasil lab, model, atau bahan khusus.",
+  tcEmptyMorgen:"Belum ada perawatan untuk besok. Ketuk + untuk menambah.", tcEmptyOffen:"Tidak ada masalah yang belum selesai.", tcEmptyGeraet:"Tidak ada masalah alat.",
+  tcSumMorgen:"{b} siap \u00b7 {n} belum siap \u00b7 {u} belum dicek", tcSumOffen:"{o} belum selesai", tcSumGeraet:"{o} bermasalah \u00b7 {a} tidak bisa dipakai",
+  tcReady:"Siap", tcNotReady:"Belum siap", tcNotChecked:"Belum dicek",
+  tcC_c_material:"Bahan", tcC_c_instrumente:"Instrumen", tcC_c_labor:"Hasil lab / sementara", tcC_c_modell:"Model / rencana terbaru",
+  tcOk:"OK", tcMissing:"Belum ada", tcNa:"Tidak perlu",
+  tcFor:"Tanggal", tcPatient:"Pasien", tcTime:"Jam", tcTreat:"Perawatan", tcRoom:"Ruang", tcAssist:"Asisten", tcWorking:"Masuk kerja hari itu", tcOthers:"Lainnya",
+  tcWhatMissing:"Apa yang belum ada?",
+  tcWhatG:"Alat apa? (misalnya: Autoklaf, ruang 2)", tcUse:"Masih bisa dipakai?", tcImp_keine:"Ya, normal", tcImp_eingeschraenkt:"Ya, tapi terbatas", tcImp_nicht_nutzbar:"Tidak bisa",
+  tcWrong:"Masalahnya apa?", tcDidNow:"Apa yang sudah dilakukan?", tcWho:"Siapa yang mengurus?", tcWhoHint:"Orang ini tidak dapat notifikasi. Mohon beri tahu langsung.", tcBy:"Sampai kapan?", tcDue:"Sampai",
+  tcStatus:"Status", tcStG_offen:"Belum diperbaiki", tcStG_in_arbeit:"Sedang diperbaiki", tcStG_funktioniert:"Sudah jalan, perlu dicek", tcStG_freigegeben:"Boleh dipakai lagi",
+  tcHowTest:"Bagaimana Anda mengetesnya?", tcHowSolved:"Bagaimana masalahnya diselesaikan?", tcApproveHint:"Hanya Dilla, Hendra, Nina, dan Dr. Michael yang bisa memilih \"Boleh dipakai lagi\".",
+  tcProblem:"Masalah", tcUrgent:"Seberapa mendesak?", tcPrio_normal:"Biasa", tcPrio_hoch:"Mendesak", tcPrio_kritisch:"Kritis",
+  tcCritDef:"Kritis: pasien tidak bisa ditangani, atau ada risiko cedera.", tcMichael:"Perlu keputusan Dr. Michael", tcNext:"Langkah berikutnya", tcDetails:"Rincian",
+  tcStO_offen:"Belum dikerjakan", tcStO_in_arbeit:"Sedang dikerjakan", tcStO_geloest:"Selesai",
+  tcMore:"Lainnya: siapa, kapan", tcAgain:"Terjadi lagi",
+  tcWarnPush:"Saat Anda menyimpan, Nina dan Dr. Michael langsung dapat notifikasi.",
+  tcHealthHint:"Mohon jangan tulis alasan rekan tidak masuk. Tulis \"tidak tersedia\".",
+  tcHealthWarn:"Apakah ini tentang kesehatan rekan kerja? Hapus, lalu tulis \"tidak tersedia\". Kalau tentang pasien: ketuk lagi untuk menyimpan.",
+  tcSaveNext:"Simpan, tambah lagi", tcDel:"Hapus", tcDelAsk:"Hapus catatan ini?", tcSave:"Simpan",
+  tcNewMorgen:"Perawatan besok", tcNewOffen:"Masalah belum selesai", tcNewGeraet:"Alat",
+  tcErrTitle_morgen:"Tulis nama pasien.", tcErrTitle_geraet:"Tulis alat apa.", tcErrTitle_offen:"Tulis masalahnya.", tcErrMissing:"Tulis apa yang belum ada.", tcErrImpact:"Pilih: masih bisa dipakai?", tcErrCheck_geraet:"Tulis cara Anda mengetesnya.", tcErrCheck_offen:"Tulis bagaimana masalahnya diselesaikan.",
+  tcErrSave:"BELUM tersimpan. Cek internet dan ketuk lagi. Teks Anda masih ada.",
+  tcErrChanged:"Catatan ini sudah berubah sejak Anda buka. Ketuk Kembali dan buka lagi untuk melihat yang tersimpan.", tcErrDate:"Pilih tanggal setelah hari ini.",
+  tcRestOnly:"Kirim ini saja ke Hendra", tcRestSent:"Terkirim ke Hendra.", tcNoAccess:"Hanya Dilla, Hendra, Nina, dan Dr. Michael yang bisa melihat halaman ini.",
+  tcRestH:"Ada hal lain?", tcRestPh:"Pekerjaan di luar tugas Anda, atau hal yang perlu Hendra tahu. Jangan tulis tentang kesehatan rekan kerja.",
+  tcSend:"Kirim cek hari ini", tcSent:"Terkirim. Hendra, Nina, dan Dr. Michael bisa membacanya.", tcSentAt:"Terkirim jam {zeit}. Hendra, Nina, dan Dr. Michael bisa membacanya.",
+  tcErrSend:"BELUM terkirim. Cek internet dan ketuk lagi.",
+  tcAusfallBtn:"Hari ini saya tidak bisa melakukan cek", tcAusfallPh:"Alasan (satu kalimat)", tcAusfallSend:"Kirim", tcAusfallErr:"Tulis satu kalimat dulu.", tcAusfallL:"Cek tidak dilakukan",
+  tcLastH:"{tag} \u00b7 dari {wer}", tcNoneYet:"Belum ada cek harian yang dikirim.", tcOffline:"Offline. Cek harian belum bisa dibuka.",
+  tcZMorgen:"{tag}: siap {b} \u00b7 belum siap {n} \u00b7 belum dicek {u}", tcZGeraet:"Alat: bermasalah {o} \u00b7 tidak bisa dipakai {a} \u00b7 perlu dicek {p}",
+  tcZOffen:"Belum selesai: {o} \u00b7 kritis {k} \u00b7 untuk Dr. Michael {m} \u00b7 terlambat {f}", tcZHeute:"Hari ini: baru {n} \u00b7 selesai {g}",
   neuH:"Baru di aplikasi", neuShow:"Tunjukkan", neuOk:"OK",
   tmTile:"Staf: tambah atau nonaktifkan", tmTileS:"staf baru, staf yang sudah berhenti kerja",
   tmH:"Staf", tmS:"Tambah staf baru. Nonaktifkan staf yang sudah berhenti kerja. Hanya Nina, Dr. Michael, dan Hendra yang melihat halaman ini.",
@@ -2361,7 +2492,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-19b";
+const APP_VERSION = "2026-11-20a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -3370,7 +3501,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen|bericht_schreiben|bericht_gesehen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen|bericht_schreiben|bericht_gesehen|tagescheck_speichern|tagescheck_senden|tagescheck_gesehen|tagescheck_loeschen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -4174,7 +4305,7 @@ async function zeigeBericht(){
   try{ const r=await sbGet("rpc/bericht_status"); st=Array.isArray(r)?r[0]:r; }catch(e){ st=null; }
   if(lauf!==hbLauf || !st) return;
   hbRolle=st.rolle||null;
-  if(hbRolle==="schreibt"){ if(s) s.hidden=false; return; }
+  if(hbRolle==="schreibt"){ if(s) s.hidden = tcRolle==="schreibt"; return; }   /* 165: bei Dilla im Tagescheck (Hilde T3) */
   /* Lesen auf der Startseite nur fuer Hendra (Nina: "so kann Hendra unterstuetzen").
      Die Leitung darf auf dem Server mitlesen, bekommt aber keine Kachel (Nina 26.10.: nicht zu voll). */
   if(hbRolle==="liest" && me().mgr){
@@ -4241,6 +4372,324 @@ async function hbGesehen(id, btn){
   try{ await mitZeitlimit(sbSend("rpc/bericht_gesehen", {p_id:id}), 15000); }
   catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
   ladeHbListe().catch(()=>{});
+}
+
+/* ================= 165 Dillas Tagescheck (Micha 19.11.2026, Brief Teil D, E, F) =================
+   Vortags-Check, Geraete und offene Punkte auf EINER Seite, ein Senden am Tag (Hilde T3).
+   Wer schreibt und wer liest, entscheidet der Server (tagescheck_status). Pruefpunkte sind nie
+   vorbelegt (Hilde T2), "Approved for use" nur Hendra und Leitung (Hilde S1, der Server erzwingt es),
+   Sperrbildschirm nur Funktion (Elke N4). Bewertungen von Kolleginnen (Teil A, B, C) gibt es hier nicht. */
+let tcLauf=0, tcRolle=null, TC=null, TCST=null, TCP=null, tcForm=null, tcSendet=false, tcWarnGesehen=false, tcHbRolle=null;
+const TC_CHECKS=["c_material","c_instrumente","c_labor","c_modell"];
+const TC_BEH=["Crown","Implant","Bridge","Veneer","Aligner","Smile makeover","Temporary"];
+const TC_FELDER=["titel","detail","fuer_tag","zeit","behandlung","raum","assistenz_id","c_material","c_instrumente","c_labor","c_modell",
+  "auswirkung","massnahme","prioritaet","michael_noetig","naechster","zustaendig_id","frist","status","nachkontrolle"];
+/* Elke M1: Gesundheit von Kolleginnen nie. Nur ein Hinweis vor dem Speichern, kein Verbot (Patienten sind erlaubt). */
+const TC_GESUND=/\b(sick|sakit|krank|demam|fever|hospital|pregnan\w*|hamil|haid)\b/i;
+const tcTag=iso=>iso?tagText(String(iso).slice(0,10),{weekday:"short",day:"numeric",month:"short"}):"";
+const tcUhr=iso=>new Date(iso).toLocaleTimeString(S.lang==="id"?"id-ID":"en-GB",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Makassar"});
+/* Rosa 2: Samstags zeigt "Tomorrow" auf Montag. Dann der Wochentag statt "Tomorrow". */
+const tcZiel=iso=>{ if(!iso) return L().tcMorgenH; const d=String(iso).slice(0,10), m=new Date(Date.parse(heuteISO()+"T00:00:00Z")+86400000).toISOString().slice(0,10);
+  return d===m ? L().tcMorgenH : tagText(d,{weekday:"long"}); };
+const tcF=(s,o)=>String(s).replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:"0");
+
+async function zeigeTagescheck(){
+  const b=$("#tc-open"); if(b) b.hidden=true;
+  tcRolle=null;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()) return;
+  const lauf=++tcLauf;
+  let st=null;
+  try{ const r=await sbGet("rpc/tagescheck_status"); st=Array.isArray(r)?r[0]:r; }catch(e){ st=null; }
+  if(lauf!==tcLauf || !st || !st.rolle) return;
+  TCST=st; tcRolle=st.rolle;
+  const t=L(), z=st.zahlen||{}, badge=$("#tc-badge"), sub=$("#tc-tile-s");
+  if(tcRolle==="schreibt"){ const hs=$("#hb-send"); if(hs) hs.hidden=true; }
+  if(sub) sub.textContent = tcRolle==="schreibt" ? t.tcTileS : t.tcTileSR;
+  if(badge){
+    if(tcRolle==="schreibt"){ const n=(z.blocker||0)+(z.ungeprueft||0); badge.textContent = st.gesendet_heute ? "✓" : (n ? String(n) : "—"); }
+    else badge.textContent = st.letzter_tag && st.ich_gesehen===false ? "1" : "✓";
+  }
+  if(b) b.hidden=false;
+}
+
+async function ladeTc(){
+  const t=L(), kopf=$("#tc-kopf"); if(!kopf) return;
+  const lauf=++tcLauf;
+  let st=null, li=null, pe=null, hb=null;
+  try{
+    [st,li,pe,hb]=await Promise.all([sbGet("rpc/tagescheck_status"), sbGet("rpc/tagescheck_liste"),
+      sbGet("rpc/tagescheck_personen").catch(()=>null), sbGet("rpc/bericht_status").catch(()=>null)]);
+    st=Array.isArray(st)?st[0]:st; hb=Array.isArray(hb)?hb[0]:hb;
+  }catch(e){ st=null; }
+  if(lauf!==tcLauf) return;
+  if(!st && Array.isArray(li)){ kopf.innerHTML=`<p class="lverr">${escHtml(t.tcNoAccess)}</p>`; for(const k of ["#tc-morgen","#tc-offen","#tc-geraet"]){ const el=$(k); if(el) el.innerHTML=""; } const w=$("#tc-schreiben"); if(w) w.hidden=true; return; }   /* Bruno N3: Demo */
+  if(!st || !Array.isArray(li)){ kopf.innerHTML=`<p class="lverr">${escHtml(t.tcOffline)}</p>`; return; }
+  TCST=st; tcRolle=st.rolle; TC=li; if(Array.isArray(pe)) TCP=pe; tcHbRolle=hb&&hb.rolle||null;
+  zeichneTc();
+}
+
+function tcZahlen(z){
+  const t=L(); if(!z) return "";
+  return `<small>${escHtml(tcF(t.tcZMorgen,{tag:tcZiel(z.fuer_tag),b:z.bereit,n:z.blocker,u:z.ungeprueft}))}<br>`
+    +`${escHtml(tcF(t.tcZGeraet,{o:z.geraete,a:z.geraet_aus,p:z.geraet_pruefen}))}<br>`
+    +`${escHtml(tcF(t.tcZOffen,{o:z.offen,k:z.kritisch,m:z.michael,f:z.ueberfaellig}))}<br>`
+    +`${escHtml(tcF(t.tcZHeute,{n:z.neu_heute,g:z.geschlossen_heute}))}</small><br>`;
+}
+
+function tcZeile(r){
+  const t=L(), offen=!r.geschlossen_at; let sub=[], st="";
+  if(r.art==="morgen"){
+    sub=[String(r.fuer_tag).slice(0,10)!==String((TCST.zahlen||{}).fuer_tag).slice(0,10)?tcTag(r.fuer_tag):null, r.zeit, r.behandlung, r.raum, r.assistenz].filter(Boolean);
+    const fehlt=TC_CHECKS.filter(k=>r[k]==="fehlt").map(k=>t["tcC_"+k]), leer=TC_CHECKS.filter(k=>!r[k]).length;
+    st = r.bereit ? `<span class="tcst ok">${escHtml(t.tcReady)}</span>`
+       : fehlt.length ? `<span class="tcst bad">${escHtml(t.tcNotReady+": "+fehlt.join(", "))}</span>`
+       : `<span class="tcst">${escHtml(t.tcNotChecked+" ("+leer+")")}</span>`;
+  } else {
+    const who=r.zustaendig?t.tcWho+" "+r.zustaendig:null, due=r.frist?t.tcDue+" "+tcTag(r.frist):null;
+    if(r.art==="geraet"){
+      sub=[t.tcUse+" "+(t["tcImp_"+r.auswirkung]||""), who, due].filter(Boolean);
+      const bad=offen && r.auswirkung==="nicht_nutzbar";
+      st=`<span class="tcst${bad?" bad":""}${offen?"":" ok"}">${escHtml(t["tcStG_"+r.status]+(r.freigabe_durch?" ("+r.freigabe_durch+")":""))}</span>`;
+    } else {
+      sub=[t["tcPrio_"+r.prioritaet], r.michael_noetig?t.tcMichael:null, who, due].filter(Boolean);
+      const bad=offen && r.prioritaet==="kritisch";
+      st=`<span class="tcst${bad?" bad":""}${offen?"":" ok"}">${escHtml(t["tcStO_"+r.status])}</span>`;
+    }
+  }
+  return `<button class="lvitem${offen?"":" lvlater"}" data-tcedit="${escHtml(r.id)}" style="flex-wrap:wrap">
+    <div class="d" style="flex:1 1 100%"><b>${escHtml(r.titel)}${r.wiederkehrend?` <span class="tcst">${escHtml(t.tcAgain)}</span>`:""}</b>
+      <small>${escHtml(sub.join(" · "))}${r.ueberfaellig?'<span class="tcdot"></span>':""}</small><br>${st}</div></button>`;
+}
+
+function zeichneTc(){
+  const t=L(), st=TCST||{}, z=st.zahlen||{}, li=TC||[];
+  const sub=$("#tc-sub"); if(sub) sub.textContent = tcRolle==="schreibt" ? t.tcS : t.tcSR;
+  let kopf="";
+  if(tcRolle==="schreibt"){
+    if(st.gesendet_heute){
+      kopf=`<p class="lverr good">${escHtml(tcF(t.tcSentAt,{zeit:tcUhr(st.gesendet_heute)}))}</p>`;
+      if(st.letzter_tag===st.heute && st.gesehen) kopf+=`<p class="sub">✓ ${escHtml(t.zfSeenBy+" "+st.gesehen)}</p>`;
+    }
+  } else if(st.letzter_tag){
+    const tag=String(st.letzter_tag).slice(0,10);
+    kopf=`<div class="lvitem" style="flex-wrap:wrap"><div class="d" style="flex:1 1 100%">
+      <b>${escHtml(tcF(t.tcLastH,{tag:tcTag(tag),wer:st.letzter_von||""}))}</b>
+      ${st.letzter_ausfall?`<small><b>${escHtml(t.tcAusfallL)}:</b> ${escHtml(st.letzter_ausfall)}</small><br>`:""}
+      ${tcZahlen(st.letzter)}
+      <small>${st.gesehen?"✓ "+escHtml(t.zfSeenBy+" "+st.gesehen):escHtml(t.zfNotSeen)}</small></div>
+      ${st.ich_gesehen===false?`<div style="margin-top:8px"><button class="pinrst" data-tcseen="${escHtml(tag)}">${escHtml(t.hoSeenBtn)}</button></div>`:""}</div>`;
+  } else kopf=`<p class="sub">${escHtml(t.tcNoneYet)}</p>`;
+  const k=$("#tc-kopf"); if(k) k.innerHTML=kopf;
+
+  const teil=(art,box,sumEl,titel,zahl,leer,add,hint)=>{
+    const rows=li.filter(r=>r.art===art);
+    const s=$(sumEl); if(s) s.innerHTML=`${escHtml(titel)}<small>${escHtml(zahl)}</small>`;
+    const b=$(box); if(!b) return;
+    b.innerHTML=`${hint?`<p class="sub" style="margin:6px 0 10px">${escHtml(hint)}</p>`:""}
+      <button class="pinrst tcadd" data-tcneu="${art}">${escHtml(add)}</button>
+      ${rows.length?rows.map(tcZeile).join(""):`<p class="lverr">${escHtml(leer)}</p>`}`;
+  };
+  teil("morgen","#tc-morgen","#tc-sum-morgen",tcZiel(z.fuer_tag)+" · "+tcTag(z.fuer_tag),
+       tcF(t.tcSumMorgen,{b:z.bereit,n:z.blocker,u:z.ungeprueft}), t.tcEmptyMorgen, t.tcAddMorgen, t.tcMorgenHint);
+  teil("offen","#tc-offen","#tc-sum-offen",t.tcOffenH, tcF(t.tcSumOffen,{o:z.offen}), t.tcEmptyOffen, t.tcAddOffen);
+  teil("geraet","#tc-geraet","#tc-sum-geraet",t.tcGeraetH, tcF(t.tcSumGeraet,{o:z.geraete,a:z.geraet_aus}), t.tcEmptyGeraet, t.tcAddGeraet);
+
+  const w=$("#tc-schreiben"); if(w) w.hidden = tcRolle!=="schreibt";
+  const rw=$("#tc-rest-wrap"); if(rw) rw.hidden = !(tcRolle==="schreibt" && tcHbRolle==="schreibt");
+  const rest=$("#tc-rest"); if(rest) rest.placeholder=t.tcRestPh;
+}
+
+function tcNeu(art, tag){
+  tcForm={art, id:neueKennung(), neu:true, v:{status:"offen"}};
+  if(art==="morgen") tcForm.v.fuer_tag = tag || (TCST&&TCST.zahlen&&TCST.zahlen.fuer_tag) || heuteISO();
+  if(art==="offen") tcForm.v.prioritaet="normal";
+  tcWarnGesehen=false;
+  go("s-tcform");
+}
+function tcEdit(id){
+  const r=(TC||[]).find(x=>x.id===id); if(!r) return;
+  tcForm={art:r.art, id:r.id, neu:false, v:Object.assign({}, r), erstellt:r.erstellt, created_at:r.created_at, stand:r.geaendert_at};
+  tcWarnGesehen=false;
+  go("s-tcform");
+}
+
+function tcLesen(){
+  if(!tcForm) return;
+  for(const f of ["titel","detail","fuer_tag","zeit","behandlung","raum","assistenz_id","massnahme","naechster","zustaendig_id","frist","nachkontrolle"]){
+    const el=$("#tcf-"+f); if(el) tcForm.v[f]=el.value;
+  }
+  const m=$("#tcf-mehr"); if(m) tcForm.mehr=m.open;
+}
+
+function zeichneTcForm(){
+  const t=L(), box=$("#tcf"), h=$("#tcf-h"); if(!box) return;
+  if(!tcForm){ go("s-tc"); return; }
+  const v=tcForm.v, art=tcForm.art, leitung=!!(me()&&(me().lead||me().mgr)) || tcRolle==="schreibt";   /* Micha 19.11.: Dilla gibt frei */
+  if(h) h.textContent = art==="morgen"?t.tcNewMorgen : art==="offen"?t.tcNewOffen : t.tcNewGeraet;
+  const inp=(f,lab,o={})=>`<label class="lvlab" for="tcf-${f}">${escHtml(lab)}</label>`
+    +(o.area?`<textarea class="lvin" id="tcf-${f}" rows="${o.rows||3}" maxlength="${o.max||300}" style="resize:none"${o.ph?` placeholder="${escHtml(o.ph)}"`:""}>${escHtml(v[f]||"")}</textarea>`
+            :`<input class="lvin" id="tcf-${f}" type="${o.type||"text"}" maxlength="${o.max||80}" value="${escHtml(v[f]||"")}"${o.list?` list="${o.list}"`:""} autocomplete="off">`)
+    +(o.hint?`<p class="sub" style="margin-top:6px">${escHtml(o.hint)}</p>`:"");
+  const opt=(f,lab,werte)=>`<p class="lvlab">${escHtml(lab)}</p><div class="tcopt">${werte.map(([w,x])=>
+    `<button class="reason${String(v[f])===w?" on":""}" data-tcopt="${f}" data-tcwert="${w}">${escHtml(x)}</button>`).join("")}</div>`;
+  const pers=(f,lab,hint)=>{
+    const alle=TCP||[], an=alle.filter(p=>p.arbeitet), rest=alle.filter(p=>!p.arbeitet);
+    const o=p=>`<option value="${escHtml(p.id)}"${v[f]===p.id?" selected":""}>${escHtml(p.name)}</option>`;
+    return `<label class="lvlab" for="tcf-${f}">${escHtml(lab)}</label><select class="lvin" id="tcf-${f}"><option value="">—</option>`
+      +(an.length&&f==="assistenz_id"?`<optgroup label="${escHtml(t.tcWorking)}">${an.map(o).join("")}</optgroup><optgroup label="${escHtml(t.tcOthers)}">${rest.map(o).join("")}</optgroup>`:alle.map(o).join(""))
+      +`</select>${hint?`<p class="sub" style="margin-top:6px">${escHtml(hint)}</p>`:""}`;
+  };
+  const liste=(id,werte)=>`<datalist id="${id}">${[...new Set(werte.filter(Boolean))].map(x=>`<option value="${escHtml(x)}">`).join("")}</datalist>`;
+  const frueher=a=>(TC||[]).filter(r=>r.art===a).map(r=>r.titel);
+  const mehr=(inhalt,gefuellt)=>`<details class="tcsec" id="tcf-mehr"${tcForm.mehr||gefuellt?" open":""}><summary>${escHtml(t.tcMore)}</summary>${inhalt}</details>`;
+  let html="";
+  if(art==="morgen"){
+    const fehlt=TC_CHECKS.some(k=>v[k]==="fehlt");
+    html = inp("fuer_tag",t.tcFor,{type:"date"}) + inp("titel",t.tcPatient) + inp("zeit",t.tcTime,{type:"time"})
+      + inp("behandlung",t.tcTreat,{list:"tc-dl-beh"})
+      + `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${TC_BEH.map(b=>`<button class="pinrst" data-tcbeh="${escHtml(b)}" style="margin:0">${escHtml(b)}</button>`).join("")}</div>`
+      + liste("tc-dl-beh", TC_BEH.concat((TC||[]).map(r=>r.behandlung)))
+      + inp("raum",t.tcRoom,{max:40,list:"tc-dl-raum"}) + liste("tc-dl-raum",(TC||[]).map(r=>r.raum))
+      + pers("assistenz_id",t.tcAssist)
+      + TC_CHECKS.map(k=>opt(k,t["tcC_"+k],[["ok",t.tcOk],["fehlt",t.tcMissing],["na",t.tcNa]])).join("")
+      + `<div${fehlt?"":" hidden"}>${inp("detail",t.tcWhatMissing,{area:true,max:500,hint:t.tcHealthHint})}</div>`;
+  } else if(art==="geraet"){
+    const zu=v.status==="freigegeben";
+    html = inp("titel",t.tcWhatG,{list:"tc-dl-titel"}) + liste("tc-dl-titel",frueher("geraet"))
+      + opt("auswirkung",t.tcUse,[["keine",t.tcImp_keine],["eingeschraenkt",t.tcImp_eingeschraenkt],["nicht_nutzbar",t.tcImp_nicht_nutzbar]])
+      + inp("detail",t.tcWrong,{area:true,max:500,hint:t.tcHealthHint})
+      + mehr(inp("massnahme",t.tcDidNow,{area:true,rows:2}) + pers("zustaendig_id",t.tcWho,t.tcWhoHint) + inp("frist",t.tcBy,{type:"date"}),
+             v.massnahme||v.zustaendig_id||v.frist)
+      + opt("status",t.tcStatus,[["offen",t.tcStG_offen],["in_arbeit",t.tcStG_in_arbeit],["funktioniert",t.tcStG_funktioniert]]
+              .concat(leitung||zu?[["freigegeben",t.tcStG_freigegeben]]:[]))
+      + (leitung?"":`<p class="sub" style="margin-top:6px">${escHtml(t.tcApproveHint)}</p>`)
+      + (zu && tcForm.v.freigabe_durch && !(me() && me().n===tcForm.v.freigabe_durch)
+          ? `<p class="lvlab">${escHtml(t.tcHowTest)}</p><p class="sub">${escHtml((v.nachkontrolle||"")+" ("+v.freigabe_durch+")")}</p>`   /* Bruno M1 */
+          : `<div${zu?"":" hidden"}>${inp("nachkontrolle",t.tcHowTest,{area:true,rows:2})}</div>`);
+  } else {
+    const zu=v.status==="geloest";
+    html = inp("titel",t.tcProblem,{list:"tc-dl-titel"}) + liste("tc-dl-titel",frueher("offen"))
+      + opt("prioritaet",t.tcUrgent,[["normal",t.tcPrio_normal],["hoch",t.tcPrio_hoch],["kritisch",t.tcPrio_kritisch]])
+      + `<p class="sub" style="margin-top:6px">${escHtml(t.tcCritDef)}</p>`
+      + `<div class="tcopt" style="margin-top:12px"><button class="reason${v.michael_noetig?" on":""}" data-tcopt="michael_noetig" data-tcwert="true">${escHtml(t.tcMichael)}</button></div>`
+      + inp("detail",t.tcDetails,{area:true,max:500,hint:t.tcHealthHint})
+      + mehr(inp("naechster",t.tcNext,{area:true,rows:2}) + pers("zustaendig_id",t.tcWho,t.tcWhoHint) + inp("frist",t.tcBy,{type:"date"}),
+             v.naechster||v.zustaendig_id||v.frist)
+      + opt("status",t.tcStatus,[["offen",t.tcStO_offen],["in_arbeit",t.tcStO_in_arbeit],["geloest",t.tcStO_geloest]])
+      + `<div${zu?"":" hidden"}>${inp("nachkontrolle",t.tcHowSolved,{area:true,rows:2})}</div>`;
+  }
+  box.innerHTML=html;
+  const warn=$("#tcf-warn"), sofort=(art==="geraet"&&v.auswirkung==="nicht_nutzbar")||(art==="offen"&&v.prioritaet==="kritisch")||(art==="morgen"&&TC_CHECKS.some(k=>v[k]==="fehlt"));
+  if(warn){ warn.textContent=t.tcWarnPush; warn.hidden=!sofort; }
+  const nx=$("#tcf-next"); if(nx) nx.hidden = !(art==="morgen" && tcForm.neu);
+  const del=$("#tcf-del"), m=me();
+  if(del) del.hidden = tcForm.neu || !(m && (m.lead || (tcForm.erstellt===m.n && Date.now()-new Date(tcForm.created_at).getTime() < 23*3600000)));
+  const msg=$("#tcf-msg"); if(msg){ msg.className="lverr"; msg.textContent=""; }
+  if(!TCP) sbGet("rpc/tagescheck_personen").then(p=>{ if(Array.isArray(p)&&!TCP){ TCP=p; tcLesen(); zeichneTcForm(); } }).catch(()=>{});
+}
+
+function tcOptWahl(f, w){
+  if(!tcForm) return;
+  tcLesen();
+  const v=tcForm.v;
+  if(f==="michael_noetig") v.michael_noetig=!v.michael_noetig;
+  else if(String(v[f])===w && (TC_CHECKS.includes(f) || f==="auswirkung")) v[f]=null;   /* nochmal tippen = wieder "Not checked" */
+  else v[f]=w;
+  zeichneTcForm();
+}
+
+async function tcSpeichern(weiter){
+  const t=L(), msg=$("#tcf-msg"), b1=$("#tcf-save"), b2=$("#tcf-next");
+  if(!tcForm || tcSendet || !msg) return;
+  tcLesen();
+  const v=tcForm.v, art=tcForm.art, bad=x=>{ msg.className="lverr bad"; msg.textContent=x; };
+  if(!String(v.titel||"").trim()){ bad(t["tcErrTitle_"+art]); const i=$("#tcf-titel"); if(i) i.focus(); return; }
+  if(art==="morgen" && TC_CHECKS.some(k=>v[k]==="fehlt") && !String(v.detail||"").trim()){ bad(t.tcErrMissing); const i=$("#tcf-detail"); if(i) i.focus(); return; }
+  if(art==="geraet" && !v.auswirkung){ bad(t.tcErrImpact); return; }
+  if((v.status==="freigegeben"||v.status==="geloest") && !String(v.nachkontrolle||"").trim()){ bad(t["tcErrCheck_"+art]); const i=$("#tcf-nachkontrolle"); if(i) i.focus(); return; }
+  const texte=["titel","detail","massnahme","naechster","nachkontrolle"].map(k=>v[k]||"").join(" ");
+  if(TC_GESUND.test(texte) && !tcWarnGesehen){ tcWarnGesehen=true; bad(t.tcHealthWarn); return; }
+  const body={id:tcForm.id, art};
+  for(const k of TC_FELDER) if(v[k]!==undefined) body[k] = v[k]==="" ? null : v[k];
+  if(tcForm.stand) body.stand=tcForm.stand;   /* Bruno H2: alte Fassung ueberschreibt nicht stumm */
+  const wer=me() && me().id, tag=v.fuer_tag;
+  tcSendet=true; if(b1) b1.disabled=true; if(b2) b2.disabled=true;
+  try{
+    await mitZeitlimit(sbSend("rpc/tagescheck_speichern", {p:body}), 15000);
+    if(!(me() && me().id===wer)) return;
+    tcWarnGesehen=false;
+    if(weiter){ tcNeu("morgen", tag); const m2=$("#tcf-msg"); if(m2){ m2.className="lverr good"; m2.textContent="✓"; } }
+    else { tcForm=null; go("s-tc"); }
+  }catch(e){
+    if(!(me() && me().id===wer)) return;
+    const s=String(e&&e.message||"");
+    /* Bruno R3 M1: keine Rettung per Feldvergleich (zu fehleranfaellig). Ehrliche Meldung, die keinen anderen beschuldigt:
+       entweder hat jemand anderes geaendert oder die eigene Speicherung ist schon angekommen. */
+    if(/changed/.test(s)){ bad(t.tcErrChanged); sbGet("rpc/tagescheck_liste").then(li=>{ if(Array.isArray(li)) TC=li; }).catch(()=>{}); return; }
+    if(/date_past/.test(s)){ bad(t.tcErrDate); return; }
+    bad(/reason_missing/.test(s)?t.tcErrMissing : /followup_missing/.test(s)?t["tcErrCheck_"+art] : /impact_missing/.test(s)?t.tcErrImpact
+        : /title_missing/.test(s)?t["tcErrTitle_"+art] : t.tcErrSave);   /* gleiche Kennung: nochmal tippen legt nichts doppelt an */
+  }finally{ tcSendet=false; if(b1) b1.disabled=false; if(b2) b2.disabled=false; }
+}
+
+async function tcLoeschen(){
+  const t=L(); if(!tcForm || tcForm.neu || tcSendet) return;
+  try{ if(!confirm(t.tcDelAsk)) return; }catch(_){}
+  tcSendet=true;
+  try{ await mitZeitlimit(sbSend("rpc/tagescheck_loeschen", {p_id:tcForm.id}), 15000); tcForm=null; go("s-tc"); }
+  catch(e){ const msg=$("#tcf-msg"); if(msg){ msg.className="lverr bad"; msg.textContent=t.tcErrSave; } }
+  finally{ tcSendet=false; }
+}
+
+async function tcSenden(ausfall){
+  const t=L(), msg=$("#tc-msg"), btn=$("#tc-send"); if(!msg || tcSendet) return;
+  msg.className="lverr"; msg.textContent="";
+  let grund=null;
+  if(ausfall){ const a=$("#tc-ausfall"); grund=a?a.value.trim():""; if(!grund){ msg.textContent=t.tcAusfallErr; if(a) a.focus(); return; } }
+  const rest=$("#tc-rest"), restTxt=(rest && !$("#tc-rest-wrap").hidden) ? rest.value.trim().slice(0,2000) : "";
+  if(TC_GESUND.test(restTxt+" "+(grund||"")) && !tcWarnGesehen){ tcWarnGesehen=true; msg.className="lverr bad"; msg.textContent=t.tcHealthWarn; return; }
+  const wer=me() && me().id;
+  tcSendet=true; if(btn) btn.disabled=true;
+  try{
+    if(restTxt){
+      /* "Anything else?" ist der Bericht an Hendra (159). Gleicher Text, gleiche Kennung: zweimal gesendet zaehlt einmal. */
+      if(rest.dataset.sig!==restTxt){ rest.dataset.sig=restTxt; rest.dataset.id=neueKennung(); }
+      await mitZeitlimit(sbSend("rpc/bericht_schreiben", {p_text:restTxt, p_id:rest.dataset.id}), 15000);
+      rest.value=""; delete rest.dataset.sig; delete rest.dataset.id;
+    }
+    await mitZeitlimit(sbSend("rpc/tagescheck_senden", {p_ausfall:grund}), 15000);
+    if(!(me() && me().id===wer)) return;
+    tcWarnGesehen=false;
+    if(ausfall){ const a=$("#tc-ausfall"), w=$("#tc-ausfall-wrap"); if(a) a.value=""; if(w) w.hidden=true; }
+    await ladeTc();
+    msg.className="lverr good"; msg.textContent=t.tcSent;
+  }catch(e){
+    if(me() && me().id===wer){ msg.className="lverr bad"; msg.textContent=t.tcErrSend; }
+  }finally{ tcSendet=false; if(btn) btn.disabled=false; }
+}
+
+async function tcRestSenden(){
+  /* Bruno M2: "Anything else?" allein an Hendra, ohne den Tagescheck zu frueh abzuschicken. */
+  const t=L(), rest=$("#tc-rest"), msg=$("#tc-rest-msg"), btn=$("#tc-rest-send"); if(!rest || !msg || tcSendet) return;
+  msg.className="lverr"; msg.textContent="";
+  const txt=rest.value.trim().slice(0,2000); if(!txt){ msg.textContent=t.hbTextErr; rest.focus(); return; }
+  if(TC_GESUND.test(txt) && !tcWarnGesehen){ tcWarnGesehen=true; msg.className="lverr bad"; msg.textContent=t.tcHealthWarn; return; }
+  if(rest.dataset.sig!==txt){ rest.dataset.sig=txt; rest.dataset.id=neueKennung(); }
+  const wer=me() && me().id;
+  tcSendet=true; if(btn) btn.disabled=true;
+  try{
+    await mitZeitlimit(sbSend("rpc/bericht_schreiben", {p_text:txt, p_id:rest.dataset.id}), 15000);
+    if(!(me() && me().id===wer)) return;
+    rest.value=""; delete rest.dataset.sig; delete rest.dataset.id; tcWarnGesehen=false;
+    msg.className="lverr good"; msg.textContent=t.tcRestSent;
+  }catch(e){ if(me() && me().id===wer){ msg.className="lverr bad"; msg.textContent=t.hbErr; } }
+  finally{ tcSendet=false; if(btn) btn.disabled=false; }
+}
+async function tcGesehen(tag, btn){
+  if(btn) btn.disabled=true;
+  try{ await mitZeitlimit(sbSend("rpc/tagescheck_gesehen", {p_tag:tag}), 15000); }
+  catch(e){ if(btn) btn.disabled=false; try{ alert(L().rnErr) }catch(_){}; return; }
+  ladeTc().catch(()=>{});
 }
 
 /* ================= 158 Neu in der App (Dennis 19.11.2026) =================
@@ -7178,6 +7627,12 @@ function sitzungZuruecksetzen(){
        for(const k of ["#hb-mine","#hb-list"]){ const el=$(k); if(el) el.innerHTML=""; }
        const hm=$("#hb-msg"); if(hm) hm.textContent="";
        const hs=$("#hb-send"), ho=$("#hb-open"); if(hs) hs.hidden=true; if(ho) ho.hidden=true; }catch(e){}
+  /* 165: Tagescheck, Entwurf in der Maske und Ausfall-Text gehen nicht an die naechste Person. */
+  try{ tcLauf++; tcRolle=null; TC=null; TCST=null; TCP=null; tcForm=null; tcSendet=false; tcWarnGesehen=false;
+       for(const k of ["#tc-kopf","#tc-morgen","#tc-offen","#tc-geraet","#tcf"]){ const el=$(k); if(el) el.innerHTML=""; }
+       for(const k of ["#tc-rest","#tc-ausfall"]){ const el=$(k); if(el){ el.value=""; delete el.dataset.sig; delete el.dataset.id; } }
+       for(const k of ["#tc-msg","#tcf-msg","#tc-rest-msg"]){ const el=$(k); if(el) el.textContent=""; }
+       const to=$("#tc-open"); if(to) to.hidden=true; }catch(e){}
   try{ tmLauf++; TMJOBS=null; tmDep=null; tmJob=null; tmSendet=false;
        const tn=$("#tm-name"); if(tn){ tn.value=""; delete tn.dataset.tmid; delete tn.dataset.tmv; delete tn.dataset.tmt; }
        for(const k of ["#tm-deps","#tm-jobs","#tm-alle","#tm-weg","#tm-pin"]){ const el=$(k); if(el) el.innerHTML=""; }
@@ -7715,7 +8170,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeBericht().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeBericht().catch(()=>{}); zeigeTagescheck().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -7728,6 +8183,8 @@ function go(id, push){
   if(id==="s-hbneu"){ zeichneHbNeu(); }
   if(id==="s-hilfe"){ ladeHilfe().catch(()=>{}); }
   if(id==="s-hbliste"){ ladeHbListe().catch(()=>{}); }
+  if(id==="s-tc"){ ladeTc().catch(()=>{}); }
+  if(id==="s-tcform"){ zeichneTcForm(); }
   if(id==="s-zfliste"){ ladeZfListe().catch(()=>{}); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
   if(id==="s-weneu"){ zeichneWeNeu(); }
@@ -7904,6 +8361,19 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#hf-ask")){ helferFragen(); return; }
   /* 161 Hilfe */
   const hig=e.target.closest("[data-higo]"); if(hig){ go(hig.dataset.higo); return; }
+  /* 165 Tagescheck */
+  const tcn=e.target.closest("[data-tcneu]"); if(tcn){ tcNeu(tcn.dataset.tcneu); return; }
+  const tce=e.target.closest("[data-tcedit]"); if(tce){ tcEdit(tce.dataset.tcedit); return; }
+  const tco=e.target.closest("[data-tcopt]"); if(tco){ tcOptWahl(tco.dataset.tcopt, tco.dataset.tcwert); return; }
+  const tcb=e.target.closest("[data-tcbeh]"); if(tcb){ const i=$("#tcf-behandlung"); if(i){ i.value=tcb.dataset.tcbeh; } return; }
+  const tcs=e.target.closest("[data-tcseen]"); if(tcs){ tcGesehen(tcs.dataset.tcseen, tcs); return; }
+  if(e.target.closest("#tcf-save")){ tcSpeichern(false); return; }
+  if(e.target.closest("#tcf-next")){ tcSpeichern(true); return; }
+  if(e.target.closest("#tcf-del")){ tcLoeschen(); return; }
+  if(e.target.closest("#tc-send")){ tcSenden(false); return; }
+  if(e.target.closest("#tc-rest-send")){ tcRestSenden(); return; }
+  if(e.target.closest("#tc-ausfall-btn")){ const w=$("#tc-ausfall-wrap"); if(w){ w.hidden=!w.hidden; const a=$("#tc-ausfall"); if(a&&!w.hidden){ a.placeholder=L().tcAusfallPh; a.focus(); } } return; }
+  if(e.target.closest("#tc-ausfall-send")){ tcSenden(true); return; }
   /* 159 Bericht an Hendra */
   if(e.target.closest("#hb-save")){ hbSenden(); return; }
   const hbs=e.target.closest("[data-hbseen]"); if(hbs){ hbGesehen(hbs.dataset.hbseen, hbs); return; }
