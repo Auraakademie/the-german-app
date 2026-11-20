@@ -1978,6 +1978,9 @@ const T={
   lvAskFirst:"First get a yes from Nina or Dr. Michael. Then approve.",
   lvOwn:"Your own request: Nina or Dr. Michael decide.",
   lvTooMany:"That is more than you have left.",
+  lvWorkDays:"Only days with a shift in the roster are counted.",
+  lvNoPlan:"Some days have no roster yet. For these days, a full week counts as 5 days.",
+  lvNoWork:"These days are off in the roster. If that is wrong, Hendra must fix the roster. Then try again tomorrow.",
   lvBadRange:"The end is before the start.",
   lvOffline:"No connection. Try again when you are online.",
   lvUsed:"used", lvPlanned:"requested",
@@ -2297,6 +2300,9 @@ const T={
   lvAskFirst:"Minta persetujuan Nina atau Dr. Michael dulu. Baru setujui di sini.",
   lvOwn:"Pengajuan Anda sendiri: Nina atau Dr. Michael yang memutuskan.",
   lvTooMany:"Itu lebih dari sisa cuti Anda.",
+  lvWorkDays:"Yang dihitung hanya hari dengan shift di jadwal kerja.",
+  lvNoPlan:"Beberapa hari belum ada jadwal kerja. Untuk hari-hari itu, satu minggu penuh dihitung 5 hari.",
+  lvNoWork:"Hari-hari ini libur menurut jadwal kerja. Jika itu salah, Hendra perlu memperbaiki jadwal kerja. Lalu coba lagi besok.",
   lvBadRange:"Tanggal selesai sebelum tanggal mulai.",
   lvOffline:"Tidak ada koneksi. Coba lagi saat online.",
   lvUsed:"terpakai", lvPlanned:"diajukan",
@@ -2567,7 +2573,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-20c";
+const APP_VERSION = "2026-11-21a";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -7055,7 +7061,10 @@ async function datumAendern(id){
   const zeile=document.querySelector(`[data-antrag="${id}"]`); if(zeile) zeile.style.opacity=".4";
   try{ await sbSend("rpc/urlaub_aendern", {p_antrag:id, p_von:von.value, p_bis:bis.value}); }
   catch(e){ chefSendet=false; if(zeile) zeile.style.opacity="1";
-    try{ alert(/overlap/.test(String(e&&e.message||e)) ? t.lvChangeOverlap : t.lvSaveFail) }catch(_){} return; }   /* Eingabe bleibt stehen */
+    /* 171: auch "nur freie Tage" und "zu wenig Resturlaub" beim Namen nennen, nicht nur "could not save" */
+    const s=String(e&&e.message||e), m=s.match(/not_enough\s+(-?[\d.]+)/);
+    try{ alert(/overlap/.test(s) ? t.lvChangeOverlap : /no_workdays/.test(s) ? t.lvNoWork
+               : m ? t.efNotEnough.replace("%d", Number(m[1])) : t.lvSaveFail) }catch(_){} return; }   /* Eingabe bleibt stehen */
   chefSendet=false;
   await ladeOffene().catch(()=>{}); await ladeTeamUrlaub().catch(()=>{});
 }
@@ -7125,25 +7134,41 @@ const datumKurz = iso => {
   return d.toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{day:"numeric",month:"short"});
 };
 
-function urlaubTage(){
-  const a=$("#lv-from").value, b=$("#lv-to").value;
-  if(!a||!b) return 0;
-  const d=(new Date(b)-new Date(a))/86400000+1;
-  return d>0?d:0;
+/* 171 (Dennis 21.11.2026): Urlaub zaehlt Arbeitstage laut Dienstplan, nicht Kalendertage.
+   Die Zahl kommt vom Server (dieselbe Rechnung wie beim Abziehen), nie aus dem Handy.
+   Kommt keine Antwort (kein Netz, Vorfuehrmodus), steht keine Zahl da und der Server
+   entscheidet beim Senden. Nur die neueste Anfrage zaehlt (schnelles Umtippen). */
+const utLauf={lv:0, ef:0};
+async function urlaubTageHolen(wo, person, von, bis){
+  const nr=++utLauf[wo];
+  let r=null;
+  try{ if(online && S.token && !demoAktiv()) r=await sbSend("rpc/urlaub_tage", {p_person:person||null, p_von:von, p_bis:bis}); }
+  catch(_){ r=null }
+  return nr===utLauf[wo] ? {r} : null;   /* null = inzwischen neu getippt, nichts tun */
+}
+function urlaubTageHtml(t, r){
+  const n=Number(r.tage), hin = Number(r.ohne_plan) ? t.lvNoPlan : t.lvWorkDays;
+  return escHtml(n+" "+(n===1?t.lvDay:t.lvDays))
+    + `<span style="display:block;font-size:12px;font-weight:400;opacity:.75">${escHtml(hin)}</span>`;
 }
 
-function urlaubRechnen(){
-  const t=L(), n=urlaubTage();
-  $("#lv-days").textContent = n ? n+" "+(n===1?t.lvDay:t.lvDays) : "";
-  const msg=$("#lv-msg"); msg.className="lverr"; msg.textContent="";
-  const send=$("#lv-send"); if(!send) return;
+async function urlaubRechnen(){
+  const t=L(), a=$("#lv-from").value, b=$("#lv-to").value;
+  const tg=$("#lv-days"), msg=$("#lv-msg"), send=$("#lv-send");
+  tg.textContent=""; msg.className="lverr"; msg.textContent="";
+  if(!send) return;
+  if(!a||!b||b<a){ utLauf.lv++; send.disabled=true; return }
+  send.disabled=true; tg.textContent="…";
+  const x=await urlaubTageHolen("lv", null, a, b);
+  if(!x || $("#lv-from").value!==a || $("#lv-to").value!==b) return;
+  if(!x.r){ tg.textContent=""; send.disabled=false; return }
+  const n=Number(x.r.tage);
+  if(n<1){ tg.textContent=""; msg.className="lverr bad"; msg.textContent=t.lvNoWork; return }
+  tg.innerHTML=urlaubTageHtml(t, x.r);
   /* Zu viele Tage werden SOFORT gesagt, nicht erst nach dem Absenden.
      Eine Absage nach dem Absenden fuehlt sich wie eine Abfuhr an. */
-  if(n && lvStand && n > Number(lvStand.frei)){
-    msg.className="lverr bad"; msg.textContent=t.lvTooMany;
-    send.disabled=true; return;
-  }
-  send.disabled = !n;
+  if(lvStand && n > Number(lvStand.frei)){ msg.className="lverr bad"; msg.textContent=t.lvTooMany; return }
+  send.disabled=false;
 }
 
 async function urlaubSenden(){
@@ -7165,7 +7190,8 @@ async function urlaubSenden(){
     $("#lv-from").value=""; $("#lv-to").value=""; $("#lv-days").textContent="";
     await ladeUrlaub();
   }catch(e){
-    msg.className="lverr bad"; msg.textContent=fehlerText(e, t);
+    /* 171 (Bruno N4): eigene Meldung statt englischem Servertext */
+    msg.className="lverr bad"; msg.textContent=/days off in your roster/.test(String(e&&e.message||"")) ? t.lvNoWork : fehlerText(e, t);
   }finally{
     if(send) send.disabled=false;
   }
@@ -7199,14 +7225,32 @@ function efRechnen(){
   const von=$("#ef-from"), bis=$("#ef-to");
   if(von && bis && von.value && (!bis.value || bis.value<von.value) && document.activeElement!==bis) bis.value=von.value;
   const n2=efTage();
-  $("#ef-days").textContent = n2 ? n2+" "+(n2===1?t.lvDay:t.lvDays) : "";
+  /* 171: Krank bleibt Kalendertage. Urlaub zeigt die Arbeitstage vom Server (efTageServer). */
+  if(efArt==="sick" || !wer || !n2){ utLauf.ef++; efTageSrv=null;
+    $("#ef-days").textContent = n2 ? n2+" "+(n2===1?t.lvDay:t.lvDays) : ""; }
+  else efTageServer(wer, von.value, bis.value);
   const br=$("#ef-brief-row"); if(br) br.hidden = efArt!=="sick";
   const h=$("#ef-hint");
   if(h){
     if(efArt==="sick") h.textContent = $("#ef-brief") && $("#ef-brief").checked ? t.efSickNow : t.efSickWait;
     else h.textContent = (me() && me().mgr && !me().lead) ? t.efAskFirst+" "+t.efLeaveNow : t.efLeaveNow;
   }
-  const s=$("#ef-send"); if(s) s.disabled = efSendet || !wer || !n2;
+  const s=$("#ef-send"); if(s) s.disabled = efSendet || !wer || !n2 || (efArt!=="sick" && efTageSrv===0);
+}
+/* 171: Arbeitstage fuer die gewaehlte Person. efTageSrv: null = unbekannt, 0 = nur freie Tage. */
+let efTageSrv=null, efTageKey="";
+async function efTageServer(wer, von, bis){
+  const t=L(), el=$("#ef-days"), key=wer+"|"+von+"|"+bis;
+  if(key===efTageKey && efTageSrv!==null) return;   /* schon da, nicht bei jedem Haken neu fragen */
+  efTageKey=key; efTageSrv=null; if(el) el.textContent="…";
+  const x=await urlaubTageHolen("ef", wer, von, bis);
+  if(!x || efTageKey!==key) return;
+  if(!x.r){ if(el) el.textContent=""; return }
+  efTageSrv=Number(x.r.tage);
+  if(el) el.innerHTML = efTageSrv<1
+    ? `<span style="color:#C4553B;font-weight:400">${escHtml(t.lvNoWork)}</span>`
+    : urlaubTageHtml(t, x.r);
+  const s=$("#ef-send"); if(s) s.disabled = efSendet || !$("#ef-who").value || efTageSrv<1;
 }
 function efFehler(e, t){
   const s=String(e && e.message || "");
@@ -7221,6 +7265,7 @@ function efFehler(e, t){
   if(/own_request/.test(s)) return t.efOwn;
   if(/person_unknown/.test(s)) return t.efNoPerson;
   if(/not_allowed/.test(s)) return t.efNoAccess;
+  if(/no_workdays/.test(s)) return t.lvNoWork;
   /* Bruno N1: keine rohen Servertexte */
   if(/^\d\d\d /.test(s)) return t.efServer;
   return t.lvOffline;
