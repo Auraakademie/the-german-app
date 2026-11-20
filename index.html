@@ -1119,6 +1119,30 @@
           <span style="flex:1"><span class="tt" data-t="tmTile"></span>
             <span class="mt" data-t="tmTileS"></span></span>
           <span class="chev">&rsaquo;</span></button>
+        <!-- 167 (Nina 20.11.2026): "jemanden auf sick leave oder leave stellen". Eka liegt im
+             Krankenhaus und kann sich nicht selbst melden. Zugeklappt, damit die Liste
+             "To decide" oben bleibt (Nina 26.10.: nicht erst scrollen muessen). -->
+        <details class="glass" id="ef-box" style="padding:14px 16px;margin-bottom:14px">
+          <summary style="cursor:pointer;font-weight:600" data-t="efH"></summary>
+          <p class="lverr" data-t="efS" style="margin:8px 0 0;opacity:.8"></p>
+          <label class="lvlab" data-t="efWho"></label>
+          <select class="lvin" id="ef-who"></select>
+          <div class="lvrow" style="margin-top:12px">
+            <button class="dep on" data-efk="sick" data-t="st_sick"></button>
+            <button class="dep" data-efk="holiday" data-t="lvHoliday"></button>
+            <button class="dep" data-efk="religion" data-t="lvReligion"></button>
+          </div>
+          <label class="lvlab" data-t="lvFrom"></label>
+          <input class="lvin" type="date" id="ef-from">
+          <label class="lvlab" data-t="lvTo"></label>
+          <input class="lvin" type="date" id="ef-to">
+          <p class="lvdays" id="ef-days"></p>
+          <label class="lvcert" id="ef-brief-row" style="margin-top:6px">
+            <input type="checkbox" id="ef-brief"><span data-t="efBrief"></span></label>
+          <p class="lverr" id="ef-hint" style="margin:6px 0 0"></p>
+          <button class="bigcheck" id="ef-send"><span class="bx"></span><span data-t="efSend"></span></button>
+          <p class="lverr" id="ef-msg"></p>
+        </details>
         <p class="eyebrow" data-t="lvToDecide"></p>
         <div id="lv-offen"></div>
 
@@ -1276,6 +1300,16 @@
       </div>
       <p class="sub" data-t="amHint"></p>
       <div id="am-list" style="margin-top:10px"></div>
+      <!-- 167 (Nina 20.11.2026): "einen Download der Liste ... so wie beim leave Bereich,
+           damit wir eine Gesamtuebersicht haben". Dieselben Zahlen wie oben, fuer den
+           Monat, der gerade angezeigt wird. Als Datei und als Seite (Hendra 23.10.:
+           Download laesst sich auf manchen Handys nicht speichern). -->
+      <div class="glass" style="padding:16px;margin-top:14px">
+        <p class="lverr" data-t="amSheetTxt" style="margin:0 0 14px"></p>
+        <button class="bigcheck" id="am-csv"><span class="bx"></span><span data-t="lvGet"></span></button>
+        <button class="pinrst" id="am-page" style="margin-top:10px">&#128196; <span data-t="lvPage"></span></button>
+        <p class="lverr" id="am-csv-msg"></p>
+      </div>
     </section>
 
     <section class="screen" id="s-roster">
@@ -1960,6 +1994,25 @@ const T={
   tbListH:"Daily reports", tbListS:"From Hendra, newest first", tbAutoDuty:"{n} on duty", tbAutoAway:"away:", tbAutoIn:"{n} checked in", tbNotYet:"not yet", ckReport:"Daily report",
   attAtClinic:"at the clinic", attAway:"away", attMap:"map", lvPage:"Open the list as a page",
   attToday:"Today", attCorrected:"corrected by", attWas:"was",
+  efH:"Add for someone else", efS:"For someone who cannot use the app right now, for example someone in hospital. This person also gets a notification, if it is turned on.",
+  efWho:"Who?", efPick:"Choose a person",
+  efBrief:"I have seen the doctor's or hospital letter",
+  efSickNow:"Approved right away as sick days.",
+  efSickWait:"Without the letter, this sick report waits under \u201cTo decide\u201d. When you see the letter, tick \u201cDoctor's letter seen\u201d there.",
+  efLeaveNow:"Approved right away. The days come off this person's leave.", efAskFirst:"First get a yes from Nina or Dr. Michael. Then tap Save.",
+  efSend:"Save",
+  efOk:"Saved for %s.", efOkWait:"Saved for %s. It is now under \u201cTo decide\u201d.",
+  efOverlap:"This person already has leave or sick days on these dates. Change that entry instead.",
+  efNotEnough:"Not enough leave left. Days left: %d.",
+  efTooLongSick:"Maximum 60 days in one entry. For longer, make a second entry.",
+  efTooLongLeave:"Maximum 31 days in one entry.",
+  efTooOld:"The first day is more than 31 days in the past.",
+  efTooFarSick:"Sick days can start at most 30 days from today.", efTooFarLeave:"Leave can start at most 1 year from today.",
+  efOwn:"For yourself, use \u201cReport sick\u201d or \u201cRequest leave\u201d below.",
+  efNoPerson:"This person is no longer active in the app.",
+  amSheetTxt:"Download the list of everyone for the month shown, or open it as a page to print or save as PDF.",
+  amGetWait:"The month overview is still loading. Try again in a moment.",
+  amGetCheck:"Look for it in Downloads or in the Files app.",
   amH:"Month overview", amTileS:"Late arrivals, overtime, missing check-ins", amHint:"Compared with the roster. Hours count from 15 minutes before shift start to 15 minutes after shift end. Later than that is overtime, earlier does not count. On days over 6 hours, 1 hour lunch break is not counted (except Security). Late = more than 5 minutes after the real start, which is 15 minutes before the shift (for a 09:00 shift: be there by 08:45, after 08:50 counts as late). Hendra is in charge, this is your second pair of eyes.",
   amDay:"day", amDays:"days", amLate:"late", amFlex:"Flexible time: only the total hours count", amOnTime:"always on time", amOver:"overtime", amNoStampDay:"day without check-in", amNoStamp:"days without check-in", amNoOutDay:"day without check-out", amNoOut:"days without check-out",
   amNoPlanDay:"day without roster", amNoPlan:"days without roster", amNoPlanInfo:"no roster for these days, nothing to compare", amNotCounted:"not counted (before shift)", amNone:"No check-ins in this month yet.", lvSaveFail:"NOT saved. No connection or the server said no. Please try again.",
@@ -2260,6 +2313,25 @@ const T={
   tbListH:"Laporan harian", tbListS:"Dari Hendra, terbaru di atas", tbAutoDuty:"{n} bertugas", tbAutoAway:"tidak masuk:", tbAutoIn:"{n} sudah absen masuk", tbNotYet:"belum", ckReport:"Laporan harian",
   attAtClinic:"di klinik", attAway:"jauh", attMap:"peta", lvPage:"Buka daftar sebagai halaman",
   attToday:"Hari ini", attCorrected:"dikoreksi oleh", attWas:"sebelumnya",
+  efH:"Catat untuk orang lain", efS:"Untuk orang yang tidak bisa mencatat sendiri di aplikasi, misalnya karena sedang dirawat di rumah sakit. Orang tersebut juga mendapat notifikasi, jika notifikasinya aktif.",
+  efWho:"Siapa?", efPick:"Pilih nama",
+  efBrief:"Saya sudah melihat surat dokter atau rumah sakit",
+  efSickNow:"Langsung disetujui sebagai hari sakit.",
+  efSickWait:"Tanpa surat, laporan sakit ini menunggu di \u201cPerlu keputusan\u201d. Setelah Anda melihat suratnya, centang \u201cSurat dokter sudah dilihat\u201d di sana.",
+  efLeaveNow:"Langsung disetujui. Harinya dipotong dari sisa cuti orang ini.", efAskFirst:"Minta persetujuan Nina atau Dr. Michael dulu. Lalu ketuk Simpan.",
+  efSend:"Simpan",
+  efOk:"Tersimpan untuk %s.", efOkWait:"Tersimpan untuk %s. Sekarang ada di \u201cPerlu keputusan\u201d.",
+  efOverlap:"Orang ini sudah punya cuti atau hari sakit di tanggal itu. Ubah catatan itu saja.",
+  efNotEnough:"Sisa cuti tidak cukup. Sisa: %d hari.",
+  efTooLongSick:"Maksimal 60 hari dalam satu catatan. Kalau lebih lama, buat catatan kedua.",
+  efTooLongLeave:"Maksimal 31 hari dalam satu catatan.",
+  efTooOld:"Tanggal mulai lebih dari 31 hari yang lalu.",
+  efTooFarSick:"Hari sakit paling lambat mulai 30 hari dari hari ini.", efTooFarLeave:"Cuti paling lambat mulai 1 tahun dari hari ini.",
+  efOwn:"Untuk diri sendiri, pakai \u201cLapor sakit\u201d atau \u201cAjukan cuti\u201d di bawah.",
+  efNoPerson:"Orang ini sudah tidak terdaftar di aplikasi.",
+  amSheetTxt:"Unduh daftar semua orang untuk bulan yang ditampilkan, atau buka sebagai halaman untuk dicetak atau disimpan sebagai PDF.",
+  amGetWait:"Ringkasan bulan masih dimuat. Coba lagi sebentar lagi.",
+  amGetCheck:"Cari di Unduhan atau di aplikasi File.",
   amH:"Ringkasan bulan", amTileS:"Terlambat, lembur, tanpa absen", amHint:"Dibandingkan dengan jadwal. Jam dihitung dari 15 menit sebelum shift mulai sampai 15 menit setelah shift selesai. Lebih dari itu lembur, lebih awal tidak dihitung. Pada hari kerja lebih dari 6 jam, istirahat makan siang 1 jam tidak dihitung (kecuali Security). Terlambat = lebih dari 5 menit setelah mulai kerja sebenarnya, yaitu 15 menit sebelum shift (untuk shift 09:00: hadir paling lambat 08:45, setelah 08:50 dihitung terlambat). Hendra yang bertanggung jawab, ini pandangan kedua.",
   amDay:"hari", amDays:"hari", amLate:"terlambat", amFlex:"Jam kerja fleksibel: hanya total jam yang dihitung", amOnTime:"selalu tepat waktu", amOver:"lembur", amNoStampDay:"hari tanpa absen masuk", amNoStamp:"hari tanpa absen masuk", amNoOutDay:"hari tanpa absen keluar", amNoOut:"hari tanpa absen keluar",
   amNoPlanDay:"hari tanpa jadwal", amNoPlan:"hari tanpa jadwal", amNoPlanInfo:"tidak ada jadwal untuk hari-hari ini, tidak bisa dibandingkan", amNotCounted:"tidak dihitung (sebelum shift)", amNone:"Belum ada absen di bulan ini.", lvSaveFail:"BELUM tersimpan. Tidak ada koneksi atau server menolak. Coba lagi.",
@@ -2492,7 +2564,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-20a";
+const APP_VERSION = "2026-11-20b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -2923,6 +2995,8 @@ async function ladeAnwesenheitMonat(){
   const monat=amMonat;
   if(mo) mo.textContent=new Date(monat+"T00:00:00Z").toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
   box.innerHTML="";
+  amDaten=null;
+  { const am=$("#am-csv-msg"); if(am){ am.textContent=""; am.className="lverr"; } }
   let rows; try{ rows=await sbGet("rpc/anwesenheit_monat?p_monat="+monat); }
   catch(e){ if(amMonat!==monat) return; const code=parseInt(e&&e.message,10); box.innerHTML=`<p class="lverr">${code>=400?t.rsErr.replace("{code}",code):t.rsOffline}</p>`; return; }
   if(amMonat!==monat) return;
@@ -2931,6 +3005,7 @@ async function ladeAnwesenheitMonat(){
   let flex=new Set();
   try{ const f=await mitZeitlimit(sbGet("rpc/flexible_personen"), 8000); flex=new Set((f||[]).map(x=>typeof x==="string"?x:(x && (x.flexible_personen||x.id)))); }catch(e){}
   if(amMonat!==monat) return;
+  amDaten={monat, rows:rows||[], flex, stand:new Date()};
   const mitDaten=(rows||[]).filter(r=>r.tage>0||r.ohne_stempel>0);
   const tagWort=(n,eins,viele)=>n+" "+(n===1?eins:viele);
   box.innerHTML = mitDaten.length ? mitDaten.map(r=>{
@@ -2956,6 +3031,80 @@ async function ladeAnwesenheitMonat(){
       ${z2.length?`<small style="display:block">${z2.join(" \u00b7 ")}</small>`:""}</div>
       <span class="lvst ${r.zu_spaet?"requested":""}">${r.zu_spaet||0}</span></div>`; }).join("")
     : `<p class="lverr">${t.amNone}</p>`;
+}
+/* 167: Monatsuebersicht als Datei und als Seite (Nina 20.11.2026). Genau die Zahlen,
+   die der Bildschirm fuer diesen Monat geladen hat, fuer alle Personen (auch die ohne
+   Stempel, damit die Liste vollstaendig ist). Nichts wird neu gerechnet. */
+let amDaten=null;
+function amZeilen(){
+  const d=amDaten; if(!d) return null;
+  const rows=(d.rows||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  return rows.map(r=>{
+    const flex=d.flex && d.flex.has(r.person_id);
+    return {
+      name:r.name, dep:r.department||"", tage:r.tage||0, stunden:r.stunden==null?"":r.stunden,
+      spaet:flex?"":(r.zu_spaet||0), spaetMin:flex?"":(r.spaet_min||0),
+      ueber:r.ueber_min||0, vor:r.vor_fenster_min||0, ohneStempel:r.ohne_stempel||0,
+      ohneGing:r.ohne_ging||0, ohneGingTage:r.ohne_ging_tage||"", ohnePlan:r.ohne_plan||0,
+      flex:flex?"yes":""
+    };
+  });
+}
+function amMonatText(m){ return new Date(m+"T00:00:00Z").toLocaleDateString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"}); }
+const AM_KOPF=["Employee","Department","Days checked in","Hours","Late (times)","Late (minutes)",
+  "Overtime (minutes)","Early, not counted (minutes)","Shift but no check-in (days)",
+  "Check-in but no check-out (days)","Dates without check-out","Check-in without roster (days)","Flexible time"];
+function amWerte(z){ return [z.name,z.dep,z.tage,z.stunden,z.spaet,z.spaetMin,z.ueber,z.vor,z.ohneStempel,z.ohneGing,z.ohneGingTage,z.ohnePlan,z.flex]; }
+let amSendet=false;
+async function amHolen(){
+  const t=L(), msg=$("#am-csv-msg"), knopf=$("#am-csv");
+  const sage=(txt,art)=>{ if(msg){ msg.textContent=txt||""; msg.className="lverr"+(art?" "+art:""); } };
+  if(!istLeitung()){ sage(t.lvGetFail,"bad"); return; }
+  if(TESTLAUF || demoAktiv()){ sage(t.lvGetDemo); return; }
+  if(amSendet) return;
+  const z=amZeilen();
+  if(!amDaten || amDaten.monat!==amMonat){ sage(t.amGetWait); return; }
+  if(!z || !z.length){ sage(t.amNone,"bad"); return; }
+  amSendet=true; if(knopf) knopf.disabled=true;
+  const monat=amDaten.monat;
+  try{
+    const q=v=>{ const s=v===null||v===undefined?"":String(v); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+    const zeilen=[q("Month overview "+amMonatText(monat)+" (created "+standTag(amDaten.stand)+")"), AM_KOPF.map(q).join(";")];
+    z.forEach(r=>zeilen.push(amWerte(r).map(q).join(";")));
+    const text=zeilen.join("\r\n");
+    const blob=new Blob(["﻿"+text],{type:"text/csv;charset=utf-8"});
+    const datei="THE-GERMAN-month-"+monat.slice(0,7)+".csv";
+    try{
+      const f=new File([blob],datei,{type:"text/csv"});
+      if(navigator.canShare && navigator.canShare({files:[f]})){
+        await mitZeitlimit(navigator.share({files:[f],title:datei}),120000);
+        sage(t.lvGetShared,"good"); return;
+      }
+    }catch(e){ if(e && e.name==="AbortError"){ sage(t.lvGetAbort); return; } }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=datei;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+    sage(t.lvGetSaved+" "+datei+"  "+t.amGetCheck);
+  }catch(e){ sage(t.lvGetFail,"bad"); }
+  finally{ amSendet=false; if(knopf) knopf.disabled=false; }
+}
+function amAlsSeite(){
+  const t=L(), msg=$("#am-csv-msg");
+  if(!istLeitung()) return;
+  if(!amDaten || amDaten.monat!==amMonat){ if(msg){ msg.textContent=t.amGetWait; msg.className="lverr"; } return; }
+  const z=amZeilen()||[];
+  const esc=x=>escHtml(x==null?"":x);
+  const kopf=AM_KOPF.map(h=>`<th>${esc(h)}</th>`).join("");
+  const zeilen=z.map(r=>`<tr>${amWerte(r).map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("");
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Month ${esc(amDaten.monat.slice(0,7))}</title>
+    <style>body{font:14px/1.4 -apple-system,Helvetica,Arial;padding:16px;color:#222}h2{margin:18px 0 8px}p{color:#555}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:5px 7px;text-align:left;font-size:12px}th{background:#f2f2f2}@media print{button{display:none}}</style></head>
+    <body><button onclick="print()">Print / Save as PDF</button><h2>${esc(t.amH)} · ${esc(amMonatText(amDaten.monat))}</h2>
+    <p>${esc(t.amHint)}</p><p>Created ${esc(standTag(amDaten.stand))}</p>
+    <table><tr>${kopf}</tr>${zeilen}</table></body></html>`;
+  const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  const w=window.open(url,"_blank");
+  if(!w && msg){ msg.textContent=t.lvGetFail; msg.className="lverr bad"; }
 }
 let attTag=null, attLauf=0;
 /* still=true kommt nur vom 30-Sekunden-Takt. Ein stiller Lauf zeichnet nie
@@ -3501,7 +3650,7 @@ async function sbSend(pfad, koerper, methode, extra, zweiterVersuch){
      PIN-Zuruecksetzen - ohne dass real jemand ausgesperrt wird oder ein
      Datensatz entsteht. Lesen (select) bleibt erlaubt, damit die Ansichten
      etwas zeigen. */
-  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen|bericht_schreiben|bericht_gesehen|tagescheck_speichern|tagescheck_senden|tagescheck_gesehen|tagescheck_loeschen)/.test(pfad)){
+  if(demoAktiv() && /rpc\/(anwesenheit_loeschen|anwesenheit_korrigieren|aufgabe_kommentieren|tagesbericht_speichern|tagesbericht_gesehen|urlaub|krank|attest|pin_zuruecksetzen|zimmer|starte|einchecken|auschecken|haengt_erledigt|geburtstag_setzen|geburtstag_loeschen|geburtstag_extern_setzen|geburtstag_extern_loeschen|aufgabe_erstellen|aufgabe_erledigen|aufgabe_loeschen|aufgabe_foto_setzen|beleg_hinzufuegen|beleg_loeschen|leitung_nachricht|chat_hinzufuegen|chat_erledigt|raum_notiz_hinzufuegen|raum_notiz_erledigt|wareneingang_hinzufuegen|artikel_hinzufuegen|artikel_deaktivieren|wareneingang_neu_uebernehmen|wareneingang_neu_verwerfen|wareneingang_abgeglichen|sammelrechnung_hinzufuegen|profilfoto_setzen|profilfoto_loeschen|person_anlegen|person_entfernen|person_zurueckholen|bericht_schreiben|bericht_gesehen|tagescheck_speichern|tagescheck_senden|tagescheck_gesehen|tagescheck_loeschen|abwesenheit_eintragen)/.test(pfad)){
     return null;
   }
   const r = await mitZeitlimit(fetch(SB.url+"/rest/v1/"+pfad, {
@@ -7017,6 +7166,87 @@ async function urlaubSenden(){
 }
 
 
+/* ===== 167: Leitung traegt fuer jemanden ein (Nina 20.11.2026) =====
+   Eka liegt im Krankenhaus. Nina, Micha und Hendra tragen Krank oder Urlaub fuer
+   eine andere Person ein. Urlaub gilt sofort, Krank nur mit gesehenem Brief, sonst
+   wartet es unter "To decide". Die Kennung bleibt beim Wiederholen gleich (Doppeltipp
+   bei schlechtem Netz legt nichts doppelt an). */
+let efArt="sick", efSendet=false, efKennung=null, efSchluessel="";
+function efFuellen(){
+  const sel=$("#ef-who"); if(!sel) return;
+  const m=me(), alt=sel.value, t=L();
+  const leute=PEOPLE.filter(p=>p.id && !p.demo && !(m && p.id===m.id))
+    .slice().sort((a,b)=>String(a.n).localeCompare(String(b.n)));
+  sel.innerHTML=`<option value="">${escHtml(t.efPick)}</option>`+
+    leute.map(p=>`<option value="${escHtml(p.id)}">${escHtml(p.n)}</option>`).join("");
+  if(alt && leute.some(p=>p.id===alt)) sel.value=alt;
+  efRechnen();
+}
+function efTage(){
+  const a=$("#ef-from").value, b=$("#ef-to").value;
+  if(!a||!b) return 0;
+  const d=Math.round((new Date(b+"T00:00:00Z")-new Date(a+"T00:00:00Z"))/86400000)+1;
+  return d>0?d:0;
+}
+function efRechnen(){
+  const t=L(), n=efTage(), wer=$("#ef-who") && $("#ef-who").value;
+  const von=$("#ef-from"), bis=$("#ef-to");
+  if(von && bis && von.value && (!bis.value || bis.value<von.value) && document.activeElement!==bis) bis.value=von.value;
+  const n2=efTage();
+  $("#ef-days").textContent = n2 ? n2+" "+(n2===1?t.lvDay:t.lvDays) : "";
+  const br=$("#ef-brief-row"); if(br) br.hidden = efArt!=="sick";
+  const h=$("#ef-hint");
+  if(h){
+    if(efArt==="sick") h.textContent = $("#ef-brief") && $("#ef-brief").checked ? t.efSickNow : t.efSickWait;
+    else h.textContent = (me() && me().mgr && !me().lead) ? t.efAskFirst+" "+t.efLeaveNow : t.efLeaveNow;
+  }
+  const s=$("#ef-send"); if(s) s.disabled = efSendet || !wer || !n2;
+}
+function efFehler(e, t){
+  const s=String(e && e.message || "");
+  const m=s.match(/not_enough\s+(-?[\d.]+)/);
+  if(m) return t.efNotEnough.replace("%d", Number(m[1]));
+  if(/overlap/.test(s)) return t.efOverlap;
+  if(/too_long/.test(s)) return efArt==="sick" ? t.efTooLongSick : t.efTooLongLeave;
+  if(/too_old/.test(s)) return t.efTooOld;
+  if(/too_far/.test(s)) return efArt==="sick" ? t.efTooFarSick : t.efTooFarLeave;
+  if(/own_request/.test(s)) return t.efOwn;
+  if(/person_unknown/.test(s)) return t.efNoPerson;
+  if(/not_allowed/.test(s)) return t.tcNoAccess || t.lvOffline;
+  return fehlerText(e, t);
+}
+async function efSenden(){
+  const t=L(), msg=$("#ef-msg"), sel=$("#ef-who");
+  const wer=sel && sel.value, von=$("#ef-from").value, bis=$("#ef-to").value;
+  const brief = efArt==="sick" && !!($("#ef-brief") && $("#ef-brief").checked);
+  msg.className="lverr"; msg.textContent="";
+  if(!wer||!von||!bis || efSendet) return;
+  if(bis<von){ msg.className="lverr bad"; msg.textContent=t.lvBadRange; return }
+  const name=(PEOPLE.find(p=>p.id===wer)||{}).n||"";
+  if(demoAktiv()){ msg.className="lverr good"; msg.textContent=t.lvGetDemo; return }
+  if(!online||!S.token){ msg.className="lverr bad"; msg.textContent=t.lvOffline; return }
+  /* Gleiche Eingabe = gleiche Kennung. Andere Eingabe = neue Kennung. */
+  const schluessel=[wer,efArt,von,bis,brief].join("|");
+  if(schluessel!==efSchluessel || !efKennung){ efSchluessel=schluessel; efKennung=neueKennung(); }
+  efSendet=true; efRechnen();
+  try{
+    const r = await sbSend("rpc/abwesenheit_eintragen",
+      {p_person:wer, p_kind:efArt, p_von:von, p_bis:bis, p_brief_gesehen:brief, p_client_id:efKennung});
+    const st = r && r.status;
+    msg.className="lverr good";
+    msg.textContent = (st==="requested" ? t.efOkWait : t.efOk).replace("%s", name);
+    efKennung=null; efSchluessel="";
+    $("#ef-from").value=""; $("#ef-to").value=""; if($("#ef-brief")) $("#ef-brief").checked=false;
+    LVBLATT=null;
+    ladeOffene().catch(()=>{});
+    if(typeof ladeKrank==="function") ladeKrank().catch(()=>{});
+  }catch(e){
+    msg.className="lverr bad"; msg.textContent=efFehler(e, t);
+  }finally{
+    efSendet=false; efRechnen();
+  }
+}
+
 /* Die Art einer Abwesenheit, an einer Stelle. Vorher stand an zwei Stellen
    ein Entweder-oder aus zwei Moeglichkeiten. Mit der Krankmeldung sind es
    drei, und ein Entweder-oder haette "krank" stumm als "Urlaub" angezeigt.
@@ -8141,6 +8371,18 @@ function go(id, push){
         else { if(lpers.nextElementSibling!==lc) lc.parentNode.insertBefore(lpers, lc); }
       } }
     ladeUrlaub().catch(()=>{}); ladeOffene().catch(()=>{}); ladeTeamUrlaub().catch(()=>{}); krankscheineNachreichen().catch(()=>{});
+    /* 167: Eintragen fuer jemanden frisch, sonst steht am geteilten Handy die Auswahl
+       der letzten Person da. Waehrend ein Eintrag unterwegs ist, nichts wegwerfen. */
+    if(!efSendet){
+      const eb=$("#ef-box"); if(eb) eb.open=false;
+      const ew=$("#ef-who"); if(ew) ew.value="";
+      ["ef-from","ef-to"].forEach(i=>{ const x=document.getElementById(i); if(x) x.value=""; });
+      const ebr=$("#ef-brief"); if(ebr) ebr.checked=false;
+      const em=$("#ef-msg"); if(em){ em.textContent=""; em.className="lverr"; }
+      efArt="sick"; $$("[data-efk]").forEach(b=>b.classList.toggle("on", b.dataset.efk==="sick"));
+      efKennung=null; efSchluessel="";
+    }
+    if(istLeitung()) efFuellen();
     /* Reine Leitung (Nina, Micha) sieht nur die Team-Uebersicht, nicht den
        eigenen Antrag/Krank (Dennis, 10.09.2026). Bildschirm + lv-chef bleiben. */
     const lp=$("#lv-personal"); if(lp) lp.hidden = !!(me() && me().lead && !me().mgr);
@@ -8264,6 +8506,9 @@ document.addEventListener("click",e=>{
     $$("[data-lk]").forEach(b=>b.classList.toggle("on", b===lk));
     return }
   if(e.target.closest("#lv-send")){ urlaubSenden(); return }
+  const efk=e.target.closest("[data-efk]");
+  if(efk){ efArt=efk.dataset.efk; $$("[data-efk]").forEach(b=>b.classList.toggle("on", b===efk)); efRechnen(); return }
+  if(e.target.closest("#ef-send")){ efSenden(); return }
 
   /* Krank melden: Tageszahl waehlen und absenden */
   const sd = e.target.closest("[data-sd]");
@@ -8462,6 +8707,8 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#krank-next")){ krankJahr=(krankJahr||parseInt(heuteISO().slice(0,4),10))+1; ladeKrank().catch(()=>{}); return }
   if(e.target.closest("#am-prev")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",-1); ladeAnwesenheitMonat().catch(()=>{}); return }
   if(e.target.closest("#am-next")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",1); ladeAnwesenheitMonat().catch(()=>{}); return }
+  if(e.target.closest("#am-csv")){ amHolen().catch(()=>{}); return }
+  if(e.target.closest("#am-page")){ amAlsSeite(); return }
   if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-next")){ attTag=tagPlus(attTag||heuteISO(),1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-today")){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); return }
@@ -8637,6 +8884,10 @@ document.addEventListener("click",e=>{
 ["lv-from","lv-to"].forEach(id=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener("change", urlaubRechnen);
+});
+["ef-who","ef-from","ef-to","ef-brief"].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener("change", efRechnen);
 });
 
 tr();
