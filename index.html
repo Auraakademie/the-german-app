@@ -773,6 +773,12 @@
         <span style="flex:1"><span class="tt" data-t="hbOpenTile"></span>
           <span class="mt" data-t="hbOpenTileS"></span></span>
         <span class="chev">&rsaquo;</span></button>
+      <!-- 177 (Nina 21.11.2026): Inventur nach Izas Liste. Nur Leitung/Manager und darf_inventur (zuerst Iza). -->
+      <button class="glass next" id="inv-open" data-go="s-inv" hidden style="margin-bottom:12px">
+        <span class="rm" id="inv-badge">&mdash;</span>
+        <span style="flex:1"><span class="tt" data-t="invTile"></span>
+          <span class="mt" id="inv-tile-s"></span></span>
+        <span class="chev">&rsaquo;</span></button>
       <!-- 165 (Micha 19.11.2026): Dillas Tagescheck. Ersetzt bei Dilla die Kachel "Report to Hendra" (Hilde T3). -->
       <button class="glass next" id="tc-open" data-go="s-tc" hidden style="margin-bottom:12px">
         <span class="rm" id="tc-badge">&mdash;</span>
@@ -1650,6 +1656,45 @@
       <p class="lverr" id="we-msg"></p>
     </section>
 
+    <!-- 177 Inventur (Stock take), Scheibe 1: zaehlen je Raum, Auswertung, Monat abschliessen. -->
+    <section class="screen" id="s-inv">
+      <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
+      <h1 data-t="invH"></h1>
+      <p class="sub" id="inv-sub"></p>
+      <p class="lverr" data-t="invHint" style="margin:0 0 4px"></p>
+      <p class="lverr" data-t="invOpenPack" style="margin:0 0 10px"></p>
+      <!-- Hilde 21.11.: Raum bleibt beim Scrollen sichtbar, sonst landet die Zahl im falschen Raum. -->
+      <div id="inv-leiste" style="position:sticky;top:0;z-index:5;padding:8px 0;background:var(--bg)">
+        <div class="lvrow" style="flex-wrap:wrap;gap:6px">
+          <button class="dep on" data-invraum="room1" data-t="invRoom1"></button>
+          <button class="dep" data-invraum="room2" data-t="invRoom2"></button>
+          <button class="dep" data-invraum="room3" data-t="invRoom3"></button>
+          <button class="dep" data-invraum="stock" data-t="invStock"></button>
+        </div>
+        <p class="lverr" id="inv-raumtxt" style="margin:6px 0 0;font-weight:600"></p>
+        <p class="lverr bad" id="inv-warte" hidden style="margin:4px 0 0"><span id="inv-warte-txt"></span>
+          <button class="pinrst" id="inv-senden" style="margin-left:8px" data-t="invSendNow"></button></p>
+      </div>
+      <input class="lvin" id="inv-suche" type="search" autocomplete="off" style="margin-top:10px">
+      <select class="lvin" id="inv-kat" style="margin-top:8px"></select>
+      <label class="lvcert" style="margin-top:6px"><input type="checkbox" id="inv-offen"><span data-t="invOnlyOpen"></span></label>
+      <p class="lverr" id="inv-msg"></p>
+      <div class="glass" id="inv-verloren" hidden style="padding:10px 12px;margin:6px 0"></div>
+      <div id="inv-liste" style="margin-top:6px"></div>
+      <details class="glass" id="inv-ausw" style="padding:14px 16px;margin-top:14px">
+        <summary style="cursor:pointer;font-weight:600" data-t="invResH"></summary>
+        <div id="inv-ausw-text" style="margin-top:8px"></div>
+        <button class="bigcheck" id="inv-csv" style="margin-top:10px"><span class="bx"></span><span data-t="lvGet"></span></button>
+        <button class="pinrst" id="inv-page" style="margin-top:10px">&#128196; <span data-t="lvPage"></span></button>
+        <p class="lverr" id="inv-ausw-msg"></p>
+        <!-- Hilde 21.11.: Abschliessen weit weg vom Download, nur Iza und Leitung. -->
+        <div style="margin-top:28px;padding-top:14px;border-top:1px solid rgba(196,85,59,.4)">
+          <button class="pinrst" id="inv-close" hidden style="color:#C4553B" data-t="invClose"></button>
+          <button class="pinrst" id="inv-reopen" hidden data-t="invReopen"></button>
+        </div>
+      </details>
+    </section>
+
     <!-- 172 Statistik (Dennis 21.11.2026). NUR Micha und Nina (darf_umsatz auf dem Server,
          darfUmsatzSehen in der App). Alles aus umsatz_tage: Summe + Anzahl pro Tag bis gestern. -->
     <section class="screen" id="s-umsatz">
@@ -1871,6 +1916,22 @@ const T={
   umListTxt:"Day by day for the chosen month, plus a summary of all months. Once downloaded, the file is on your phone. Please do not send it to anyone else.",
   umNoData:"No numbers for this month yet.",
   umShared:"Not on the shared reception phone. Please use your own phone.",
+  invTile:"Stock opname", invTileS:"{n} of {m} items counted this month", invTileClosed:"{m}: locked",
+  invH:"Stock opname", invSub:"{m} \u00b7 {n} of {a} items counted",
+  invHint:"Count one room at a time. Count whole packs. The unit is under each number field. Nothing in this room: type 0. Not counted yet: leave it empty.",
+  invRoom1:"Room 1", invRoom2:"Room 2", invRoom3:"Room 3", invStock:"Stock room",
+  invSearch:"Search item or SKU", invAllCat:"All categories", invOnlyOpen:"Show only items not counted in this room",
+  invLoad:"Loading the list…", invLoadFail:"The list did not load. Check the internet and try again.",
+  invSaved:"saved", invFail:"Not sent yet. The number is kept on this phone and sends when the internet is back.",
+  invOpenPack:"Open pack: count it as 1.", invLost:"These numbers were not saved, because the month was locked or had ended. Tell Iza or Nina:",
+  invOverwrote:"Note: a colleague had already counted {n} in this room ({v}). Your number replaced it.", invCountIn:"Counting in: {r}", invWaiting:"{n} number(s) not sent yet. They stay on this phone.",
+  invSendNow:"Send now", invUnitQ:"pack?", invNoCat:"No category", invReopen:"Open this month again",
+  invOnlyMin:"Only {n} items have a minimum set.",
+  invClosed:"This month is locked. The numbers cannot be changed any more.", invNone:"No items found.",
+  invCheck:"To fix in the list", invResH:"Results this month", invResTxt:"{n} of {a} items counted. {u} below minimum.",
+  invClose:"Finish and lock this month", invCloseAsk:"Lock the stock opname for {m}? After that nobody can change the numbers.",
+  invCloseOk:"Month locked.", invCloseFail:"Could not lock. Check the internet and try again.", invNoAccess:"Only for the stock opname team.",
+  invBad:"Please enter a number from 0 to 100000.",
   umGetAbort:"Not shared. Nothing was sent.", umDayRuns:"compared after 21:15, when the day is complete",
   umLate:"The 21:15 update from KumoDent did not come through. Numbers may be incomplete.",
   umMissing:"{n} day(s) without numbers (KumoDent update failed). Totals may be too low.",
@@ -2210,6 +2271,22 @@ const T={
   umListTxt:"Per hari untuk bulan yang dipilih, ditambah ringkasan semua bulan. Setelah diunduh, file tersimpan di HP Anda. Mohon jangan dikirim ke orang lain.",
   umNoData:"Belum ada angka untuk bulan ini.",
   umShared:"Tidak bisa di HP resepsionis bersama. Mohon pakai HP Anda sendiri.",
+  invTile:"Stock opname", invTileS:"{n} dari {m} barang sudah dihitung bulan ini", invTileClosed:"{m}: dikunci",
+  invH:"Stock opname", invSub:"{m} \u00b7 {n} dari {a} barang sudah dihitung",
+  invHint:"Hitung per ruangan, satu per satu. Hitung kemasan utuh. Satuannya ada di bawah kolom angka. Tidak ada di ruangan ini: isi 0. Belum dihitung: biarkan kosong.",
+  invRoom1:"Ruang 1", invRoom2:"Ruang 2", invRoom3:"Ruang 3", invStock:"Gudang",
+  invSearch:"Cari barang atau SKU", invAllCat:"Semua kategori", invOnlyOpen:"Tampilkan hanya yang belum dihitung di ruangan ini",
+  invLoad:"Memuat daftar…", invLoadFail:"Daftar belum muncul. Cek internet lalu coba lagi.",
+  invSaved:"tersimpan", invFail:"Belum terkirim. Angka tetap tersimpan di HP ini dan terkirim saat internet kembali.",
+  invOpenPack:"Kemasan yang sudah dibuka: hitung 1.", invLost:"Angka-angka ini tidak tersimpan, karena bulan sudah dikunci atau sudah berakhir. Beri tahu Iza atau Nina:",
+  invOverwrote:"Catatan: rekan sudah menghitung {n} di ruangan ini ({v}). Angka Anda menggantikannya.", invCountIn:"Sedang menghitung: {r}", invWaiting:"{n} angka belum terkirim. Angka tetap tersimpan di HP ini.",
+  invSendNow:"Kirim sekarang", invUnitQ:"kemasan?", invNoCat:"Tanpa kategori", invReopen:"Buka lagi bulan ini",
+  invOnlyMin:"Hanya {n} barang yang punya minimum.",
+  invClosed:"Bulan ini sudah dikunci. Angka tidak bisa diubah lagi.", invNone:"Barang tidak ditemukan.",
+  invCheck:"Perlu diperbaiki di daftar", invResH:"Hasil bulan ini", invResTxt:"{n} dari {a} barang sudah dihitung. {u} di bawah minimum.",
+  invClose:"Selesai dan kunci bulan ini", invCloseAsk:"Kunci stock opname {m}? Setelah itu tidak ada yang bisa mengubah angkanya.",
+  invCloseOk:"Bulan ini sudah dikunci.", invCloseFail:"Gagal mengunci. Cek internet lalu coba lagi.", invNoAccess:"Hanya untuk tim stock opname.",
+  invBad:"Mohon isi angka dari 0 sampai 100000.",
   umGetAbort:"Tidak dibagikan. Tidak ada yang terkirim.", umDayRuns:"dibandingkan setelah pukul 21.15, saat hari sudah lengkap",
   umLate:"Pembaruan pukul 21.15 dari KumoDent tidak masuk. Angka mungkin belum lengkap.",
   umMissing:"{n} hari tanpa angka (pembaruan KumoDent gagal). Total mungkin terlalu rendah.",
@@ -2626,7 +2703,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-21c";
+const APP_VERSION = "2026-11-21d";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -5395,6 +5472,217 @@ function fmtRp(n){
   return "Rp "+Math.round(n).toLocaleString(loc);
 }
 
+/* 177 Inventur (Nina 21.11.2026). Zaehlen je Raum gegen Izas Artikelliste. Gespeichert wird jede Zahl einzeln
+   beim Verlassen des Feldes (rpc/inv_zaehlen). Ohne Netz: rote Meldung, die Zahl bleibt im Feld stehen.
+   Wer zaehlen darf, entscheidet der Server (inv_stand liefert null = keine Kachel). */
+let invRaum="room1", invDaten=[], invStandDat=null, invLauf=0, invFuer=null;
+/* Hilde 21.11.: Keine Zahl geht verloren. Jede Zahl liegt erst auf dem Geraet (je Person), dann wird gesendet,
+   ohne Netz automatisch nachgesendet (alle 15 s, beim Zurueckkommen, beim Raumwechsel). */
+const invQKey=()=>me()?"inv-q-"+me().id:null;
+const invMem={};   /* Bruno N3: ist der Geraetespeicher gesperrt oder voll, bleibt die Warteschlange im Arbeitsspeicher */
+function invQ(){ const k=invQKey(); if(!k) return {}; if(invMem[k]) return invMem[k]; try{ const v=localStorage.getItem(k); if(v!=null){ invMem[k]=JSON.parse(v); return invMem[k]; } }catch(e){} return {}; }
+function invQSet(q){ const k=invQKey(); if(!k) return; invMem[k]=q; try{ localStorage.setItem(k, JSON.stringify(q)); }catch(e){} }
+/* Bruno M1: verworfene Zahlen (Monat abgeschlossen oder vorbei) bleiben sichtbar, bis jemand "OK" tippt. */
+const invVKey=()=>me()?"inv-v-"+me().id:null;
+function invVerloren(){ try{ const k=invVKey(); return k?JSON.parse(localStorage.getItem(k)||"[]"):[]; }catch(e){ return []; } }
+function invVerlorenAdd(x){ try{ const k=invVKey(); if(!k) return; const l=invVerloren(); l.push(x); localStorage.setItem(k, JSON.stringify(l.slice(-50))); }catch(e){} }
+function invVerlorenZeigen(){
+  const t=L(), box=$("#inv-verloren"); if(!box) return; const l=invVerloren();
+  box.hidden=!l.length;
+  box.innerHTML = l.length ? `<p class="lverr bad" style="margin:0">${escHtml(t.invLost)}</p><small style="display:block;margin:4px 0">${l.map(x=>escHtml(x.n+" ("+invRaumName(x.r)+")")).join("<br>")}</small><button class="pinrst" id="inv-verloren-ok">OK</button>` : "";
+}
+/* Bruno M2: nur genau diese Server-Antworten heissen "nie mehr sendbar". Alles andere wird wiederholt. */
+const INV_ENDGUELTIG=["abgeschlossen","monat_vorbei","artikel_unbekannt","not_allowed","menge","raum"];
+function invServerText(err){ const s=String(err&&err.message||""); const i=s.indexOf("{"); if(i<0) return ""; try{ return String(JSON.parse(s.slice(i)).message||""); }catch(e){ return ""; } }
+const invRaumName=r=>{ const t=L(); return ({room1:t.invRoom1,room2:t.invRoom2,room3:t.invRoom3,stock:t.invStock})[r]||r; };
+function invWarteZeigen(){
+  const t=L(), n=Object.keys(invQ()).length, w=$("#inv-warte");
+  if(w) w.hidden=!n; const x=$("#inv-warte-txt"); if(x) x.textContent=invF(t.invWaiting,{n});
+}
+let invSendetQ=false;
+async function invQSenden(){
+  if(invSendetQ || !me() || !tokenGueltig() || demoAktiv() || TESTLAUF) return;
+  const fuer=me().id, q=invQ(), keys=Object.keys(q); if(!keys.length){ invWarteZeigen(); return; }
+  invSendetQ=true;
+  try{
+    for(const k of keys){
+      const e=q[k]; if(!me() || me().id!==fuer) break;
+      try{
+        const antw = await sbSend("rpc/inv_zaehlen", {p_artikel:e.a, p_raum:e.r, p_menge:e.m, p_monat:e.mo||null});
+        /* Bruno M3: Zahl einer Kollegin ueberschrieben -> sagen */
+        if(antw && antw.vorher_andere){ const msg=$("#inv-msg"); const an=invDaten.find(x=>x.id===e.a);
+          if(msg){ msg.className="lverr bad"; msg.textContent=invF(L().invOverwrote,{n:an?an.name:"", v:Number(antw.vorher)}); } }
+        else { const msg=$("#inv-msg"); if(msg && msg.textContent===L().invFail){ msg.className="lverr"; msg.textContent=""; } }   /* Bruno N1 */
+        const q2=invQ(); if(q2[k] && q2[k].m===e.m){ delete q2[k]; invQSet(q2); }
+        const a=invDaten.find(x=>x.id===e.a); if(a && e.r===invRaum) a.menge=e.m;
+        const ok=document.querySelector(`[data-invok="${e.a}"]`);
+        if(ok && e.r===invRaum && !invQ()[k]){ ok.textContent = e.m==null ? "" : "\u2713"; ok.style.color=""; }
+      }catch(err){
+        const st=invServerText(err);
+        if(INV_ENDGUELTIG.includes(st)){   /* nie mehr sendbar: nicht ewig wiederholen, aber sichtbar melden */
+          const q2=invQ(); delete q2[k]; invQSet(q2);
+          const an=invDaten.find(x=>x.id===e.a);
+          invVerlorenAdd({n: an ? an.name : (e.n||e.a), r:e.r, m:e.m}); invVerlorenZeigen();
+        } else { const msg=$("#inv-msg"); if(msg){ msg.className="lverr bad"; msg.textContent=L().invFail; } break; }   /* Netz: spaeter weiter */
+      }
+    }
+  } finally { invSendetQ=false; invWarteZeigen(); }
+}
+setInterval(()=>{ try{ if(Object.keys(invQ()).length) invQSenden(); }catch(e){} }, 15000);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") invQSenden().catch(()=>{}); });
+const invF=(s,o)=>String(s).replace(/\{(\w+)\}/g,(m,k)=>o[k]!=null?o[k]:"");
+function invLeeren(){
+  invDaten=[]; invStandDat=null; invLauf++; invFuer=null;
+  for(const k of ["#inv-liste","#inv-ausw-text"]){ const e=$(k); if(e) e.innerHTML=""; }
+  for(const k of ["#inv-msg","#inv-ausw-msg","#inv-sub","#inv-tile-s"]){ const e=$(k); if(e) e.textContent=""; }
+  const b=$("#inv-open"); if(b) b.hidden=true;
+}
+const invMonatText=m=>m?new Date(String(m).slice(0,10)+"T00:00:00Z").toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric",timeZone:"UTC"}):"";
+async function zeigeInventur(){
+  const b=$("#inv-open"); if(b) b.hidden=true;
+  if(!me() || demoAktiv() || TESTLAUF || !tokenGueltig()) return;
+  const fuer=me().id;
+  let st=null;
+  try{ st=await sbGet("rpc/inv_stand"); }catch(e){ st=null; }
+  if(!me() || me().id!==fuer || !st || !st.monat) return;
+  invStandDat=st;
+  const t=L(), m=invMonatText(st.monat);
+  $("#inv-tile-s").textContent = st.abgeschlossen ? invF(t.invTileClosed,{m}) : invF(t.invTileS,{n:st.gezaehlt||0, m:st.artikel||0});
+  $("#inv-badge").textContent = st.abgeschlossen ? "✓" : String(st.gezaehlt||0);
+  if(b) b.hidden=false;
+}
+async function ladeInventur(){
+  const t=L(), box=$("#inv-liste"), msg=$("#inv-msg"); if(!box) return;
+  msg.className="lverr"; msg.textContent="";
+  if(!me()){ box.innerHTML=""; return; }
+  const fuer=me().id, lauf=++invLauf, raum=invRaum;
+  box.innerHTML=`<p class="lverr">${escHtml(t.invLoad)}</p>`;
+  let st=null, li=null;
+  try{ [st, li]=await Promise.all([sbGet("rpc/inv_stand"), sbGet("rpc/inv_liste?p_raum="+raum)]); }
+  catch(e){ if(lauf===invLauf) box.innerHTML=`<p class="lverr bad">${escHtml(/not_allowed/.test(String(e&&e.message))?t.invNoAccess:t.invLoadFail)}</p>`; return; }
+  if(lauf!==invLauf || !me() || me().id!==fuer) return;
+  if(!st){ box.innerHTML=`<p class="lverr bad">${escHtml(t.invNoAccess)}</p>`; return; }
+  invStandDat=st; invDaten=li||[]; invFuer=fuer;
+  { const su=$("#inv-suche"); if(su) su.placeholder=t.invSearch; }
+  $("#inv-sub").textContent=invF(t.invSub,{m:invMonatText(st.monat), n:st.gezaehlt||0, a:st.artikel||0});
+  const kat=$("#inv-kat"), alt=kat.value;
+  const kats=[...new Set(invDaten.map(a=>a.kategorie||"").filter(Boolean))].sort();
+  const ohne=invDaten.some(a=>!a.kategorie);
+  kat.innerHTML=`<option value="">${escHtml(t.invAllCat)}</option>`+kats.map(k=>`<option value="${escHtml(k)}">${escHtml(k)}</option>`).join("")
+    +(ohne?`<option value="-">${escHtml(t.invNoCat)}</option>`:"");
+  if(alt && (kats.includes(alt) || alt==="-")) kat.value=alt;
+  $("#inv-raumtxt").textContent=invF(t.invCountIn,{r:invRaumName(raum)});
+  invWarteZeigen(); invVerlorenZeigen(); invQSenden().catch(()=>{});
+  if(st.abgeschlossen){ msg.className="lverr bad"; msg.textContent=t.invClosed; }
+  invZeichnen();
+}
+function invZeichnen(){
+  const t=L(), box=$("#inv-liste"); if(!box) return;
+  const q=($("#inv-suche").value||"").trim().toLowerCase(), kat=$("#inv-kat").value, offen=$("#inv-offen").checked;
+  const zu=!!(invStandDat && invStandDat.abgeschlossen);
+  const qq=invQ(), verantw=!!(invStandDat && invStandDat.verantwortlich);
+  const rows=invDaten.filter(a=>(!kat || (kat==="-" ? !a.kategorie : a.kategorie===kat)) && (!offen || (a.menge==null && !qq[invRaum+"|"+a.id]))
+    && (!q || [a.name,a.sku,a.spezifikation,a.marke,a.unterkategorie,a.kategorie].some(v=>String(v||"").toLowerCase().includes(q))));
+  if(!rows.length){ box.innerHTML=`<p class="lverr">${escHtml(t.invNone)}</p>`; return; }
+  /* Hilde 21.11.: keine Grenze bei 300, sonst sind ein Drittel der Artikel stumm unerreichbar. */
+  box.innerHTML=rows.map(a=>{ const w=qq[invRaum+"|"+a.id]; const wert = w ? w.m : a.menge;
+    return `<div class="lvitem" style="align-items:center;gap:10px" data-invart="${escHtml(a.id)}">
+      <div style="flex:1;min-width:0"><b style="display:block">${escHtml(a.name)}</b>
+        <small style="display:block;opacity:.75">${escHtml([a.spezifikation,a.sku].filter(Boolean).join(" · "))}</small>
+        ${(a.pruefen && verantw)?`<small style="display:block;color:#8a5cc2">${escHtml(t.invCheck)}: ${escHtml(a.pruefen)}</small>`:""}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <input class="lvin" type="text" inputmode="decimal" autocomplete="off" style="width:84px;margin:0;text-align:right"
+          data-invin="${escHtml(a.id)}" value="${wert==null?"":escHtml(String(Number(wert)))}" ${zu?"disabled":""}>
+        <small>${a.einheit_fehlt?`<span style="color:#d08a1e">${escHtml(t.invUnitQ)}</span>`:escHtml(a.zaehleinheit||"pcs")}
+          <span data-invok="${escHtml(a.id)}" style="${w?"color:#d08a1e":""}">${w?"\u2026":(a.menge==null?"":"\u2713")}</span></small></div>
+    </div>`; }).join("");
+}
+function invSpeichern(el){
+  const t=L(), id=el.dataset.invin, raum=invRaum, ok=document.querySelector(`[data-invok="${id}"]`), msg=$("#inv-msg");
+  if(!me() || me().id!==invFuer) return;
+  const roh=String(el.value).trim();
+  /* Bruno H1: Komma ist in Indonesien das Dezimalzeichen. Erlaubt: 0-100000, hoechstens 2 Nachkommastellen.
+     "1.000" (indonesisch fuer tausend) ist mehrdeutig und wird abgelehnt statt still als 1 gespeichert. */
+  if(roh!=="" && !/^\d{1,6}([.,]\d{1,2})?$/.test(roh)){ if(!el._tippt){ msg.className="lverr bad"; msg.textContent=t.invBad; if(ok){ ok.textContent="!"; ok.style.color="#C4553B"; } } return; }
+  const menge = roh==="" ? null : Number(roh.replace(",", "."));
+  if(menge!=null && !(menge>=0 && menge<=100000)){ msg.className="lverr bad"; msg.textContent=t.invBad; if(ok){ ok.textContent="!"; ok.style.color="#C4553B"; } return; }
+  const q=invQ(), k=raum+"|"+id, a=invDaten.find(x=>x.id===id);
+  const gespeichert = a ? (a.menge==null?null:Number(a.menge)) : undefined;
+  if(!q[k] && gespeichert===menge){ if(ok && ok.textContent==="!"){ ok.textContent = menge==null?"":"\u2713"; ok.style.color=""; } if(msg.textContent===t.invBad){ msg.className="lverr"; msg.textContent=""; } return; }
+  if(q[k] && q[k].m===menge) return;
+  q[k]={a:id, r:raum, m:menge, mo:invStandDat?String(invStandDat.monat).slice(0,10):null, n:a?a.name:""}; invQSet(q);
+  if(ok){ ok.textContent="\u2026"; ok.style.color="#d08a1e"; }
+  msg.className="lverr"; msg.textContent="";
+  invWarteZeigen();
+  invQSenden().catch(()=>{});
+}
+let invTippTimer=null;
+let invAusw=null, invSendet=false;
+async function ladeInvAuswertung(){
+  const t=L(), box=$("#inv-ausw-text"); if(!box) return;
+  const fuer=me()&&me().id;
+  try{ invAusw=await sbGet("rpc/inv_auswertung"); }catch(e){ invAusw=null; box.innerHTML=`<p class="lverr bad">${escHtml(t.invLoadFail)}</p>`; return; }
+  if(!me() || me().id!==fuer){ invAusw=null; return; }
+  const n=invAusw.filter(r=>r.gesamt!=null).length, u=invAusw.filter(r=>r.unter_minimum).length;
+  const mm=invStandDat ? (invStandDat.mit_minimum||0) : 0;
+  box.innerHTML=`<p class="lverr">${escHtml(invF(t.invResTxt,{n, a:invAusw.length, u}))}</p>`
+    +(mm<invAusw.length?`<p class="lverr">${escHtml(invF(t.invOnlyMin,{n:mm}))}</p>`:"");
+  const abg=!!(invStandDat && invStandDat.abgeschlossen), darf=!!(invStandDat && invStandDat.darf_schliessen);
+  const zu=$("#inv-close"); if(zu) zu.hidden = abg || !darf;
+  const auf=$("#inv-reopen"); if(auf) auf.hidden = !abg || !(me() && (me().lead || me().mgr));
+}
+const INV_KOPF=["SKU","Item","Category","Unit","Room 1","Room 2","Room 3","Stock room","Total","Last month","Minimum","Below minimum","Check"];
+const invWerte=r=>[r.sku||"",r.name,r.kategorie||"",r.zaehleinheit||"",r.room1,r.room2,r.room3,r.stock,r.gesamt,r.vormonat,r.minimum,r.unter_minimum?"yes":"",r.pruefen||""].map(v=>v==null?"":v);
+async function invHolen(){
+  const t=L(), msg=$("#inv-ausw-msg");
+  const sage=(x,art)=>{ msg.textContent=x||""; msg.className="lverr"+(art?" "+art:""); };
+  if(TESTLAUF || demoAktiv()){ sage(t.lvGetDemo); return; }
+  if(invSendet) return;
+  invSendet=true;
+  await ladeInvAuswertung(); if(!invAusw){ invSendet=false; return; }   /* Bruno M4: immer der aktuelle Stand */
+  try{
+    const q=v=>{ const s=String(v); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+    const m=invStandDat ? String(invStandDat.monat).slice(0,7) : heuteISO().slice(0,7);
+    const z=[q("Stock take "+m+" (created "+heuteISO()+")"), INV_KOPF.map(q).join(";")];
+    invAusw.forEach(r=>z.push(invWerte(r).map(q).join(";")));
+    const blob=new Blob(["﻿"+z.join("\r\n")],{type:"text/csv;charset=utf-8"}), datei="THE-GERMAN-stock-take-"+m+".csv";
+    try{
+      const f=new File([blob],datei,{type:"text/csv"});
+      if(navigator.canShare && navigator.canShare({files:[f]})){ await mitZeitlimit(navigator.share({files:[f],title:datei}),120000); sage(t.lvGetShared,"good"); return; }
+    }catch(e){ if(e && e.name==="AbortError"){ sage(t.umGetAbort); return; } }
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=datei;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+    sage(t.lvGetSaved+" "+datei+"  "+t.amGetCheck);
+  }catch(e){ sage(t.lvGetFail,"bad"); }
+  finally{ setTimeout(()=>{ invSendet=false; }, 2500); }
+}
+async function invAlsSeite(){
+  const t=L(), msg=$("#inv-ausw-msg");
+  if(TESTLAUF || demoAktiv()){ msg.textContent=t.lvGetDemo; return; }
+  await ladeInvAuswertung(); if(!invAusw) return;   /* Bruno M4 */
+  const esc=v=>escHtml(v==null?"":v), m=invStandDat ? String(invStandDat.monat).slice(0,7) : "";
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Stock take ${esc(m)}</title>
+    <style>body{font:14px/1.4 -apple-system,Helvetica,Arial;padding:16px;color:#222}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px 6px;text-align:left;font-size:11px}th{background:#f2f2f2}@media print{button{display:none}}</style></head>
+    <body><button onclick="print()">Print / Save as PDF</button><h2>Stock take ${esc(m)}</h2>
+    <table><tr>${INV_KOPF.map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${invAusw.map(r=>`<tr>${invWerte(r).map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></body></html>`;
+  const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  const w=window.open(url,"_blank"); setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
+  if(!w){ msg.textContent=t.amPopup; msg.className="lverr bad"; }
+}
+async function invWiederOeffnen(){
+  const t=L(), msg=$("#inv-ausw-msg");
+  if(TESTLAUF || demoAktiv()){ msg.textContent=t.lvGetDemo; return; }
+  try{ await sbSend("rpc/inv_wieder_oeffnen", {p_monat:String(invStandDat.monat).slice(0,10)}); msg.className="lverr"; msg.textContent=""; await ladeInventur(); await ladeInvAuswertung(); }
+  catch(e){ msg.className="lverr bad"; msg.textContent=t.invCloseFail; }
+}
+async function invAbschliessen(){
+  const t=L(), msg=$("#inv-ausw-msg");
+  if(TESTLAUF || demoAktiv()){ msg.textContent=t.lvGetDemo; return; }
+  if(!confirm(invF(t.invCloseAsk,{m:invMonatText(invStandDat&&invStandDat.monat)}))) return;
+  try{ await sbSend("rpc/inv_abschliessen", {}); msg.className="lverr good"; msg.textContent=t.invCloseOk; await ladeInventur(); await ladeInvAuswertung(); }
+  catch(e){ msg.className="lverr bad"; msg.textContent=t.invCloseFail; }
+}
+
 /* 172 Statistik fuer Micha und Nina (Dennis 21.11.2026). Quelle: rpc/umsatz_tage, Summe + Anzahl pro
    Tag bis gestern (heute laeuft noch). Der Server gibt nur bei darf_umsatz() etwas heraus; hier zusaetzlich
    darfUmsatzSehen() vor dem Laden, nach dem Laden und vor jedem Download (Personenwechsel am Tresen-Handy).
@@ -5536,8 +5824,10 @@ function umZeichnen(){
 function umHeuteKarte(t, lang){
   const h=umDaten && umDaten.heute;
   if(!h || !(h.total>0)){
-    /* Bruno 172 R2 N10: auch ohne Zahl sagen, wenn der Abend-Abruf ausblieb. */
-    const spaet = new Date(Date.now()+8*3600000).toISOString().slice(11,16) >= "21:20";
+    /* Bruno 172 R2 N10: auch ohne Zahl sagen, wenn der Abend-Abruf ausblieb. R3: eine Zeile mit 0 aus dem
+       Abruf ab 21:00 ist ein geschlossener Tag, kein Ausfall. */
+    const hStand = h && h.um ? new Date(new Date(h.um).getTime()+8*3600000).toISOString().slice(11,16) : "";
+    const spaet = new Date(Date.now()+8*3600000).toISOString().slice(11,16) >= "21:20" && !(hStand >= "21:00");
     return `<div class="glass" style="padding:14px 16px;margin-bottom:8px"><small>${escHtml(t.umToday)}</small><p class="lverr${spaet?" bad":""}" style="margin:4px 0 0">${escHtml(spaet?t.umLate:t.umTodayNone)}</p></div>`;
   }
   const wt=new Date(h.d+"T00:00:00Z").getUTCDay(), ab=baliTag(-56);
@@ -8263,7 +8553,11 @@ function sitzungZuruecksetzen(){
   try{ umsatzWeg(); }catch(e){}
   try{ umLeeren(); }catch(e){}   /* 172 (Elke N6): Statistik nie im Speicher fuer die naechste Person */
   /* Bruno 172 R2 M5: Urlaubsstand der Vorperson nie fuer die Naechste (Kachel, Ring, "too many"). */
-  try{ lvStand=null; lvStaende=[]; const lb=$("#lv-badge"); if(lb) lb.textContent="\u2014"; }catch(e){}
+  try{ lvStand=null; lvStaende=[]; const lb=$("#lv-badge"); if(lb) lb.textContent="\u2014";
+       /* Bruno 172 R3 M5-Rest: auch Ring, Zahlen und Antragsliste der Vorperson weg (geteiltes Handy ohne Netz). */
+       for(const k of ["#lv-free","#lv-sub","#lv-year"]){ const e=$(k); if(e) e.textContent=""; }
+       const ll=$("#lv-list"); if(ll) ll.innerHTML=""; const rg=$("#lv-ring"); if(rg) rg.style.strokeDashoffset="207.3"; }catch(e){}
+  try{ invLeeren(); }catch(e){}   /* 177: Inventur nie fuer die naechste Person */
   /* 154 (Elke): Uebergabe-Notizen und halb getippter Entwurf gehen nicht an die naechste Person. */
   try{ hoLauf++; hoSendet=false; const hs=$("#ho-send"); if(hs) hs.disabled=false;   /* Bruno N1 */
        const hl=$("#ho-liste"), ht=$("#ho-text"), hb=$("#ho-box"), hti=$("#ho-titel"), hm=$("#ho-msg");
@@ -8842,7 +9136,7 @@ function go(id, push){
     const ni=$("#nichtich"); if(ni) ni.hidden = brauchtPin(me()); }
   if(id==="s-bdayedit"){ ladeGeburtstagEdit().catch(()=>{}); }
   if(id==="s-attend"){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); }
-  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeBericht().catch(()=>{}); zeigeTagescheck().catch(()=>{}); zeigeWareneingang().catch(()=>{}); }
+  if(id==="s-brief"){ zeigeStartLeiste(); fuelleCockpit().catch(()=>{}); ladeSchicht().catch(()=>{}); ladeMeineAufgaben().catch(()=>{}); zaehleAufgaben().catch(()=>{}); zeigeNeueAufgabe().catch(()=>{}); zeigeChats().catch(()=>{}); zeigeNotiz().catch(()=>{}); zeigeZwischenfall().catch(()=>{}); zeigeNeuigkeiten().catch(()=>{}); zeigeBericht().catch(()=>{}); zeigeTagescheck().catch(()=>{}); zeigeWareneingang().catch(()=>{}); zeigeInventur().catch(()=>{}); }
   if(id==="s-tasknew"){ zeichneAufgabeNeu(); }
   if(id==="s-belege"){ ladeBelege().catch(()=>{}); }
   if(id==="s-belegneu"){ zeichneBelegNeu(); }
@@ -8859,6 +9153,7 @@ function go(id, push){
   if(id==="s-tcform"){ zeichneTcForm(); }
   if(id==="s-zfliste"){ ladeZfListe().catch(()=>{}); }
   if(id==="s-umsatz"){ ladeUmsatz().catch(()=>{}); }
+  if(id==="s-inv"){ ladeInventur().catch(()=>{}); const d=$("#inv-ausw"); if(d) d.open=false; }
   if(id==="s-weneu"){ zeichneWeNeu(); }
   showBack();
   /* Die Leitung liest deutsch. Der Sprachschalter waere dort nur Verwirrung. */
@@ -9143,6 +9438,23 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#am-csv")){ amHolen().catch(()=>{}); return }
   if(e.target.closest("#am-page")){ amAlsSeite(); return }
   if(e.target.closest("#um-csv")){ umHolen().catch(()=>{}); return }
+  { const rb=e.target.closest("[data-invraum]"); if(rb){
+      const fo=document.activeElement;
+      if(fo && fo.dataset && fo.dataset.invin){
+        clearTimeout(invTippTimer);
+        const v=String(fo.value).trim();
+        /* Bruno R2: ungueltige Zahl + Raumwechsel liess die Zahl spurlos verschwinden. Dann nicht wechseln. */
+        if(v!=="" && !/^\d{1,6}([.,]\d{1,2})?$/.test(v)){ invSpeichern(fo); fo.focus(); return; }
+        invSpeichern(fo);
+      }
+      invRaum=rb.dataset.invraum;
+      document.querySelectorAll("[data-invraum]").forEach(x=>x.classList.toggle("on", x===rb)); ladeInventur().catch(()=>{}); return } }
+  if(e.target.closest("#inv-csv")){ invHolen().catch(()=>{}); return }
+  if(e.target.closest("#inv-page")){ invAlsSeite().catch(()=>{}); return }
+  if(e.target.closest("#inv-close")){ invAbschliessen().catch(()=>{}); return }
+  if(e.target.closest("#inv-reopen")){ invWiederOeffnen().catch(()=>{}); return }
+  if(e.target.closest("#inv-senden")){ invQSenden().catch(()=>{}); return }
+  if(e.target.closest("#inv-verloren-ok")){ try{ const k=invVKey(); if(k) localStorage.removeItem(k); }catch(_){} invVerlorenZeigen(); return }
   if(e.target.closest("#um-page")){ umAlsSeite(); return }
   if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-next")){ attTag=tagPlus(attTag||heuteISO(),1); ladeAnwesenheit().catch(()=>{}); return }
@@ -9317,6 +9629,17 @@ document.addEventListener("click",e=>{
 });
 
 { const um=document.getElementById("um-monat"); if(um) um.addEventListener("change", umTageListe); }
+/* 177 Inventur: Filter zeichnen sofort neu, eine Zahl wird beim Verlassen des Feldes gespeichert. */
+{ const s=document.getElementById("inv-suche"); if(s) s.addEventListener("input", invZeichnen);
+  const k=document.getElementById("inv-kat"); if(k) k.addEventListener("change", invZeichnen);
+  const o=document.getElementById("inv-offen"); if(o) o.addEventListener("change", invZeichnen);
+  const l=document.getElementById("inv-liste");
+  if(l){ l.addEventListener("change", e=>{ const el=e.target.closest("[data-invin]"); if(el){ clearTimeout(invTippTimer); invSpeichern(el); } });
+         /* Hilde: auch ohne Feld zu verlassen speichern (0,6 s nach dem letzten Tippen) */
+         l.addEventListener("input", e=>{ const el=e.target.closest("[data-invin]"); if(!el) return; clearTimeout(invTippTimer);
+           invTippTimer=setTimeout(()=>{ const v=String(el.value).trim(); if(v==="" || /[.,]$/.test(v)) return;   /* Bruno N4: "2," noch nicht fertig, leer erst beim Verlassen */
+             el._tippt=true; try{ invSpeichern(el); } finally { el._tippt=false; } }, 600); }); }
+  const d=document.getElementById("inv-ausw"); if(d) d.addEventListener("toggle", ()=>{ if(d.open) ladeInvAuswertung().catch(()=>{}); }); }
 ["lv-from","lv-to"].forEach(id=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener("change", urlaubRechnen);
