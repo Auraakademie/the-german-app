@@ -818,12 +818,13 @@
         <button class="glass kpi" data-go="s-moodlist" style="text-align:left">
           <div class="k" id="kpi-mood" style="font-size:17px">&mdash;</div>
           <div class="lbl" data-t="ckMood"></div></button>
-        <div class="glass kpi">
+        <!-- 172: beide Umsatz-Kacheln oeffnen die Statistik (nur Micha + Nina sehen sie ueberhaupt). -->
+        <button class="glass kpi" data-go="s-umsatz" style="text-align:left">
           <div class="k" id="kpi-rev" style="color:var(--ink-3)">&mdash;</div>
-          <div class="lbl" data-t="ckRev"></div></div>
-        <div class="glass kpi">
+          <div class="lbl" data-t="ckRev"></div></button>
+        <button class="glass kpi" data-go="s-umsatz" style="text-align:left">
           <div class="k" id="kpi-rev-month" style="color:var(--ink-3)">&mdash;</div>
-          <div class="lbl" data-t="ckRevMonth"></div></div>
+          <div class="lbl"><span data-t="ckRevMonth"></span> &middot; <span data-t="umOpen"></span></div></button>
       </div>
       <p class="eyebrow" id="cockpit-stuck-t" data-t="rvH" hidden></p>
       <div id="cockpit-stuck" hidden></div>
@@ -1649,12 +1650,30 @@
       <p class="lverr" id="we-msg"></p>
     </section>
 
-    <!-- Umsatz-Verlauf: letzte Monate. Nur Leitung/Inhaber (ueber die Kachel). -->
+    <!-- 172 Statistik (Dennis 21.11.2026). NUR Micha und Nina (darf_umsatz auf dem Server,
+         darfUmsatzSehen in der App). Alles aus umsatz_tage: Summe + Anzahl pro Tag bis gestern. -->
     <section class="screen" id="s-umsatz">
       <button class="back" data-go="s-brief">&#8249; <span data-t="back"></span></button>
       <h1 data-t="umH"></h1>
       <p class="sub" data-t="umS"></p>
-      <div id="um-list" style="margin-top:14px"></div>
+      <div id="um-top" style="margin-top:14px"></div>
+      <p class="eyebrow" data-t="umWeeksH" id="um-weeks-h" hidden></p>
+      <div id="um-weeks"></div>
+      <p class="eyebrow" data-t="umWdH" id="um-wd-h" hidden></p>
+      <div id="um-wd"></div>
+      <p class="eyebrow" data-t="umMonthsH" id="um-list-h" hidden></p>
+      <div id="um-list"></div>
+      <div class="glass" id="um-dl" style="padding:16px;margin-top:14px" hidden>
+        <p class="eyebrow" data-t="umListH" style="margin-top:0"></p>
+        <p class="lverr" data-t="umListTxt" style="margin:0 0 10px"></p>
+        <label class="lvlab" data-t="umPick"></label>
+        <select class="lvin" id="um-monat"></select>
+        <details style="margin-top:10px"><summary style="cursor:pointer" data-t="umShowDays"></summary>
+          <div id="um-tage" style="margin-top:8px"></div></details>
+        <button class="bigcheck" id="um-csv" style="margin-top:12px"><span class="bx"></span><span data-t="lvGet"></span></button>
+        <button class="pinrst" id="um-page" style="margin-top:10px">&#128196; <span data-t="lvPage"></span></button>
+        <p class="lverr" id="um-msg"></p>
+      </div>
     </section>
 
     <!-- Nur die Leitung erreicht diesen Bildschirm (ueber s-review). Nina traegt
@@ -1839,7 +1858,24 @@ const T={
   rsSource:"From Hendra's roster file, last read", rsOffline:"No connection. Try again when you are online.",
   rsErr:"The server did not answer (code {code}). This is not your WiFi, please tell Dennis.",
   rsFail:"Last import on {wann} FAILED ({grund}). This plan may be old.", rsUnknown:"Names in the Excel the app does not know:", rsNote:"Note:",
-  umH:"Revenue", umS:"The last months, from KumoDent.", umLoading:"Loading…", umErr:"Not available right now. Try again in a moment.",
+  umH:"Revenue", umS:"From KumoDent, up to yesterday. Only Dr. Michael and Nina see this.", umLoading:"Loading…", umErr:"Not available right now. Try again in a moment.",
+  umOpen:"Statistics ›", umNoAccess:"Only Dr. Michael and Nina can see revenue.",
+  umUpTo:"{m} up to {d}", umVsSame:"Same dates in {m}: {x}", umShare:"That is {p} of the total for {m}.",
+  umPerDay:"Per day", umPerDayN:"Sales per day", umPerSale:"Per sale", umVs:"vs. {m}",
+  umProj:"If it continues like this: about {x} in {m}. This is an estimate.",
+  umWeeksH:"Last 8 weeks (from Monday)", umWeekSoFar:"so far",
+  umWdH:"Weekday average (last 8 weeks)",
+  umBest:"Best day in {m}: {d}, {x} ({n} sales)",
+  umMonthsH:"By month", umSales:"sales", umDays:"days open", umPerDayShort:"per day",
+  umListH:"List to download", umPick:"Month", umShowDays:"Show day by day",
+  umListTxt:"Day by day for the chosen month, plus a summary of all months. Once downloaded, the file is on your phone. Please do not send it to anyone else.",
+  umNoData:"No numbers for this month yet.",
+  umShared:"Not on the shared reception phone. Please use your own phone.",
+  umGetAbort:"Not shared. Nothing was sent.", umDayRuns:"compared after 21:15, when the day is complete",
+  umLate:"The 21:15 update from KumoDent did not come through. Numbers may be incomplete.",
+  umMissing:"{n} day(s) without numbers (KumoDent update failed). Totals may be too low.",
+  umToday:"Today", umAsOf:"as of {z}", umTodayNone:"No numbers for today yet.",
+  umVsWd:"Average {w} (last 8 weeks): {x}",
   blTileT:"Invoices", blTileS:"this month, in and out",
   blH:"Invoices", blNew:"+ Add invoice", blNewH:"New invoice", blNewS:"Snap it or attach the PDF now, so you don't hunt at month end.",
   blPdf:"PDF attached:", blOpenPdf:"Open PDF", blNoPdf:"Could not open the file. Try again when you are online.",
@@ -2161,7 +2197,24 @@ const T={
   rsSource:"Dari file jadwal Hendra, terakhir dibaca", rsOffline:"Tidak ada koneksi. Coba lagi saat online.",
   rsErr:"Server tidak menjawab (kode {code}). Bukan WiFi kamu, tolong beri tahu Dennis.",
   rsFail:"Impor terakhir {wann} GAGAL ({grund}). Jadwal ini mungkin sudah lama.", rsUnknown:"Nama di Excel yang tidak dikenal aplikasi:", rsNote:"Catatan:",
-  umH:"Omzet", umS:"Beberapa bulan terakhir, dari KumoDent.", umLoading:"Memuat…", umErr:"Belum tersedia. Coba lagi sebentar.",
+  umH:"Omzet", umS:"Dari KumoDent, sampai kemarin. Hanya Dr. Michael dan Nina yang dapat melihat ini.", umLoading:"Memuat…", umErr:"Belum tersedia. Coba lagi sebentar.",
+  umOpen:"Statistik ›", umNoAccess:"Hanya Dr. Michael dan Nina yang dapat melihat omzet.",
+  umUpTo:"{m} sampai {d}", umVsSame:"Tanggal yang sama di {m}: {x}", umShare:"Itu {p} dari total omzet {m}.",
+  umPerDay:"Per hari", umPerDayN:"Transaksi per hari", umPerSale:"Per transaksi", umVs:"vs. {m}",
+  umProj:"Jika terus seperti ini, total {m} sekitar {x}. Ini perkiraan.",
+  umWeeksH:"8 minggu terakhir (mulai Senin)", umWeekSoFar:"sejauh ini",
+  umWdH:"Rata-rata per hari (8 minggu)",
+  umBest:"Hari terbaik di {m}: {d}, {x} ({n} transaksi)",
+  umMonthsH:"Per bulan", umSales:"transaksi", umDays:"hari buka", umPerDayShort:"per hari",
+  umListH:"Daftar untuk diunduh", umPick:"Bulan", umShowDays:"Tampilkan per hari",
+  umListTxt:"Per hari untuk bulan yang dipilih, ditambah ringkasan semua bulan. Setelah diunduh, file tersimpan di HP Anda. Mohon jangan dikirim ke orang lain.",
+  umNoData:"Belum ada angka untuk bulan ini.",
+  umShared:"Tidak bisa di HP resepsionis bersama. Mohon pakai HP Anda sendiri.",
+  umGetAbort:"Tidak dibagikan. Tidak ada yang terkirim.", umDayRuns:"dibandingkan setelah pukul 21.15, saat hari sudah lengkap",
+  umLate:"Pembaruan pukul 21.15 dari KumoDent tidak masuk. Angka mungkin belum lengkap.",
+  umMissing:"{n} hari tanpa angka (pembaruan KumoDent gagal). Total mungkin terlalu rendah.",
+  umToday:"Hari ini", umAsOf:"per pukul {z}", umTodayNone:"Belum ada angka untuk hari ini.",
+  umVsWd:"Rata-rata hari {w} (8 minggu terakhir): {x}",
   blTileT:"Faktur", blTileS:"bulan ini, masuk dan keluar",
   blH:"Faktur", blNew:"+ Tambah faktur", blNewH:"Faktur baru", blNewS:"Foto atau lampirkan PDF sekarang, biar tidak cari-cari akhir bulan.",
   blPdf:"PDF terlampir:", blOpenPdf:"Buka PDF", blNoPdf:"File tidak bisa dibuka. Coba lagi saat online.",
@@ -2573,7 +2626,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-21a";
+const APP_VERSION = "2026-11-21b";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -5251,7 +5304,15 @@ async function fuelleCockpit(){
   const revMTile = $("#kpi-rev-month") && $("#kpi-rev-month").closest(".kpi");
   if(revTile)  revTile.hidden  = !seeRev;
   if(revMTile) revMTile.hidden = !seeRev;
-  if(!seeRev) return;
+  if(!seeRev){
+    if(new URLSearchParams(location.search).get("open")==="s-umsatz"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }   /* Bruno N7 */
+    return;
+  }
+  /* 172: Der Abend-Push oeffnet ./?open=s-umsatz. Gesprungen wird nur hier, also erst nach der Freigabe-Pruefung. */
+  if(new URLSearchParams(location.search).get("open")==="s-umsatz"){
+    try{ history.replaceState(null,"",location.pathname); }catch(e){}
+    go("s-umsatz");
+  }
   /* Nach jedem await nochmal: hat inzwischen jemand anderes angemeldet? */
   const umsatzFuer = me().id;
   const nochErlaubt = () => darfUmsatzSehen() && me() && me().id === umsatzFuer;
@@ -5288,13 +5349,17 @@ async function fuelleCockpit(){
 let letzteBeruehrung = Date.now();
 ["pointerdown","touchstart","keydown"].forEach(ev=>
   document.addEventListener(ev, ()=>{ letzteBeruehrung = Date.now(); }, {passive:true}));
-setInterval(()=>{
+function umsatzSperrePruefen(){
   try{
     if(me() && me().rev && S.token && Date.now() - letzteBeruehrung > 5*60000){
+      if(typeof umLeeren==="function") umLeeren();
       vergissGeraet(); NAV=[]; go("s-login", false); showBack();
     }
   }catch(e){}
-}, 15000);
+}
+setInterval(umsatzSperrePruefen, 15000);
+/* 172 (Elke N5): beim Zurueckholen aus dem Hintergrund sofort pruefen, nicht erst beim naechsten 15-s-Takt. */
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") umsatzSperrePruefen(); });
 
 /* Wer darf Umsatz SEHEN: nur mit eigener Freigabe UND eigener Sitzung. */
 function darfUmsatzSehen(){
@@ -5307,6 +5372,8 @@ function darfUmsatzSehen(){
 /* Umsatz-Kacheln leeren und verstecken. Laeuft vor jeder Entscheidung, beim
    Personenwechsel und beim Abmelden - damit NIE eine alte Zahl im Bild steht. */
 function umsatzWeg(){
+  /* 172: Statistik nur fuer die Person, fuer die sie geladen wurde, und nur mit Freigabe. */
+  if(typeof umLeeren==="function" && umDaten && (!darfUmsatzSehen() || !me() || umDaten.fuer!==me().id)) umLeeren();
   const m=me(); const lead=!!(m && m.lead && !m.mgr);
   const kp=$("#lead-kpis"); if(kp && !lead){ kp.hidden=true; kp.style.display="none"; }
   ["#kpi-rev","#kpi-rev-month"].forEach(sel=>{
@@ -5318,33 +5385,251 @@ function umsatzWeg(){
 /* Betrag in Rupiah, kompakt fuer die Kachel: ab einer Million als "jt" (juta). */
 function fmtRp(n){
   n=Number(n)||0;
-  if(n>=1e6) return "Rp "+(n/1e6).toLocaleString("en-US",{maximumFractionDigits:1})+" jt";
-  return "Rp "+Math.round(n).toLocaleString("en-US");
+  /* 172: ab einer Milliarde "bn" (EN) bzw. "M" = miliar (ID), sonst stand "Rp 1,209 jt" da. */
+  /* Rosa 21.11.: auf ID Punkt fuer Tausender, Komma fuer Dezimal (CLDR id), sonst liest man "Rp 850,000" als 850. */
+  const loc=S.lang==="id"?"id-ID":"en-US";
+  if(n>=1e9) return "Rp "+(n/1e9).toLocaleString(loc,{maximumFractionDigits:2})+(S.lang==="id"?" M":" bn");
+  if(n>=1e6) return "Rp "+(n/1e6).toLocaleString(loc,{maximumFractionDigits:1})+" jt";
+  return "Rp "+Math.round(n).toLocaleString(loc);
 }
 
-/* Umsatz-Verlauf (letzte Monate) fuer die Leitung. Serverseitig summiert
-   (umsatz_monate), nur die Zahlen. Bei Drosselung/Fehler eine ruhige Meldung. */
+/* 172 Statistik fuer Micha und Nina (Dennis 21.11.2026). Quelle: rpc/umsatz_tage, Summe + Anzahl pro
+   Tag bis gestern (heute laeuft noch). Der Server gibt nur bei darf_umsatz() etwas heraus; hier zusaetzlich
+   darfUmsatzSehen() vor dem Laden, nach dem Laden und vor jedem Download (Personenwechsel am Tresen-Handy).
+   Was keine Zeile hat, wird nicht als 0 erfunden. Hochrechnung ist als Schaetzung beschriftet. */
+var umDaten=null, umLauf=0, umFenster=null;   /* var: umsatzWeg kann vor dieser Zeile laufen */
+function umLeeren(){
+  umDaten=null; umLauf++;
+  try{ if(umFenster && !umFenster.closed) umFenster.close(); }catch(e){} umFenster=null;
+  ["#um-top","#um-weeks","#um-wd","#um-list","#um-tage"].forEach(x=>{ const e=$(x); if(e) e.innerHTML=""; });
+  ["#um-weeks-h","#um-wd-h","#um-list-h","#um-dl"].forEach(x=>{ const e=$(x); if(e) e.hidden=true; });
+  const sel=$("#um-monat"); if(sel) sel.innerHTML="";
+  const m=$("#um-msg"); if(m){ m.textContent=""; m.className="lverr"; }
+}
+const umYm = d => d.slice(0,7);
+const umMonatName = (ym, lang) => new Date(ym+"-01T00:00:00Z").toLocaleDateString(lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+const umTageImMonat = ym => new Date(Date.UTC(+ym.slice(0,4), +ym.slice(5,7), 0)).getUTCDate();
+const umVorMonat = ym => { const d=new Date(Date.UTC(+ym.slice(0,4), +ym.slice(5,7)-2, 1)); return d.toISOString().slice(0,7); };
+const umRpVoll = n => "Rp "+Math.round(Number(n)||0).toLocaleString(S.lang==="id"?"id-ID":"en-US");
+const umProz = (a,b) => (b>0 ? Math.round((a/b-1)*100) : null);
+function umPfeil(p){
+  if(p==null) return "";
+  const farbe = p>0 ? "var(--ok)" : (p<0 ? "#C4553B" : "var(--ink-3)");
+  return `<span style="color:${farbe};font-weight:600">${p>0?"▲ +":p<0?"▼ ":""}${p}%</span>`;
+}
+function umSumme(rows){
+  const total=rows.reduce((a,r)=>a+r.total,0), cnt=rows.reduce((a,r)=>a+r.cnt,0);
+  const offen=rows.filter(r=>r.total>0).length;
+  return {total, cnt, offen, proTag: offen?total/offen:0, proTagN: offen?cnt/offen:0, proBuchung: cnt?total/cnt:0};
+}
+/* Bruno N4: Tage ohne Zeile (Abruf ausgefallen) nicht als 0 zaehlen, aber nennen. Laufender Monat bis gestern. */
+function umFehlTage(m){
+  const gestern=baliTag(-1), bis = m.ym===umYm(gestern) ? +gestern.slice(8,10) : umTageImMonat(m.ym);
+  const erster = umDaten && umDaten.tage.length ? umDaten.tage[0].d : null;
+  const ab = (erster && umYm(erster)===m.ym) ? +erster.slice(8,10) : 1;   /* Datenbeginn zaehlt nicht als Luecke */
+  return Math.max(0, (bis-ab+1) - m.rows.length);
+}
+function umMonate(){
+  const m=new Map();
+  (umDaten?umDaten.tage:[]).forEach(r=>{ const k=umYm(r.d); if(!m.has(k)) m.set(k,[]); m.get(k).push(r); });
+  return [...m.keys()].sort().map(k=>Object.assign({ym:k}, umSumme(m.get(k)), {rows:m.get(k)}));
+}
 async function ladeUmsatz(){
-  const t=L(), box=$("#um-list"); if(!box) return;
-  box.innerHTML=`<p class="lverr">${t.umLoading}</p>`;
-  let months=[];
-  try{
-    /* Aus UNSEREN Tages-Schnappschuessen (umsatz_verlauf), nicht aus KumoDents
-       unzuverlaessiger Seiten-Navigation. Baut sich ueber die Tage auf. */
-    months = await sbGet("rpc/umsatz_verlauf?p_monate=3");
-  }catch(e){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
-  if(!months.length){ box.innerHTML=`<p class="lverr">${t.umErr}</p>`; return; }
-  const max=Math.max(1, ...months.map(m=>Number(m.total)||0));
-  box.innerHTML=months.map(m=>{
-    const name=new Date(m.y, m.m-1, 1).toLocaleDateString(S.lang==="id"?"id-ID":"en-GB",{month:"long",year:"numeric"});
-    const pct=Math.round(100*(Number(m.total)||0)/max);
-    const verk=S.lang==="id"?"penjualan":"sales";
-    return `<div class="lvitem" style="flex-direction:column;align-items:stretch;gap:6px">
-      <div style="display:flex;justify-content:space-between;gap:10px"><b>${escHtml(name)}</b><b>${fmtRp(m.total||0)}</b></div>
-      <div style="height:8px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ok)"></div></div>
-      <small>${m.cnt||0} ${verk}</small>
+  const t=L(); umLeeren();
+  const top=$("#um-top"); if(!top) return;
+  if(!darfUmsatzSehen()){ top.innerHTML=`<p class="lverr">${escHtml(t.umNoAccess)}</p>`; return; }
+  const fuer=me().id, lauf=++umLauf;
+  top.innerHTML=`<p class="lverr">${escHtml(t.umLoading)}</p>`;
+  let rows=[];
+  try{ rows = await sbGet("rpc/umsatz_tage?p_tage=400&p_mit_heute=true"); }
+  catch(e){ if(lauf===umLauf) top.innerHTML=`<p class="lverr">${escHtml(t.umErr)}</p>`; return; }
+  if(lauf!==umLauf) return;
+  if(!darfUmsatzSehen() || !me() || me().id!==fuer){ umLeeren(); return; }
+  if(!rows || !rows.length){ top.innerHTML=`<p class="lverr">${escHtml(t.umErr)}</p>`; return; }
+  const alle=rows.map(r=>({d:String(r.on_day).slice(0,10), total:Number(r.total)||0, cnt:Number(r.cnt)||0, um:r.captured_at||null}));
+  const heute=heuteISO();
+  umDaten={fuer, stand:heute, heute:alle.find(r=>r.d===heute)||null, tage:alle.filter(r=>r.d<heute)};
+  umZeichnen();
+}
+function umZeichnen(){
+  const t=L(), lang=S.lang; if(!umDaten) return;
+  const tage=umDaten.tage, gestern=baliTag(-1), cm=umYm(gestern), pm=umVorMonat(cm);
+  const bisTag=+gestern.slice(8,10), name=ym=>umMonatName(ym,lang);
+  const cmRows=tage.filter(r=>umYm(r.d)===cm), pmRows=tage.filter(r=>umYm(r.d)===pm);
+  const c=umSumme(cmRows), p=umSumme(pmRows), pSame=umSumme(pmRows.filter(r=>+r.d.slice(8,10)<=bisTag));
+  const top=$("#um-top");
+  let h=umHeuteKarte(t, lang);
+  if(cmRows.length){
+    /* Anteil am ganzen Vormonat nur, wenn der Vormonat jeden Tag eine Zeile hat (Rosa: Datenbeginn/Luecke). */
+    const share = (p.total>0 && pmRows.length===umTageImMonat(pm)) ? Math.round(c.total/p.total*100)+"%" : null;
+    h+=`<div class="glass" style="padding:16px">
+      <small>${escHtml(t.umUpTo.replace("{m}",name(cm)).replace("{d}",tagText(gestern,{day:"numeric",month:"short"})))}</small>
+      <div style="font-size:30px;font-weight:700;margin:4px 0">${escHtml(umRpVoll(c.total))}</div>
+      ${(pmRows.length && bisTag<=umTageImMonat(pm))?`<small style="display:block">${escHtml(t.umVsSame.replace("{m}",name(pm)).replace("{x}",umRpVoll(pSame.total)))} &nbsp;${umPfeil(umProz(c.total,pSame.total))}</small>`:""}
+      ${share?`<small style="display:block">${escHtml(t.umShare.replace("{p}",share).replace("{m}",name(pm)))}</small>`:""}
     </div>`;
-  }).join("");
+    const kachel=(lbl,wert,a,b)=>`<div class="glass" style="padding:12px;flex:1;min-width:0">
+      <small style="display:block">${escHtml(lbl)}</small>
+      <b style="display:block;font-size:17px;margin:2px 0">${escHtml(wert)}</b>
+      ${pmRows.length?`<small>${umPfeil(umProz(a,b))} ${escHtml(t.umVs.replace("{m}",umMonatName(pm,lang).split(" ")[0]))}</small>`:""}</div>`;
+    h+=`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      ${kachel(t.umPerDay, fmtRp(c.proTag), c.proTag, p.proTag)}
+      ${kachel(t.umPerDayN, (Math.round(c.proTagN*10)/10).toLocaleString(lang==="id"?"id-ID":"en-US"), c.proTagN, p.proTagN)}
+      ${kachel(t.umPerSale, fmtRp(c.proBuchung), c.proBuchung, p.proBuchung)}</div>`;
+    const tim=umTageImMonat(cm);
+    if(bisTag<tim && bisTag>=7 && umYm(gestern)===cm){   /* Bruno N5: nicht auf 1-6 Tage hochrechnen */
+      const proj=c.total/bisTag*tim;
+      h+=`<p class="lverr" style="margin-top:10px">${escHtml(t.umProj.replace("{x}",fmtRp(proj)).replace("{m}",name(cm)))}</p>`;
+    }
+    const best=cmRows.slice().sort((a,b)=>b.total-a.total)[0];
+    if(best && best.total>0) h+=`<p class="lverr" style="margin-top:4px">${escHtml(t.umBest.replace("{m}",name(cm)).replace("{d}",tagText(best.d,{weekday:"short",day:"numeric",month:"short"})).replace("{x}",umRpVoll(best.total)).replace("{n}",best.cnt))}</p>`;
+  } else h+=`<p class="lverr">${escHtml(t.umNoData)}</p>`;
+  top.innerHTML=h;
+
+  /* Wochen (Montag bis Sonntag), die letzten 8 bis einschliesslich der laufenden. */
+  const mo=d=>{ const x=new Date(d+"T00:00:00Z"); x.setUTCDate(x.getUTCDate()-((x.getUTCDay()+6)%7)); return x.toISOString().slice(0,10); };
+  const dieseWoche=mo(heuteISO()), wochen=[];   /* Bruno N3: montags ist die Vorwoche fertig, nicht "so far" */
+  for(let i=7;i>=0;i--){ const x=new Date(dieseWoche+"T00:00:00Z"); x.setUTCDate(x.getUTCDate()-7*i); wochen.push(x.toISOString().slice(0,10)); }
+  const wSum=wochen.map(w=>{ const ende=new Date(w+"T00:00:00Z"); ende.setUTCDate(ende.getUTCDate()+6); const e=ende.toISOString().slice(0,10);
+    const rr=tage.filter(r=>r.d>=w && r.d<=e); return {w, n:rr.length, total:rr.reduce((a,r)=>a+r.total,0)}; })
+    .filter(x=>x.w===dieseWoche ? x.n>0 : x.n===7);   /* unvollstaendige alte Wochen (Datenbeginn, Luecke) nicht zeigen */
+  const wMax=Math.max(1,...wSum.map(x=>x.total));
+  $("#um-weeks").innerHTML = wSum.map(x=>`<div class="lvitem" style="flex-direction:column;align-items:stretch;gap:4px;padding:8px 12px">
+      <div style="display:flex;justify-content:space-between;gap:10px"><small>${escHtml(tagText(x.w,{day:"numeric",month:"short"}))}${x.w===dieseWoche?" · "+escHtml(t.umWeekSoFar):""}</small><small><b>${escHtml(fmtRp(x.total))}</b></small></div>
+      <div style="height:8px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:${Math.round(100*x.total/wMax)}%;background:var(--ok);opacity:${x.w===dieseWoche?.5:1}"></div></div></div>`).join("");
+  $("#um-weeks-h").hidden = !wSum.length;
+
+  /* Wochentage: Durchschnitt der letzten 8 Wochen (56 Tage bis gestern), nur Tage mit Zeile. */
+  const ab=baliTag(-56), wd=[0,1,2,3,4,5,6].map(()=>({s:0,n:0}));
+  tage.filter(r=>r.d>=ab).forEach(r=>{ const i=(new Date(r.d+"T00:00:00Z").getUTCDay()+6)%7; wd[i].s+=r.total; wd[i].n++; });
+  const wdAvg=wd.map(x=>x.n?x.s/x.n:0), wdMax=Math.max(1,...wdAvg);
+  const rang=wdAvg.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,2).map(x=>x[1]);
+  const wdName=i=>new Date(Date.UTC(2026,10,23+i)).toLocaleDateString(lang==="id"?"id-ID":"en-GB",{weekday:"short",timeZone:"UTC"});
+  $("#um-wd").innerHTML = `<div class="glass" style="padding:12px 14px">`+wdAvg.map((v,i)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+      <small style="width:36px;${rang.includes(i)?"font-weight:700":""}">${escHtml(wdName(i))}</small>
+      <div style="flex:1;height:8px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:${Math.round(100*v/wdMax)}%;background:var(--ok);opacity:${rang.includes(i)?1:.55}"></div></div>
+      <small style="width:74px;text-align:right">${escHtml(fmtRp(v))}</small></div>`).join("")+`</div>`;
+  $("#um-wd-h").hidden=false;
+
+  /* Monate */
+  const monate=umMonate();
+  $("#um-list").innerHTML = monate.slice().reverse().map((m,i,arr)=>{
+    const vor=arr[i+1], pr=vor?umProz(m.proTag,vor.proTag):null, laufend=(m.ym===cm && bisTag<umTageImMonat(cm));
+    return `<div class="lvitem" style="flex-direction:column;align-items:stretch;gap:4px">
+      <div style="display:flex;justify-content:space-between;gap:10px"><b>${escHtml(name(m.ym))}${laufend?" · "+escHtml(t.umWeekSoFar):""}</b><b>${escHtml(fmtRp(m.total))}</b></div>
+      ${umFehlTage(m)?`<small style="display:block;color:#C4553B">${escHtml(t.umMissing.replace("{n}",umFehlTage(m)))}</small>`:""}
+      <small>${m.cnt} ${escHtml(t.umSales)} · ${m.offen} ${escHtml(t.umDays)} · ${escHtml(fmtRp(m.proTag))} ${escHtml(t.umPerDayShort)} ${pr!=null?" · "+umPfeil(pr):""}</small></div>`; }).join("");
+  $("#um-list-h").hidden=!monate.length;
+
+  /* Liste zum Ziehen */
+  const sel=$("#um-monat"), alt=sel.value;
+  sel.innerHTML=monate.slice().reverse().map(m=>`<option value="${escHtml(m.ym)}">${escHtml(name(m.ym))}</option>`).join("");
+  if(alt && monate.some(m=>m.ym===alt)) sel.value=alt;
+  $("#um-dl").hidden=!monate.length;
+  { const c=$("#um-csv"), pg=$("#um-page"); if(c) c.hidden=!!S.geteilt; if(pg) pg.hidden=!!S.geteilt; }
+  umTageListe();
+}
+/* 172 Abend: Karte "Heute" (Dennis: Push abends mit Zusammenfassung des Tages). Vergleich mit dem Schnitt
+   desselben Wochentags der letzten 8 Wochen (nur Tage mit Zeile). Stand = letzter Abruf aus KumoDent. */
+function umHeuteKarte(t, lang){
+  const h=umDaten && umDaten.heute;
+  if(!h || !(h.total>0)) return `<div class="glass" style="padding:14px 16px;margin-bottom:8px"><small>${escHtml(t.umToday)}</small><p class="lverr" style="margin:4px 0 0">${escHtml(t.umTodayNone)}</p></div>`;
+  const wt=new Date(h.d+"T00:00:00Z").getUTCDay(), ab=baliTag(-56);
+  const gleich=umDaten.tage.filter(r=>r.d>=ab && new Date(r.d+"T00:00:00Z").getUTCDay()===wt);
+  const schnitt=gleich.length ? gleich.reduce((a,r)=>a+r.total,0)/gleich.length : 0;
+  const stand = h.um ? new Date(new Date(h.um).getTime()+8*3600000).toISOString().slice(11,16) : "";
+  const wtName=new Date(h.d+"T00:00:00Z").toLocaleDateString(lang==="id"?"id-ID":"en-GB",{weekday:"long",timeZone:"UTC"});
+  /* Bruno M2: Vergleich mit ganzen Tagen nur, wenn der Tag fertig abgerufen ist (Abruf ab 21:00 Bali).
+     Bruno M3: Ist es nach 21:20 und der Abruf von 21:15 kam nicht, steht das dabei. */
+  const fertig = stand && stand>="21:00";
+  const jetzt = new Date(Date.now()+8*3600000).toISOString().slice(11,16);
+  const verpasst = !fertig && jetzt>="21:20";
+  const vergleich = schnitt>0
+    ? (fertig ? `<small style="display:block">${escHtml(t.umVsWd.replace("{w}",wtName).replace("{x}",fmtRp(schnitt)))} &nbsp;${umPfeil(umProz(h.total,schnitt))}</small>`
+              : `<small style="display:block">${escHtml(t.umVsWd.replace("{w}",wtName).replace("{x}",fmtRp(schnitt)))} · ${escHtml(t.umDayRuns)}</small>`)
+    : "";
+  return `<div class="glass" style="padding:14px 16px;margin-bottom:8px">
+    <small>${escHtml(t.umToday)}${stand?" · "+escHtml(t.umAsOf.replace("{z}",stand)):""}</small>
+    ${verpasst?`<p class="lverr bad" style="margin:4px 0 0">${escHtml(t.umLate)}</p>`:""}
+    <div style="font-size:24px;font-weight:700;margin:2px 0">${escHtml(umRpVoll(h.total))}</div>
+    <small style="display:block">${h.cnt} ${escHtml(t.umSales)}${h.cnt?" · "+escHtml(t.umPerSale)+" "+escHtml(fmtRp(h.total/h.cnt)):""}</small>
+    ${vergleich}
+  </div>`;
+}
+function umTageListe(){
+  const t=L(), box=$("#um-tage"), sel=$("#um-monat"); if(!box||!sel||!umDaten) return;
+  const rows=umDaten.tage.filter(r=>umYm(r.d)===sel.value);
+  box.innerHTML = rows.length ? rows.map(r=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(128,128,128,.18)">
+      <small>${escHtml(tagText(r.d,{weekday:"short",day:"numeric",month:"short"}))}</small>
+      <small>${r.cnt} · <b>${escHtml(umRpVoll(r.total))}</b></small></div>`).join("")
+    : `<p class="lverr">${escHtml(t.umNoData)}</p>`;
+}
+function umTabellen(){
+  const sel=$("#um-monat"), ym=sel&&sel.value, rows=umDaten.tage.filter(r=>umYm(r.d)===ym);
+  const tage=rows.map(r=>[r.d, new Date(r.d+"T00:00:00Z").toLocaleDateString("en-GB",{weekday:"short",timeZone:"UTC"}), Math.round(r.total), r.cnt, r.cnt?Math.round(r.total/r.cnt):""]);
+  const s=umSumme(rows);
+  const monate=umMonate().map((m,i,arr)=>{ const pr=i?umProz(m.proTag,arr[i-1].proTag):null;
+    return [m.ym, Math.round(m.total), m.cnt, m.offen, Math.round(m.proTag), pr==null?"":pr]; });
+  return {ym, tage, summe:["Total", "", Math.round(s.total), s.cnt, s.cnt?Math.round(s.total/s.cnt):""], monate,
+    kopfTage:["Date","Weekday","Revenue (IDR)","Sales","Per sale (IDR)"],
+    kopfMonate:["Month","Revenue (IDR)","Sales","Days with revenue","Per day (IDR)","Per day vs previous month (%)"]};
+}
+const UM_VERTRAULICH="Confidential: Dr. Michael and Nina only. Source: KumoDent, daily totals up to yesterday.";
+let umSendet=false;
+function umDarf(){ return darfUmsatzSehen() && umDaten && me() && umDaten.fuer===me().id; }
+async function umHolen(){
+  const t=L(), msg=$("#um-msg"), knopf=$("#um-csv");
+  const sage=(txt,art)=>{ if(msg){ msg.textContent=txt||""; msg.className="lverr"+(art?" "+art:""); } };
+  if(TESTLAUF || demoAktiv()){ sage(t.lvGetDemo); return; }
+  if(S.geteilt){ sage(t.umShared,"bad"); return; }   /* 172 (Elke M3): geteiltes Tresen-Handy */
+  if(!umDarf()){ umLeeren(); sage(t.umNoAccess,"bad"); return; }
+  if(umSendet) return;
+  umSendet=true; if(knopf) knopf.disabled=true;
+  const fuer=me().id, nochDa=()=>umDarf() && me() && me().id===fuer;   /* Bruno M1: nach jedem Warten neu pruefen */
+  try{
+    const x=umTabellen(), q=v=>{ const s=v===null||v===undefined?"":String(v); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+    const z=[q(UM_VERTRAULICH), q("Created "+umDaten.stand), "", q("Day by day "+x.ym), x.kopfTage.map(q).join(";")];
+    x.tage.forEach(r=>z.push(r.map(q).join(";"))); z.push(x.summe.map(q).join(";"));
+    z.push("", q("By month"), x.kopfMonate.map(q).join(";")); x.monate.forEach(r=>z.push(r.map(q).join(";")));
+    const blob=new Blob(["﻿"+z.join("\r\n")],{type:"text/csv;charset=utf-8"});
+    const datei="THE-GERMAN-revenue-"+x.ym+".csv";
+    try{
+      const f=new File([blob],datei,{type:"text/csv"});
+      if(navigator.canShare && navigator.canShare({files:[f]})){
+        await mitZeitlimit(navigator.share({files:[f],title:datei}),120000);
+        if(nochDa()) sage(t.lvGetShared,"good"); return;
+      }
+    }catch(e){
+      if(e && e.name==="AbortError"){ if(nochDa()) sage(t.umGetAbort); return; }
+      /* Teilen hing oder scheiterte: KEIN stiller Ersatz-Download, wenn inzwischen jemand anderes da ist. */
+      if(!nochDa()){ umLeeren(); return; }
+    }
+    if(!nochDa()){ umLeeren(); return; }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download=datei;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+    sage(t.lvGetSaved+" "+datei+"  "+t.amGetCheck);
+  }catch(e){ sage(t.lvGetFail,"bad"); }
+  /* Bruno N1: Sperre kurz halten, sonst gibt ein Doppeltipp zwei Dateien. */
+  finally{ setTimeout(()=>{ umSendet=false; const k=$("#um-csv"); if(k) k.disabled=false; }, 2500); }
+}
+function umAlsSeite(){
+  const t=L(), msg=$("#um-msg");
+  if(TESTLAUF || demoAktiv()){ if(msg){ msg.textContent=t.lvGetDemo; msg.className="lverr"; } return; }
+  if(S.geteilt){ if(msg){ msg.textContent=t.umShared; msg.className="lverr bad"; } return; }   /* 172 (Elke M2) */
+  if(!umDarf()){ umLeeren(); if(msg){ msg.textContent=t.umNoAccess; msg.className="lverr bad"; } return; }
+  const x=umTabellen(), esc=v=>escHtml(v==null?"":v);
+  const tab=(kopf,rows)=>`<table><tr>${kopf.map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(v=>`<td>${esc(typeof v==="number"?v.toLocaleString("en-US"):v)}</td>`).join("")}</tr>`).join("")}</table>`;
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Revenue ${esc(x.ym)}</title>
+    <style>body{font:14px/1.4 -apple-system,Helvetica,Arial;padding:16px;color:#222}h2{margin:18px 0 8px}p{color:#555}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:5px 7px;text-align:left;font-size:12px}th{background:#f2f2f2}@media print{button{display:none}}</style></head>
+    <body><button onclick="print()">Print / Save as PDF</button><p><b>${esc(UM_VERTRAULICH)}</b></p><p>Created ${esc(umDaten.stand)}</p>
+    <h2>Day by day ${esc(x.ym)}</h2>${tab(x.kopfTage,[...x.tage,x.summe])}<h2>By month</h2>${tab(x.kopfMonate,x.monate)}</body></html>`;
+  const url=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  const w=window.open(url,"_blank");
+  umFenster=w||null;   /* Bruno M4: bei Sperre, Abmelden und Personenwechsel schliesst umLeeren das Fenster */
+  setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
+  if(!w && msg){ msg.textContent=t.amPopup; msg.className="lverr bad"; }
 }
 
 /* Aufgaben-Kachel fuer die Leitung: erledigt/gesamt. Offline aus dem
@@ -6641,7 +6926,7 @@ function aufgabeSprechen(){
    Aufbau aus seiner eigenen Liste: 14 Tage, aufgeteilt in religioese und
    normale Urlaubstage. Nicht angenommen, sondern an 15 Zeilen nachgerechnet. */
 
-let lvStand=null, lvArt="holiday";
+let lvStand=null, lvStaende=[], lvArt="holiday";
 
 /* Die Leitung sieht, was auf sie wartet. Bewusst kein eigener Bildschirm:
    Ein Reiter, den man suchen muss, wird nicht benutzt. Er haengt dort, wo
@@ -6805,7 +7090,7 @@ async function ladeTeamUrlaub(){
      Antragsliste aus, soll die Team-Uebersicht trotzdem stehen. Vorher riss
      ein Fehler in leave_request die ganze Ansicht mit. */
   const [rA, rB] = await Promise.allSettled([
-    sbGet("app_leave_all?select=*"),
+    sbGet("app_leave_all?select=*&year=eq."+heuteISO().slice(0,4)),   /* 175: nur das laufende Jahr, sonst doppelte Zeilen ab 2027 */
     sbGet("leave_request?select=person_id,kind,from_day,to_day,days,status&order=from_day")
   ]);
 
@@ -7089,8 +7374,12 @@ async function entscheide(id, ja){
 
 async function ladeUrlaub(){
   const m=me(); if(!m||!m.id) return;
-  const [stand]=await sbGet("app_leave?select=*&person_id=eq."+m.id);
-  lvStand=stand||null;
+  /* 175: Ab 2027 gibt es pro Person zwei Jahreszeilen. Angezeigt wird das laufende Bali-Jahr,
+     geprueft wird gegen das Jahr des Antrags (Bruno 171 R2 M2). */
+  const staende=await sbGet("app_leave?select=*&person_id=eq."+m.id+"&order=year.asc");
+  lvStaende=staende||[];
+  const jahr=+heuteISO().slice(0,4);
+  lvStand=lvStaende.find(r=>+r.year===jahr) || lvStaende[0] || null;
   const liste=await sbGet(
     "leave_request?select=id,kind,from_day,to_day,days,status"
     +"&person_id=eq."+m.id+"&order=from_day.desc&limit=20");
@@ -7167,7 +7456,8 @@ async function urlaubRechnen(){
   tg.innerHTML=urlaubTageHtml(t, x.r);
   /* Zu viele Tage werden SOFORT gesagt, nicht erst nach dem Absenden.
      Eine Absage nach dem Absenden fuehlt sich wie eine Abfuhr an. */
-  if(lvStand && n > Number(lvStand.frei)){ msg.className="lverr bad"; msg.textContent=t.lvTooMany; return }
+  const stJahr=(lvStaende||[]).find(r=>+r.year===+a.slice(0,4));
+  if(stJahr && n > Number(stJahr.frei)){ msg.className="lverr bad"; msg.textContent=t.lvTooMany; return }
   send.disabled=false;
 }
 
@@ -7965,6 +8255,7 @@ function geteiltUmschalten(){
    Lauf-Cache. */
 function sitzungZuruecksetzen(){
   try{ umsatzWeg(); }catch(e){}
+  try{ umLeeren(); }catch(e){}   /* 172 (Elke N6): Statistik nie im Speicher fuer die naechste Person */
   /* 154 (Elke): Uebergabe-Notizen und halb getippter Entwurf gehen nicht an die naechste Person. */
   try{ hoLauf++; hoSendet=false; const hs=$("#ho-send"); if(hs) hs.disabled=false;   /* Bruno N1 */
        const hl=$("#ho-liste"), ht=$("#ho-text"), hb=$("#ho-box"), hti=$("#ho-titel"), hm=$("#ho-msg");
@@ -8843,6 +9134,8 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#am-next")){ amMonat=monatPlus(amMonat||heuteISO().slice(0,7)+"-01",1); ladeAnwesenheitMonat().catch(()=>{}); return }
   if(e.target.closest("#am-csv")){ amHolen().catch(()=>{}); return }
   if(e.target.closest("#am-page")){ amAlsSeite(); return }
+  if(e.target.closest("#um-csv")){ umHolen().catch(()=>{}); return }
+  if(e.target.closest("#um-page")){ umAlsSeite(); return }
   if(e.target.closest("#att-prev")){ attTag=tagPlus(attTag||heuteISO(),-1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-next")){ attTag=tagPlus(attTag||heuteISO(),1); ladeAnwesenheit().catch(()=>{}); return }
   if(e.target.closest("#att-today")){ attTag=heuteISO(); ladeAnwesenheit().catch(()=>{}); return }
@@ -9015,6 +9308,7 @@ document.addEventListener("click",e=>{
     renderActions(); renderGroups(); return}
 });
 
+{ const um=document.getElementById("um-monat"); if(um) um.addEventListener("change", umTageListe); }
 ["lv-from","lv-to"].forEach(id=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener("change", urlaubRechnen);
