@@ -2626,7 +2626,7 @@ function save(){
 
 let cur=null, curKind="task", curRoom=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const APP_VERSION = "2026-11-21b";
+const APP_VERSION = "2026-11-21c";
 const R=2*Math.PI*33;
 const L=()=>T[S.lang];
 altlastPositionen();
@@ -5214,6 +5214,8 @@ async function fuelleCockpit(){
      nur beim Anmelden. fuelleCockpit laeuft auch beim Zurueckkehren und bei
      der 5-Minuten-Auffrischung, also wird sie hier mit aufgefrischt. */
   if(me() && me().mgr) zaehleHaengt().catch(()=>{});
+  /* Bruno 172 N9: Push-Link ?open=s-umsatz bei allen ohne Freigabe sofort aus der Adresse nehmen. */
+  if(!darfUmsatzSehen() && new URLSearchParams(location.search).get("open")==="s-umsatz"){ try{ history.replaceState(null,"",location.pathname); }catch(e){} }
   if(!lead) return;
   zaehleSchichtHeute().catch(()=>{});
   zaehleTagesbericht().catch(()=>{});
@@ -5533,7 +5535,11 @@ function umZeichnen(){
    desselben Wochentags der letzten 8 Wochen (nur Tage mit Zeile). Stand = letzter Abruf aus KumoDent. */
 function umHeuteKarte(t, lang){
   const h=umDaten && umDaten.heute;
-  if(!h || !(h.total>0)) return `<div class="glass" style="padding:14px 16px;margin-bottom:8px"><small>${escHtml(t.umToday)}</small><p class="lverr" style="margin:4px 0 0">${escHtml(t.umTodayNone)}</p></div>`;
+  if(!h || !(h.total>0)){
+    /* Bruno 172 R2 N10: auch ohne Zahl sagen, wenn der Abend-Abruf ausblieb. */
+    const spaet = new Date(Date.now()+8*3600000).toISOString().slice(11,16) >= "21:20";
+    return `<div class="glass" style="padding:14px 16px;margin-bottom:8px"><small>${escHtml(t.umToday)}</small><p class="lverr${spaet?" bad":""}" style="margin:4px 0 0">${escHtml(spaet?t.umLate:t.umTodayNone)}</p></div>`;
+  }
   const wt=new Date(h.d+"T00:00:00Z").getUTCDay(), ab=baliTag(-56);
   const gleich=umDaten.tage.filter(r=>r.d>=ab && new Date(r.d+"T00:00:00Z").getUTCDay()===wt);
   const schnitt=gleich.length ? gleich.reduce((a,r)=>a+r.total,0)/gleich.length : 0;
@@ -8256,6 +8262,8 @@ function geteiltUmschalten(){
 function sitzungZuruecksetzen(){
   try{ umsatzWeg(); }catch(e){}
   try{ umLeeren(); }catch(e){}   /* 172 (Elke N6): Statistik nie im Speicher fuer die naechste Person */
+  /* Bruno 172 R2 M5: Urlaubsstand der Vorperson nie fuer die Naechste (Kachel, Ring, "too many"). */
+  try{ lvStand=null; lvStaende=[]; const lb=$("#lv-badge"); if(lb) lb.textContent="\u2014"; }catch(e){}
   /* 154 (Elke): Uebergabe-Notizen und halb getippter Entwurf gehen nicht an die naechste Person. */
   try{ hoLauf++; hoSendet=false; const hs=$("#ho-send"); if(hs) hs.disabled=false;   /* Bruno N1 */
        const hl=$("#ho-liste"), ht=$("#ho-text"), hb=$("#ho-box"), hti=$("#ho-titel"), hm=$("#ho-msg");
